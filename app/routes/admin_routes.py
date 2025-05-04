@@ -8,6 +8,7 @@ import os
 from datetime import datetime
 from flask_wtf import FlaskForm
 from wtforms import HiddenField
+from werkzeug.security import generate_password_hash
 
 class DeleteUserForm(FlaskForm):
     csrf_token = HiddenField()
