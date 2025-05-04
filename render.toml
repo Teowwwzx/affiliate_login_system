@@ -1,7 +1,7 @@
 [web]
 name = "affiliate-login-system"
 sourceDir = "."
-buildCommand = "pip install -r requirements.txt && python -c 'from app import db; db.create_all()'"
+buildCommand = "pip install -r requirements.txt && python init_db.py""
 startCommand = "flask run --host=0.0.0.0"
 env = {
     "FLASK_APP" = "run.py",
