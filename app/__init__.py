@@ -31,6 +31,23 @@ def create_app(test_config=None):
                     db.create_all()
                     logging.info("Database tables created successfully")
                 app._initialized = True
+                
+                # Create admin user if it doesn't exist
+                from werkzeug.security import generate_password_hash
+                from .models import User
+                
+                with app.app_context():
+                    admin = User.query.filter_by(username='admin').first()
+                    if not admin:
+                        admin = User(
+                            username='admin',
+                            password_hash=generate_password_hash('admin123'),
+                            role='admin',
+                            preferred_nav='sidebar'
+                        )
+                        db.session.add(admin)
+                        db.session.commit()
+                        logging.info("Created admin user")
             except Exception as e:
                 logging.error(f"Error creating database tables: {str(e)}")
                 raise
