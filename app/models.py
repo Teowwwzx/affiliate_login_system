@@ -47,7 +47,7 @@ class FinancialAccount(db.Model):
     name = db.Column(db.String(100), unique=True, nullable=False)
     amount = db.Column(Numeric(15, 2), nullable=False, default=0.00)
     currency = db.Column(db.String(3), nullable=False, default='USD')
-    status = db.Column(db.String(20), nullable=False, default='active')
+    account_status = db.Column(db.String(20), nullable=False, default='active')
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     
