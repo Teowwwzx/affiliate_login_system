@@ -1,12 +1,12 @@
 [web]
 name = "affiliate-login-system"
 sourceDir = "."
-buildCommand = "pip install -r requirements.txt && flask db upgrade"
+buildCommand = "pip install -r requirements.txt && python -c 'from app import db; db.create_all()'"
 startCommand = "flask run --host=0.0.0.0"
 env = {
     "FLASK_APP" = "run.py",
     "FLASK_ENV" = "production",
-    "DATABASE_URL" = "postgresql://postgres:postgres@localhost:5432/affiliate_db",
+    "DATABASE_URL" = "postgresql://affiliate_login_system_db_user:iVMx2dKLcrBZHUgCOFzmZZC8FPB0PGsQ@dpg-d0bepf1r0fns73dd1ms0-a.singapore-postgres.render.com/affiliate_login_system_db",
     "SECRET_KEY" = "your-secret-key-here"
 }
 
@@ -15,5 +15,5 @@ name = "affiliate-db"
 version = "15.0"
 size = "Free"
 env = {
-    "DATABASE_URL" = "postgresql://postgres:postgres@localhost:5432/affiliate_db"
+    "DATABASE_URL" = "postgresql://affiliate_login_system_db_user:iVMx2dKLcrBZHUgCOFzmZZC8FPB0PGsQ@dpg-d0bepf1r0fns73dd1ms0-a.singapore-postgres.render.com/affiliate_login_system_db"
 }
