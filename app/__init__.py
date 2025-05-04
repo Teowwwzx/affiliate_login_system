@@ -23,8 +23,17 @@ def create_app(test_config=None):
     logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
     logging.getLogger('sqlalchemy.pool').setLevel(logging.INFO)
     
-    @app.before_app_first_request
+    @app.before_request
     def initialize_database():
+        if not hasattr(app, '_initialized'):
+            try:
+                with app.app_context():
+                    db.create_all()
+                    logging.info("Database tables created successfully")
+                app._initialized = True
+            except Exception as e:
+                logging.error(f"Error creating database tables: {str(e)}")
+                raise
         try:
             with app.app_context():
                 db.create_all()
