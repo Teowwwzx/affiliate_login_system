@@ -16,6 +16,21 @@ migrate = Migrate()
 def create_app(test_config=None):
     """Create and configure an instance of the Flask application."""
     app = Flask(__name__, instance_relative_config=True) # instance_relative_config=True allows loading config from instance/ folder
+    
+    # Add detailed logging for database connection
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+    logging.getLogger('sqlalchemy.pool').setLevel(logging.INFO)
+    
+    @app.before_first_request
+    def initialize_database():
+        try:
+            with app.app_context():
+                db.create_all()
+                logging.info("Database tables created successfully")
+        except Exception as e:
+            logging.error(f"Error creating database tables: {str(e)}")
 
     # --- Configuration ---
     # Default configuration
