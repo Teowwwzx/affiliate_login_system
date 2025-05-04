@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+    <h2>Settings</h2>
+    <form method="post">
+        <div>
+            <label for="preferred_nav">Preferred Navigation:</label>
+            <select id="preferred_nav" name="preferred_nav">
+                <option value="sidebar" {% if current_user.preferred_nav == 'sidebar' %}selected{% endif %}>Sidebar</option>
+                <option value="navbar" {% if current_user.preferred_nav == 'navbar' %}selected{% endif %}>Navbar</option>
+            </select>
+        </div>
+        <button type="submit">Save</button>
+    </form>
+{% endblock %}

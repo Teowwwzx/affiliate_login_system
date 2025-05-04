@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+    <div class="app-layout" data-theme="{{ theme }}">
+        <div class="container mt-4">
+            <h2>Settings</h2>
+            
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">Appearance</h3>
+                    
+                    <form method="post" action="{{ url_for('general.settings') }}">
+                        <div class="form-group">
+                            <label for="nav-view">Navigation View:</label>
+                            <select name="view" id="nav-view" class="form-control">
+                                <option value="sidebar" {% if session.get('preferred_nav') == 'sidebar' %}selected{% endif %}>Sidebar</option>
+                                <option value="navbar" {% if session.get('preferred_nav') == 'navbar' %}selected{% endif %}>Navbar</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="theme">Theme:</label>
+                            <select name="theme" id="theme" class="form-control">
+                                <option value="light" {% if theme == 'light' %}selected{% endif %}>Light</option>
+                                <option value="dark" {% if theme == 'dark' %}selected{% endif %}>Dark</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block styles %}
+    <style>
+        .settings-section {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+{% endblock %}

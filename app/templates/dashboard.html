@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Affiliate System{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="header">
+        <h2>Welcome, {{ session.username }}</h2>
+        <div class="user-info">
+            <span class="badge bg-primary">{{ session.user_role }}</span>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-danger logout-btn">
+                Logout
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Actions</h5>
+                    <ul class="list-group">
+                        {% if session.user_role == 'admin' %}
+                        <li class="list-group-item">
+                            <a href="{{ url_for('admin.create_user_form') }}" class="btn btn-primary w-100">
+                                Create New User
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if session.user_role == 'leader' %}
+                        <li class="list-group-item">
+                            <a href="{{ url_for('leader.create_offline_user') }}" class="btn btn-primary w-100">
+                                Add Offline User
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Activity</h5>
+                    <p class="card-text">
+                        Your recent activity will be shown here.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

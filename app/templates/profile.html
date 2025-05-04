@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+    <h2>My Profile</h2>
+    <form method="post">
+        <div>
+            <label for="username">Username</label><br>
+            {# Pre-fill with current username, allow editing #}
+            <input type="text" id="username" name="username" required value="{{ request.form.username or user.username }}">
+        </div>
+        <br>
+        <div>
+            <label for="password">New Password (optional)</label><br>
+            <input type="password" id="password" name="password">
+            <small>Leave blank to keep current password.</small>
+        </div>
+        <br>
+        {# Display role, but not editable via this form #}
+        <p>Role: <strong>{{ user.role }}</strong></p>
+        {# Display leader if applicable #}
+        {% if user.role == 'offline' and user.leader %}
+            <p>Your Leader: <strong>{{ user.leader.username }}</strong></p>
+        {% endif %}
+         {# Display can_view_funds if applicable #}
+        {% if user.role == 'leader' %}
+            <p>Can View Funds: <strong>{{ 'Yes' if user.can_view_funds else 'No' }}</strong></p>
+        {% endif %}
+        <br>
+        <div>
+            <button type="submit">Update Profile</button>
+        </div>
+    </form>
+{% endblock %}

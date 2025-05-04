@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Offline User Dashboard{% endblock %}
+
+{% block content %}
+    <h2 class="mb-4">Offline User Dashboard</h2>
+    <p>Welcome, {{ session.username }}!</p>
+    <hr>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Your Information</div>
+                <div class="card-body">
+                    {% if leader_name %}
+                        <p class="card-text">Your assigned Leader is: <strong>{{ leader_name }}</strong></p>
+                    {% else %}
+                        <p class="card-text text-muted">You are not currently assigned to a Leader.</p>
+                    {% endif %}
+                    {# Add more offline user specific info here if needed in the future #}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

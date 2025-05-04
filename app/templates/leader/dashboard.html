@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Leader Dashboard{% endblock %}
+
+{% block content %}
+    <h2 class="mb-4">Leader Dashboard</h2>
+    <p>Welcome, {{ session.username }}!</p>
+    <hr>
+
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-header">Summary</div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Your Offline Users Count: <strong>{{ offline_user_count }}</strong></li>
+                    <li class="list-group-item">Total Performance (Your Team): <strong>{{ total_performance }}</strong></li>
+                    {% if company_funds_display is not none %}
+                    <li class="list-group-item">Company Funds: <strong>{{ company_funds_display }}</strong></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-header">Actions</div>
+                <div class="list-group list-group-flush">
+                     <a href="{{ url_for('leader.list_offline_users') }}" class="list-group-item list-group-item-action">View/Manage Your Offline Users</a>
+                     <a href="{{ url_for('leader.create_offline_user') }}" class="list-group-item list-group-item-action">Create New Offline User</a>
+                     <span class="list-group-item text-muted">View Performance Details (Coming Soon)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Top 3 Offline Users (Total Performance)</div>
+        <div class="card-body">
+            <div class="row">
+            {% if top_offline_users %}
+                {% for user in top_offline_users %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                             <div class="card-body text-center">
+                                <h5 class="card-title">{{ loop.index }}. {{ user.username }}</h5>
+                                <p class="card-text">Total Sales: <strong>{{ user.total_sales | default(0) | round(2) }}</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <p class="text-center text-muted">No performance data available for your offline users yet.</p>
+                </div>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <h3 class="mt-4">Monthly Performance Trend (Your Team)</h3>
+    <div style="max-width: 600px; margin: auto;"> 
+        <canvas id="performanceChart"></canvas>
+        <div id="chart-data" data-labels="{{ chart_labels | tojson | safe }}" data-values="{{ chart_data | tojson | safe }}"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Get data from Flask/Jinja and assign to JS variables
+            // Store data in a safer way using HTML data attributes
+            const chartDataElement = document.getElementById('chart-data');
+            const chartLabels = JSON.parse(chartDataElement.getAttribute('data-labels') || '[]');
+            const chartData = JSON.parse(chartDataElement.getAttribute('data-values') || '[]');
+
+            // Only create chart if we have data
+            if (chartLabels && chartLabels.length > 0 && chartData && chartData.length > 0) {
+                const ctx = document.getElementById('performanceChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                            label: 'Total Sales Amount',
+                            data: chartData,
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Sales Amount'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Period (YYYY-MM)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true
+                            },
+                            title: {
+                                display: true,
+                                text: 'Monthly Performance Trend'
+                            }
+                        }
+                    }
+                });
+            } else {
+                // Display a message if no data is available
+                const chartContainer = document.getElementById('performanceChart').parentElement;
+                chartContainer.innerHTML = '<p>No monthly performance data available to display chart.</p>';
+            }
+        });
+    </script>
+{% endblock %}

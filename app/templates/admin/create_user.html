@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Create New User{% endblock %}
+
+{% block content %}
+    <h2>Create New User</h2>
+    <form method="post">
+        <div>
+            <label for="username">Username</label><br>
+            <input type="text" id="username" name="username" required value="{{ request.form.username }}">
+        </div>
+        <br>
+        <div>
+            <label for="password">Password</label><br>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <br>
+        <div>
+            <label for="role">Role</label><br>
+            <select id="role" name="role" required onchange="toggleLeaderSelect(this.value)">
+                <option value="" {% if not request.form.role %}selected{% endif %} disabled>Select Role</option>
+                <option value="admin" {% if request.form.role == 'admin' %}selected{% endif %}>Admin</option>
+                <option value="leader" {% if request.form.role == 'leader' %}selected{% endif %}>Leader</option>
+                <option value="offline" {% if request.form.role == 'offline' %}selected{% endif %}>Offline</option>
+            </select>
+        </div>
+        <br>
+        {# Conditional Leader Selection - Add 'hidden' class initially if not offline #}
+        <div id="leader-select-div" class="{% if request.form.role != 'offline' %}hidden{% endif %}">
+            <label for="leader_username">Assign to Leader</label><br>
+            <select id="leader_username" name="leader_username">
+                <option value="" selected disabled>Select Leader</option>
+                {% for leader in leaders %}
+                    <option value="{{ leader.username }}" {% if request.form.leader_username == leader.username %}selected{% endif %}>
+                        {{ leader.username }}
+                    </option>
+                {% endfor %}
+            </select>
+            <small>(Required if role is Offline)</small>
+        </div>
+        <br>
+        {# Conditional Can View Funds Checkbox - Add 'hidden' class initially if not leader #}
+         <div id="can-view-funds-div" class="{% if request.form.role != 'leader' %}hidden{% endif %}">
+            <input type="checkbox" id="can_view_funds" name="can_view_funds" value="true" {% if request.form.can_view_funds %}checked{% endif %}>
+            <label for="can_view_funds">Can View Funds?</label>
+            <small>(Only applicable for Leader role)</small>
+        </div>
+        <br>
+        <div>
+            <button type="submit">Create User</button>
+            <a href="{{ url_for('admin.list_users') }}" style="margin-left: 10px;">Cancel</a>
+        </div>
+    </form>
+
+    <script>
+        // Simple JS to show/hide leader select and funds checkbox based on role using CSS class
+        function toggleLeaderSelect(selectedRole) {
+            const leaderDiv = document.getElementById('leader-select-div');
+            const fundsDiv = document.getElementById('can-view-funds-div');
+            const leaderSelect = document.getElementById('leader_username');
+            const fundsCheckbox = document.getElementById('can_view_funds');
+
+            if (selectedRole === 'offline') {
+                leaderDiv.classList.remove('hidden');
+                leaderSelect.required = true; // Make leader selection required
+            } else {
+                leaderDiv.classList.add('hidden');
+                leaderSelect.required = false; // Make leader selection not required
+                leaderSelect.value = ""; // Clear selection if role changes
+            }
+
+            if (selectedRole === 'leader') {
+                fundsDiv.classList.remove('hidden');
+            } else {
+                fundsDiv.classList.add('hidden');
+                fundsCheckbox.checked = false; // Uncheck if role changes
+            }
+        }
+        // Initialize on page load in case of form resubmission with errors
+        document.addEventListener('DOMContentLoaded', function() {
+            const initialRole = document.getElementById('role').value;
+            if (initialRole) {
+                toggleLeaderSelect(initialRole);
+            }
+        });
+    </script>
+{% endblock %}
