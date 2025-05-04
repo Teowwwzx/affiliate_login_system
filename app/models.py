@@ -1,45 +1,82 @@
 # This file will contain the SQLAlchemy database models
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import CheckConstraint, Numeric
 
 from datetime import datetime
 
 db = SQLAlchemy()
 
 class User(db.Model):
+    __tablename__ = 'users'
+    
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    password_hash = db.Column(db.String(200), nullable=False) # Increased length for hash
-    role = db.Column(db.String(20), nullable=False) # 'admin', 'leader', 'offline'
-    leader_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # Self-referential foreign key
-    can_view_funds = db.Column(db.Boolean, default=False, nullable=False) # Only relevant for leaders
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    preferred_nav = db.Column(db.String(10), default='sidebar', nullable=False) # 'sidebar' or 'navbar'
+    password_hash = db.Column(db.String(200), nullable=False)
+    role = db.Column(db.String(30), nullable=False)
+    account_status = db.Column(db.String(20), nullable=False, default='active')
+    preferred_navigation = db.Column(db.String(10), nullable=False, default='sidebar')
+    leader_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    can_view_financials = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    __table_args__ = (
+        CheckConstraint(role.in_(['system_administrator', 'team_leader', 'team_member']), name='check_role'),
+        CheckConstraint(account_status.in_(['active', 'inactive']), name='check_account_status'),
+        CheckConstraint(preferred_navigation.in_(['sidebar', 'navbar']), name='check_preferred_navigation'),
+    )
 
-    # Define relationship for leader to access their offline users
-    offline_users = db.relationship('User', backref=db.backref('leader', remote_side=[id]), lazy='dynamic')
-
+    # Role descriptions
+    ROLE_DESCRIPTIONS = {
+        'system_administrator': 'System Administrator - Full access to all system features',
+        'team_leader': 'Team Leader - Manages team members and views team performance',
+        'team_member': 'Team Member - Tracks and reports personal performance metrics'
+    }
+    
+    # Define relationship for team leader to access their team members
+    team_members = db.relationship('User', backref=db.backref('team_leader', remote_side=[id]), lazy='dynamic')
+    
     def __repr__(self):
-        return f'<User {self.username} ({self.role})>'
+        role_desc = self.ROLE_DESCRIPTIONS.get(self.role, 'Unknown Role')
+        return f'<User {self.username} - {role_desc}>'
 
-class CompanySetting(db.Model):
+class FinancialAccount(db.Model):
+    __tablename__ = 'financial_accounts'
+    
     id = db.Column(db.Integer, primary_key=True)
-    key = db.Column(db.String(50), unique=True, nullable=False) # e.g., 'total_funds'
-    value = db.Column(db.String(200), nullable=True) # Store value as string, convert as needed
-    last_updated = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
-
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    amount = db.Column(Numeric(15, 2), nullable=False, default=0.00)
+    currency = db.Column(db.String(3), nullable=False, default='USD')
+    status = db.Column(db.String(20), nullable=False, default='active')
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    __table_args__ = (
+        CheckConstraint(account_status.in_(['active', 'archived']), name='check_account_status'),
+    )
+    
     def __repr__(self):
-        return f'<CompanySetting {self.key}>'
+        return f'<FinancialAccount {self.name}: {self.amount} {self.currency}>'
 
-class PerformanceData(db.Model):
+class PerformanceMetric(db.Model):
+    __tablename__ = 'performance_metrics'
+    
     id = db.Column(db.Integer, primary_key=True)
-    offline_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    metric_value = db.Column(db.Float, nullable=False) # Assuming sales amount is a float
-    period = db.Column(db.String(7), nullable=False) # e.g., '2025-05' for YYYY-MM
-    recorded_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    # Define relationship back to the offline user
-    user = db.relationship('User', backref=db.backref('performance_records', lazy='dynamic'))
-
+    account_id = db.Column(db.Integer, db.ForeignKey('accounts.id'), nullable=False)
+    reporting_period = db.Column(db.String(7), nullable=False)
+    performance_metric = db.Column(Numeric(15, 2), nullable=False)
+    metric_status = db.Column(db.String(20), nullable=False, default='final')
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    __table_args__ = (
+        CheckConstraint(metric_status.in_(['provisional', 'final', 'corrected']), name='check_metric_status'),
+        db.UniqueConstraint('account_id', 'reporting_period', name='uq_account_period'),
+    )
+    
+    # Define relationship back to the user
+    user = db.relationship('User', backref=db.backref('performance_metrics', lazy='dynamic'))
+    
     def __repr__(self):
-        user_info = self.user.username if self.user else f"UserID:{self.offline_user_id}"
-        return f'<PerformanceData for {user_info} ({self.period}): {self.metric_value}>'
+        user_info = self.user.username if self.user else f"UserID:{self.user_id}"
+        return f'<PerformanceMetric for {user_info} ({self.reporting_period}): {self.performance_metric}>'
