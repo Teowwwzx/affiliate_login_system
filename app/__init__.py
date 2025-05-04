@@ -23,7 +23,7 @@ def create_app(test_config=None):
     logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
     logging.getLogger('sqlalchemy.pool').setLevel(logging.INFO)
     
-    @app.before_first_request
+    @app.before_app_first_request
     def initialize_database():
         try:
             with app.app_context():
