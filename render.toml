@@ -1,0 +1,19 @@
+[web]
+name = "affiliate-login-system"
+sourceDir = "."
+buildCommand = "pip install -r requirements.txt"
+startCommand = "flask run --host=0.0.0.0"
+env = {
+    "FLASK_APP" = "run.py",
+    "FLASK_ENV" = "production",
+    "DATABASE_URL" = "postgresql://postgres:postgres@localhost:5432/affiliate_db",
+    "SECRET_KEY" = "your-secret-key-here"
+}
+
+[postgres]
+name = "affiliate-db"
+version = "15.0"
+size = "Free"
+env = {
+    "DATABASE_URL" = "postgresql://postgres:postgres@localhost:5432/affiliate_db"
+}
