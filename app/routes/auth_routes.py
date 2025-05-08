@@ -1,69 +1,74 @@
 # app/routes/auth_routes.py
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
 from werkzeug.security import check_password_hash
-from flask_login import login_user, current_user, logout_user
+from flask_login import login_user, logout_user, current_user
 from ..database.models import User
 from .. import db # If you need to interact with db directly in more complex auth logic
+from urllib.parse import urlparse, urljoin
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
+
+def is_safe_url(target):
+    """
+    Checks if a URL is safe for redirection.
+    Ensures that the target URL is on the same domain as the application.
+    """
+    ref_url = urlparse(request.host_url)
+    test_url = urlparse(urljoin(request.host_url, target))
+    # Ensure the scheme is http or https and the network location (domain) matches.
+    return test_url.scheme in ('http', 'https') and \
+           ref_url.netloc == test_url.netloc
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        # Redirect based on role if already authenticated
+        current_app.logger.info(f"User '{current_user.username}' (Role: {current_user.role}) already authenticated, redirecting to their dashboard.")
+        # If user is already logged in, ALWAYS redirect to their respective dashboard
+        # Ignore any 'next' parameter in this specific scenario to break loops.
         if current_user.role == 'admin':
             return redirect(url_for('admin.admin_dashboard'))
         elif current_user.role == 'leader':
-            # Assuming you have/will have 'leader.leader_dashboard'
-            return redirect(url_for('leader.leader_dashboard')) 
+            return redirect(url_for('leader.leader_dashboard'))
         elif current_user.role == 'member':
-            # Assuming you have/will have 'member.member_dashboard'
             return redirect(url_for('member.member_dashboard'))
         else:
-            return redirect(url_for('general.index')) # Fallback
+            # Fallback if role is somehow not set or recognized
+            current_app.logger.warning(f"Authenticated user '{current_user.username}' has unrecognized role '{current_user.role}', redirecting to general dashboard.")
+            return redirect(url_for('general.dashboard'))
 
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
-        # remember = True if request.form.get('remember') else False # Add if you implement 'Remember Me'
-
+        remember = True if request.form.get('remember') else False
         user = User.query.filter_by(email=email).first()
 
         if not user or not check_password_hash(user.password_hash, password):
-            flash('Please check your login details and try again.', 'danger')
-            return redirect(url_for('auth.login'))
-        
-        # Check if user account is active
-        if not user.status:  # Assuming 'status' is a boolean field in your User model
-            flash('Your account is inactive. Please contact an administrator.', 'warning')
+            flash('Please check your login details and try again.', 'error')
+            current_app.logger.warning(f"Failed login attempt for email: {email}")
             return redirect(url_for('auth.login'))
 
-        # Use Flask-Login's login_user function
-        # login_user(user, remember=remember) # Uncomment and use if you implement 'Remember Me'
-        login_user(user) # Simplified for now
-
-        # Store user info in session (Flask-Login handles user_id in its own way)
-        session['username'] = user.username
-        # session['user_role'] = user.role # Not strictly needed by role_required now
-
-        flash(f'Welcome back, {user.username}!', 'success')
+        login_user(user, remember=remember)
+        current_app.logger.info(f"User '{user.username}' (Role: {user.role}) logged in successfully.")
         
         next_page = request.args.get('next')
-        # Basic validation for next_page to prevent open redirect vulnerabilities
-        # A more robust check might involve urlparse and checking netloc
-        if next_page and (not next_page.startswith('/') and not next_page.startswith(request.host_url)):
-            next_page = None
-
-        # Redirect based on role, honoring next_page if valid and present
-        if user.role == 'admin':
-            return redirect(next_page or url_for('admin.admin_dashboard'))
-        elif user.role == 'leader':
-            return redirect(next_page or url_for('leader.leader_dashboard')) 
-        elif user.role == 'member':
-            return redirect(next_page or url_for('member.member_dashboard'))
+        
+        if next_page and is_safe_url(next_page):
+            current_app.logger.info(f"Redirecting to 'next' URL: {next_page}")
+            return redirect(next_page)
         else:
-            # Fallback if role is not recognized or no specific dashboard
-            return redirect(next_page or url_for('general.index'))
+            if next_page: # Log if next_page was present but unsafe
+                current_app.logger.warning(f"'next' URL '{next_page}' was unsafe or invalid. Redirecting to role-based dashboard.")
+            
+            current_app.logger.info(f"No 'next' URL or unsafe, redirecting to role-based dashboard for user '{user.username}'.")
+            if user.role == 'admin':
+                return redirect(url_for('admin.admin_dashboard'))
+            elif user.role == 'leader':
+                return redirect(url_for('leader.leader_dashboard'))
+            elif user.role == 'member':
+                return redirect(url_for('member.member_dashboard'))
+            else:
+                current_app.logger.warning(f"User '{user.username}' has unrecognized role '{user.role}' post-login, redirecting to general dashboard.")
+                return redirect(url_for('general.dashboard'))
 
     return render_template('auth/login.html', title='Login')
 
