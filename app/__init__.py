@@ -24,11 +24,22 @@ def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
 
     # --- App configurations ---
+    # Choose the database URL based on FLASK_ENV
+    if os.environ.get("FLASK_ENV") == "production":
+        db_uri = os.environ.get("DATABASE_URL_PROD")
+        if not db_uri:
+            app.logger.error("DATABASE_URL_PROD is not set for production environment!")
+            # Potentially raise an error or use a fallback if critical
+    else: # Default to development
+        db_uri = os.environ.get("DATABASE_URL_DEV")
+        if not db_uri:
+            app.logger.error("DATABASE_URL_DEV is not set for development environment!")
+
     app.config.from_mapping(
         SECRET_KEY=os.environ.get(
             "SECRET_KEY", "a_default_fallback_secret_key_if_not_in_env"
         ),
-        SQLALCHEMY_DATABASE_URI=os.environ.get("DATABASE_URL_DEV"),
+        SQLALCHEMY_DATABASE_URI=db_uri, # Use the selected URI
         SQLALCHEMY_TRACK_MODIFICATIONS=False,  # Recommended to set to False
     )
 
