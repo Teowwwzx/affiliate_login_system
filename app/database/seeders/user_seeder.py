@@ -26,47 +26,46 @@ def seed_user():
     else:
         click.echo(f"Admin user '{admin_username}' already exists. Skipping.")
 
-    # --- Create a Test Team Leader ---
-    leader_username = 'leader1'
-    if not User.query.filter_by(username=leader_username).first():
-        leader = User(
-            username=leader_username,
-            email='leader1@gmail.com',
-            role='leader',
-            status=True
-        )
-        leader.set_password('123')
-        db.session.add(leader)
-        # Must flush to get leader.id if other users depend on it before commit
-        db.session.flush() 
-        click.echo(f"User '{leader_username}' created.")
-        leader_id_for_members = leader.id
-    else:
-        existing_leader = User.query.filter_by(username=leader_username).first()
-        leader_id_for_members = existing_leader.id # Use existing leader's ID
-        click.echo(f"User '{leader_username}' already exists. Skipping creation, using existing for member assignment.")
+    # # --- Create a Test Team Leader ---
+    # leader_username = 'leader1'
+    # if not User.query.filter_by(username=leader_username).first():
+    #     leader = User(
+    #         username=leader_username,
+    #         email='leader1@gmail.com',
+    #         role='leader',
+    #         status=True
+    #     )
+    #     leader.set_password('123')
+    #     db.session.add(leader)
+    #     # Must flush to get leader.id if other users depend on it before commit
+    #     db.session.flush() 
+    #     click.echo(f"User '{leader_username}' created.")
+    #     leader_id_for_members = leader.id
+    # else:
+    #     existing_leader = User.query.filter_by(username=leader_username).first()
+    #     leader_id_for_members = existing_leader.id # Use existing leader's ID
+    #     click.echo(f"User '{leader_username}' already exists. Skipping creation, using existing for member assignment.")
 
-    # --- Create Test Team Members ---
-    members_data = [
-        {'username': 'test1', 'email': 'test1@gmail.com'},
-        {'username': 'test2', 'email': 'test2@gmail.com'},
-        {'username': 'test3', 'email': 'test3@gmail.com'}
-    ]
+    # # --- Create Test Team Members ---
+    # members_data = [
+    #     {'username': 'test1', 'email': 'test1@gmail.com'},
+    #     {'username': 'test2', 'email': 'test2@gmail.com'},
+    #     {'username': 'test3', 'email': 'test3@gmail.com'}
+    # ]
 
-    for member_info in members_data:
-        if not User.query.filter_by(username=member_info['username']).first():
-            member = User(
-                username=member_info['username'],
-                email=member_info['email'],
-                role='member',
-                leader_id=leader_id_for_members, # Assign leader
-                status=True
-            )
-            member.set_password('123')
-            db.session.add(member)
-            click.echo(f"User '{member_info['username']}' created.")
-        else:
-            click.echo(f"User '{member_info['username']}' already exists. Skipping.")
-
-    # Removed db.session.commit() - will be handled by seed_all()
-    click.echo("User seeding attempts complete.")
+    # for member_info in members_data:
+    #     if not User.query.filter_by(username=member_info['username']).first():
+    #         member = User(
+    #             username=member_info['username'],
+    #             email=member_info['email'],
+    #             role='member',
+    #             leader_id=leader_id_for_members, # Assign leader
+    #             status=True
+    #         )
+    #         member.set_password('123')
+    #         db.session.add(member)
+    #         click.echo(f"User '{member_info['username']}' created.")
+    #     else:
+    #         click.echo(f"User '{member_info['username']}' already exists. Skipping.")
+    # # Removed db.session.commit() - will be handled by seed_all()
+    # click.echo("User seeding attempts complete.")
