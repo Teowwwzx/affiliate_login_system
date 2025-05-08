@@ -1,437 +1,636 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, session
-from ..utils import login_required, admin_required
-from ..models import User, db, CompanySetting, PerformanceData
-from sqlalchemy import func, extract
-import pandas as pd
-from werkzeug.utils import secure_filename
-import os
-from datetime import datetime
-from flask_wtf import FlaskForm
-from wtforms import HiddenField
+# app/routes/admin_routes.py
+from flask import (
+    Blueprint,
+    render_template,
+    session,
+    redirect,
+    url_for,
+    flash,
+    current_app,
+)
+from ..utils import login_required, role_required  # Assuming you have these decorators
+from flask import request
+from ..database import db
+from ..database.models import User, Fund  # Add Fund import
+from sqlalchemy import func  # Import func for sum
+from werkzeug.security import (
+    generate_password_hash,
+)  # Add this import at the top of the file
 
-class DeleteUserForm(FlaskForm):
-    csrf_token = HiddenField()
+admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
-admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
+FUND_TYPES = {
+    "dynamic_prize_pool": "Dynamic Prize Pool",
+    "static_prize_pool": "Static Prize Pool",
+    "general": "General/Operational",
+}
 
-@admin_bp.route('/dashboard')
+
+@admin_bp.route("/dashboard")
 @login_required
-@admin_required
+@role_required("admin")
 def admin_dashboard():
-    setting = CompanySetting.query.filter_by(key='total_funds').first()
-    total_funds = setting.value if setting else "N/A"
+    # Flash welcome message
+    username = session.get('username', 'Admin') # Default to 'Admin' if username not in session
+    flash(f"Welcome back, {username}!", "success")
 
-    total_performance_result = db.session.query(func.coalesce(func.sum(PerformanceData.metric_value), 0.0)).scalar()
-    total_performance = round(total_performance_result, 2) if total_performance_result is not None else 0.00
+    total_users = User.query.count()
+    active_users = User.query.filter_by(status=True).count()
 
-    leader_count = User.query.filter_by(role='leader').count()
-    offline_user_count = User.query.filter_by(role='offline').count()
+    # Count users who are leaders (have members reporting to them)
+    # We query for distinct user IDs that appear as a leader_id in the User table.
+    # Or, more directly, count users who have associated members.
+    count_leaders = User.query.filter_by(role='leader').count() # CORRECTED: Count all users with 'leader' role
 
-    monthly_performance = db.session.query(
-        PerformanceData.period,
-        func.coalesce(func.sum(PerformanceData.metric_value), 0.0).label('total_sales')
-    ).outerjoin(User)\
-    .filter(User.role == 'offline')\
-    .group_by(PerformanceData.period)\
-    .order_by(PerformanceData.period.asc())\
-    .all()
+    # Count users who are members (report to a leader)
+    count_members_under_leader = User.query.filter(User.leader_id.isnot(None)).count()
 
-    chart_labels = [p.period for p in monthly_performance]
-    chart_data = [float(p.total_sales) for p in monthly_performance]
+    # Calculate sum of fund amounts. If no entries, default to 0.0
+    dynamic_pool_total_query = (
+        db.session.query(func.sum(Fund.amount))
+        .filter(Fund.fund_type == "dynamic_prize_pool")
+        .scalar()
+    )
+    dynamic_prize_pool_total = (
+        dynamic_pool_total_query if dynamic_pool_total_query is not None else 0.0
+    )
 
-    return render_template('admin/dashboard.html',
-                           total_funds=total_funds,
-                           total_performance=total_performance,
-                           chart_labels=chart_labels,
-                           chart_data=chart_data,
-                           leader_count=leader_count,
-                           offline_user_count=offline_user_count)
+    static_pool_total_query = (
+        db.session.query(func.sum(Fund.amount))
+        .filter(Fund.fund_type == "static_prize_pool")
+        .scalar()
+    )
+    static_prize_pool_total = (
+        static_pool_total_query if static_pool_total_query is not None else 0.0
+    )
 
-@admin_bp.route('/users')
+    leaders_with_member_count = []
+    all_users_who_are_leaders = User.query.filter_by(role="leader").all()
+
+    for leader_user in all_users_who_are_leaders:
+        member_count = len(leader_user.members)  # Get count of members for this leader
+        leaders_with_member_count.append(
+            {
+                "username": leader_user.username,
+                "member_count": member_count,
+                "id": leader_user.id,  # useful for any links if needed
+            }
+        )
+
+    sorted_leaders_by_member_count = sorted(
+        leaders_with_member_count, key=lambda x: x["member_count"], reverse=True
+    )
+
+    stats = {
+        "total_users": total_users,
+        "active_users": active_users,
+        "count_leaders": count_leaders,
+        "count_members_under_leader": count_members_under_leader,
+        "dynamic_prize_pool_total": dynamic_prize_pool_total,
+        "static_prize_pool_total": static_prize_pool_total,
+        "leaders_for_sales_calc": sorted_leaders_by_member_count[:5], # Limit to top 5
+        "total_leader_count_for_view_all": len(sorted_leaders_by_member_count), # For 'View All' link logic
+        "current_value_price": 5000,
+    }
+    return render_template(
+        "admin/admin_dashboard.html", title="Admin Dashboard", stats=stats
+    )
+
+
+@admin_bp.route("/users")
 @login_required
-@admin_required
+@role_required("admin")
 def list_users():
-    users = User.query.order_by(User.role, User.username).all()
-    form = DeleteUserForm()
-    return render_template('admin/users.html', users=users, form=form)
+    page = request.args.get("page", 1, type=int)
+    per_page = 10  # Or get from config
 
-@admin_bp.route('/users/create', methods=['GET', 'POST'])
+    # Get filter parameters from request arguments
+    filter_role = request.args.get("role", None)
+    filter_status_str = request.args.get("status", None)
+    filter_leader_id = request.args.get("leader_id_filter", None) # New filter
+
+    # Build the base query
+    query = User.query
+
+    # Apply filters if they are provided
+    if filter_role: # An empty string for role (from 'All Roles') will evaluate to False here, which is correct.
+        query = query.filter(User.role == filter_role)
+    
+    # Correctly handle status filter: only filter if 'true' or 'false' is explicitly passed.
+    if filter_status_str and filter_status_str in ('true', 'false'): 
+        filter_status = filter_status_str.lower() == 'true'
+        query = query.filter(User.status == filter_status)
+    
+    if filter_leader_id: # An empty string for leader_id_filter (from 'All Leaders / Unassigned') will evaluate to False here.
+        if filter_leader_id == '0': # Check for 'Unassigned Members' filter
+            query = query.filter(User.leader_id.is_(None))
+        else:
+            try:
+                leader_id_int = int(filter_leader_id)
+                query = query.filter(User.leader_id == leader_id_int)
+            except ValueError:
+                flash("Invalid Leader ID provided for filtering.", "warning") # Or log, or ignore
+
+    users_pagination = query.order_by(User.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+
+    # Fetch all leaders for the filter dropdown
+    all_leaders = User.query.filter_by(role='leader', status=True).order_by(User.username).all()
+    
+    return render_template(
+        "admin/list_users.html", 
+        users_pagination=users_pagination, 
+        title="Manage Users",
+        current_filters={'role': filter_role, 'status': filter_status_str, 'leader_id': filter_leader_id}, # Pass current filters
+        all_leaders=all_leaders # Pass leaders for dropdown
+    )
+
+
+@admin_bp.route("/users/create", methods=["GET", "POST"])
 @login_required
-@admin_required
-def create_user_form():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        role = request.form.get('role')
-        leader_username = request.form.get('leader_username')
-        can_view_funds = 'can_view_funds' in request.form
+@role_required("admin")
+def create_user():
+    if request.method == "POST":
+        username = request.form.get("username")
+        email = request.form.get("email")
+        password = request.form.get("password")
+        role = request.form.get("role")
+        status = request.form.get("status") == "true"  # Checkbox value
+        leader_id_str = request.form.get("leader_id")
 
-        error = None
-        if not username or not password or not role:
-            error = 'Username, password, and role are required.'
-        elif User.query.filter_by(username=username).first():
-            error = f"Username '{username}' is already taken."
-        elif role not in ['admin', 'leader', 'offline']:
-            error = 'Invalid role specified.'
-
-        leader_user = None
-        if role == 'offline':
-            if not leader_username:
-                error = "Leader username is required for role 'offline'."
-            else:
-                leader_user = User.query.filter_by(username=leader_username, role='leader').first()
-                if not leader_user:
-                    error = f"Leader with username '{leader_username}' not found or is not a leader."
-        elif leader_username:
-            flash("Leader username is ignored for roles other than 'offline'.", 'warning')
-
-        if role != 'leader' and can_view_funds:
-            flash("Can View Funds flag is ignored for roles other than 'leader'.", 'warning')
-            can_view_funds = False
-
-        if error is None:
-            hashed_password = generate_password_hash(password)
-            new_user = User(
-                username=username,
-                password_hash=hashed_password,
-                role=role,
-                leader_id=leader_user.id if leader_user else None,
-                can_view_funds=can_view_funds
+        # Basic validation
+        if not username or not email or not password or not role:
+            flash("Username, email, password, and role are required.", "danger")
+            # Repopulate form with leaders for selection if validation fails
+            leaders = User.query.filter_by(role="leader").all()
+            return render_template(
+                "admin/create_edit_user.html",
+                title="Create User",
+                leaders=leaders,
+                user_data=request.form,
             )
+
+        if User.query.filter_by(username=username).first():
+            flash("Username already exists.", "danger")
+            leaders = User.query.filter_by(role="leader").all()
+            return render_template(
+                "admin/create_edit_user.html",
+                title="Create User",
+                leaders=leaders,
+                user_data=request.form,
+            )
+
+        if User.query.filter_by(email=email).first():
+            flash("Email already registered.", "danger")
+            leaders = User.query.filter_by(role="leader").all()
+            return render_template(
+                "admin/create_edit_user.html",
+                title="Create User",
+                leaders=leaders,
+                user_data=request.form,
+            )
+
+        leader_id = None
+        if role == "member" and leader_id_str:
+            leader_id = int(leader_id_str) if leader_id_str.isdigit() else None
+            if leader_id and not User.query.get(leader_id):
+                flash("Selected leader is invalid.", "danger")
+                leaders = User.query.filter_by(role="leader").all()
+                return render_template(
+                    "admin/create_edit_user.html",
+                    title="Create User",
+                    leaders=leaders,
+                    user_data=request.form,
+                )
+        elif role == "member" and not leader_id_str:  # Member must have a leader
+            flash("A leader must be selected for a member.", "danger")
+            leaders = User.query.filter_by(role="leader").all()
+            return render_template(
+                "admin/create_edit_user.html",
+                title="Create User",
+                leaders=leaders,
+                user_data=request.form,
+            )
+
+        new_user = User(
+            username=username,
+            email=email,
+            role=role,
+            status=status,
+            leader_id=(
+                leader_id if role == "member" else None
+            ),  # Only set leader_id if role is member
+        )
+        new_user.set_password(password)  # Hashes the password
+
+        try:
             db.session.add(new_user)
             db.session.commit()
-            flash(f"User '{username}' ({role}) created successfully.", 'success')
-            return redirect(url_for('admin.list_users'))
-        else:
-            flash(error, 'danger')
+            flash(f"User '{username}' created successfully!", "success")
+            return redirect(url_for("admin.list_users"))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error creating user: {str(e)}", "danger")
+            # Log the exception e for debugging
 
-    leaders = User.query.filter_by(role='leader').order_by(User.username).all()
-    return render_template('admin/create_user.html', leaders=leaders)
+    # GET request: Show the form
+    leaders = User.query.filter_by(role="leader").all()  # For leader selection dropdown
+    return render_template(
+        "admin/create_edit_user.html", title="Create User", leaders=leaders
+    )
 
-@admin_bp.route('/users/<int:user_id>/edit', methods=['GET', 'POST'])
+
+@admin_bp.route("/users/edit/<int:user_id>", methods=["GET", "POST"])
 @login_required
-@admin_required
+@role_required("admin")
 def edit_user(user_id):
-    user_to_edit = User.query.get_or_404(user_id)
+    user = User.query.get_or_404(user_id)
 
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        role = request.form.get('role')
-        leader_username = request.form.get('leader_username')
-        can_view_funds = 'can_view_funds' in request.form
+    if user.role == "admin":
+        flash(
+            "Admin users cannot be edited",
+            "warning",
+        )
+        return redirect(url_for("admin.list_users"))
 
-        error = None
-        if username != user_to_edit.username and User.query.filter_by(username=username).first():
-            error = f"Username '{username}' is already taken."
-        elif not username or not role:
-            error = 'Username is required.'
-        elif role not in ['admin', 'leader', 'offline']:
-            error = 'Invalid role specified.'
+    leaders = User.query.filter(
+        User.role == "leader", User.id != user_id
+    ).all()  # Exclude self if user is a leader
 
-        leader_user = None
-        if role == 'offline':
-            if not leader_username:
-                error = "Leader username is required for role 'offline'."
-            else:
-                leader_user = User.query.filter_by(username=leader_username, role='leader').first()
-                if not leader_user:
-                    error = f"Leader with username '{leader_username}' not found or is not a leader."
-        elif leader_username:
-            flash("Leader username is ignored for roles other than 'offline'.", 'warning')
+    if request.method == "POST":
+        original_username = user.username
+        original_email = user.email
 
-        if role != 'leader' and can_view_funds:
-            flash("Can View Funds flag is ignored for roles other than 'leader'.", 'warning')
-            can_view_funds = False
+        user.username = request.form.get("username")
+        user.email = request.form.get("email")
+        new_password = request.form.get("password")
+        user.role = request.form.get("role")
+        user.status = request.form.get("status") == "true"
+        leader_id_str = request.form.get("leader_id")
 
-        if error is None:
-            user_to_edit.username = username
-            user_to_edit.role = role
-            if password:
-                user_to_edit.password_hash = generate_password_hash(password)
-            user_to_edit.leader_id = leader_user.id if leader_user else None
-            user_to_edit.can_view_funds = can_view_funds if role == 'leader' else False
+        if not user.username or not user.email or not user.role:
+            flash("Username, email, and role are required.", "danger")
+            return render_template(
+                "admin/create_edit_user.html",
+                title="Edit User",
+                user=user,
+                leaders=leaders,
+                action_url=url_for("admin.edit_user", user_id=user_id),
+            )
+
+        # Check for username uniqueness (if changed)
+        if (
+            user.username != original_username
+            and User.query.filter_by(username=user.username).first()
+        ):
+            flash("Username already exists.", "danger")
+            user.username = original_username  # Revert to original
+            return render_template(
+                "admin/create_edit_user.html",
+                title="Edit User",
+                user=user,
+                leaders=leaders,
+                action_url=url_for("admin.edit_user", user_id=user_id),
+            )
+
+        # Check for email uniqueness (if changed)
+        if (
+            user.email != original_email
+            and User.query.filter_by(email=user.email).first()
+        ):
+            flash("Email already registered.", "danger")
+            user.email = original_email  # Revert to original
+            return render_template(
+                "admin/create_edit_user.html",
+                title="Edit User",
+                user=user,
+                leaders=leaders,
+                action_url=url_for("admin.edit_user", user_id=user_id),
+            )
+
+        if new_password:
+            user.set_password(new_password)
+
+        if user.role == "member" and leader_id_str:
+            user.leader_id = int(leader_id_str) if leader_id_str.isdigit() else None
+            if user.leader_id and not User.query.get(user.leader_id):
+                flash("Selected leader is invalid.", "danger")
+                return render_template(
+                    "admin/create_edit_user.html",
+                    title="Edit User",
+                    user=user,
+                    leaders=leaders,
+                    action_url=url_for("admin.edit_user", user_id=user_id),
+                )
+        elif user.role == "member" and not leader_id_str:
+            flash("A leader must be selected for a member.", "danger")
+            return render_template(
+                "admin/create_edit_user.html",
+                title="Edit User",
+                user=user,
+                leaders=leaders,
+                action_url=url_for("admin.edit_user", user_id=user_id),
+            )
+        elif user.role != "member":
+            user.leader_id = None  # Ensure non-members don't have a leader_id
+
+        try:
+            db.session.commit()
+            flash(f"User '{user.username}' updated successfully!", "success")
+            return redirect(url_for("admin.list_users"))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error updating user: {str(e)}", "danger")
+            # Log the exception e
+
+    # GET request: Show the form with user's current data
+    return render_template(
+        "admin/create_edit_user.html",
+        title="Edit User",
+        user=user,
+        leaders=leaders,
+        action_url=url_for("admin.edit_user", user_id=user_id),
+    )
+
+
+@admin_bp.route(
+    "/users/delete/<int:user_id>", methods=["GET"]
+)  # Usually POST/DELETE for actual deletion
+@login_required
+@role_required("admin")
+def delete_user(user_id):
+    # For now, just a placeholder to avoid BuildError.
+    # Actual deletion logic will be added here.
+    user_to_delete = User.query.get_or_404(user_id)
+
+    if user_to_delete.id == session.get("user_id"):
+        flash("You cannot delete your own account.", "danger")
+        return redirect(url_for("admin.list_users"))
+
+    # Prevent deleting any user with admin role
+    if user_to_delete.role == "admin":
+        flash("Admin users cannot be deleted for security reasons.", "danger")
+        return redirect(url_for("admin.list_users"))
+
+    # TEMPORARY: Redirect back with a message.
+    # flash(
+    #     f"Deletion for user '{user_to_delete.username}' is not yet implemented. Clicked delete for user ID: {user_id}",
+    #     "warning",
+    # )
+    # return redirect(url_for("admin.list_users"))
+
+    try:
+        # Add logic here if users have dependent data (e.g., reassign sales, team members)
+        # For example, if members are linked to this leader, you might want to nullify their leader_id
+        if user_to_delete.role == "leader":
+            members_of_leader = User.query.filter_by(leader_id=user_to_delete.id).all()
+            for member in members_of_leader:
+                member.leader_id = None
+            flash(
+                f"Members previously under '{user_to_delete.username}' are now unassigned.",
+                "info",
+            )
+
+        db.session.delete(user_to_delete)
+        db.session.commit()
+        flash(f"User '{user_to_delete.username}' deleted successfully.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error deleting user: {str(e)}", "danger")
+    # Log error e
+
+    return redirect(url_for("admin.list_users"))
+
+
+@admin_bp.route("/funds")
+@login_required
+@role_required("admin")
+def manage_funds():  # Renaming to list_funds behaviorally, keeping route name for now
+    # Fetch all funds and join with User to get creator's username
+    # Order by created_at descending to show latest first
+    funds_with_creators = (
+        db.session.query(Fund, User.username.label("creator_username"))
+        .join(User, Fund.created_by == User.id)
+        .order_by(Fund.created_at.desc())
+        .all()
+    )
+
+    return render_template(
+        "admin/list_funds.html",
+        funds_data=funds_with_creators,
+        title="Manage Fund Entries",
+        fund_types=FUND_TYPES,
+    )
+
+
+@admin_bp.route("/sales")
+@login_required
+@role_required("admin")
+def list_sales():
+    flash("Sales management page is under construction.", "info")
+    return redirect(url_for("admin.admin_dashboard"))
+
+
+@admin_bp.route("/funds/create", methods=["GET", "POST"])
+@login_required
+@role_required("admin")
+def create_fund():
+    if request.method == "POST":
+        try:
+            amount_str = request.form.get("amount")
+            remarks = request.form.get("remarks")
+            fund_type = request.form.get("fund_type")
+
+            if not amount_str:
+                flash("Amount is required.", "danger")
+                return render_template(
+                    "admin/create_edit_fund.html",
+                    title="Create Fund Entry",
+                    fund_data=request.form,
+                    action_url=url_for("admin.create_fund"),
+                    fund_types=FUND_TYPES,
+                )
+
+            if not fund_type or fund_type not in FUND_TYPES:
+                flash("Valid Fund Type is required.", "danger")
+                return render_template(
+                    "admin/create_edit_fund.html",
+                    title="Create Fund Entry",
+                    fund_data=request.form,
+                    action_url=url_for("admin.create_fund"),
+                    fund_types=FUND_TYPES,
+                )
+
+            try:
+                amount = float(amount_str)
+                if amount <= 0:
+                    raise ValueError("Amount must be positive.")
+            except ValueError as e:
+                flash(f"Invalid amount: {e}", "danger")
+                return render_template(
+                    "admin/create_edit_fund.html",
+                    title="Create Fund Entry",
+                    fund_data=request.form,
+                    action_url=url_for("admin.create_fund"),
+                    fund_types=FUND_TYPES,
+                )
+
+            new_fund_entry = Fund(
+                amount=amount,
+                remarks=remarks,
+                fund_type=fund_type,
+                created_by=session["user_id"],
+            )
+            db.session.add(new_fund_entry)
+            db.session.commit()
+            flash("Fund entry created successfully!", "success")
+            return redirect(url_for("admin.manage_funds"))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error creating fund entry: {str(e)}", "danger")
+            current_app.logger.error(f"Error creating fund entry: {e}", exc_info=True)
+            return render_template(
+                "admin/create_edit_fund.html",
+                title="Create Fund Entry",
+                fund_data=request.form,
+                action_url=url_for("admin.create_fund"),
+                fund_types=FUND_TYPES,
+            )
+
+    return render_template(
+        "admin/create_edit_fund.html",
+        title="Create Fund Entry",
+        action_url=url_for("admin.create_fund"),
+        fund_types=FUND_TYPES,
+    )
+
+
+@admin_bp.route("/funds/edit/<int:fund_id>", methods=["GET", "POST"])
+@login_required
+@role_required("admin")
+def edit_fund(fund_id):
+    fund = Fund.query.get_or_404(fund_id)
+
+    if request.method == "POST":
+        try:
+            amount_str = request.form.get("amount")
+            remarks = request.form.get("remarks")
+            fund_type = request.form.get("fund_type")
+
+            if not amount_str:
+                flash("Amount is required.", "danger")
+                return render_template(
+                    "admin/create_edit_fund.html",
+                    title="Edit Fund Entry",
+                    fund_data=request.form,
+                    fund=fund,
+                    action_url=url_for("admin.edit_fund", fund_id=fund_id),
+                    fund_types=FUND_TYPES,
+                )
+
+            if not fund_type or fund_type not in FUND_TYPES:
+                flash("Valid Fund Type is required.", "danger")
+                return render_template(
+                    "admin/create_edit_fund.html",
+                    title="Edit Fund Entry",
+                    fund_data=request.form,
+                    fund=fund,
+                    action_url=url_for("admin.edit_fund", fund_id=fund_id),
+                    fund_types=FUND_TYPES,
+                )
+
+            try:
+                amount = float(amount_str)
+                if amount <= 0:
+                    raise ValueError("Amount must be positive.")
+            except ValueError as e:
+                flash(f"Invalid amount: {e}", "danger")
+                return render_template(
+                    "admin/create_edit_fund.html",
+                    title="Edit Fund Entry",
+                    fund_data=request.form,
+                    fund=fund,
+                    action_url=url_for("admin.edit_fund", fund_id=fund_id),
+                    fund_types=FUND_TYPES,
+                )
+
+            fund.amount = amount
+            fund.remarks = remarks
+            fund.fund_type = fund_type
 
             db.session.commit()
-            flash(f"User '{user_to_edit.username}' updated successfully.", 'success')
-            return redirect(url_for('admin.list_users'))
-        else:
-            flash(error, 'danger')
+            flash("Fund entry updated successfully!", "success")
+            return redirect(url_for("admin.manage_funds"))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error updating fund entry: {str(e)}", "danger")
+            current_app.logger.error(f"Error updating fund entry: {e}", exc_info=True)
+            return render_template(
+                "admin/create_edit_fund.html",
+                title="Edit Fund Entry",
+                fund_data=request.form,
+                fund=fund,
+                action_url=url_for("admin.edit_fund", fund_id=fund_id),
+                fund_types=FUND_TYPES,
+            )
 
-    leaders = User.query.filter_by(role='leader').order_by(User.username).all()
-    return render_template('admin/edit_user.html', user=user_to_edit, leaders=leaders)
+    return render_template(
+        "admin/create_edit_fund.html",
+        title="Edit Fund Entry",
+        fund=fund,
+        action_url=url_for("admin.edit_fund", fund_id=fund_id),
+        fund_types=FUND_TYPES,
+    )
 
-@admin_bp.route('/settings/funds', methods=['GET', 'POST'])
+
+@admin_bp.route(
+    "/funds/delete/<int:fund_id>", methods=["GET", "POST"]
+)  # POST for safety, or ensure CSRF if GET
 @login_required
-@admin_required
-def manage_funds():
-    setting = CompanySetting.query.filter_by(key='total_funds').first()
+@role_required("admin")
+def delete_fund(fund_id):
+    fund_to_delete = Fund.query.get_or_404(fund_id)
+    try:
+        db.session.delete(fund_to_delete)
+        db.session.commit()
+        flash(f"Fund entry ID {fund_to_delete.id} deleted successfully!", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error deleting fund entry: {str(e)}", "danger")
+        current_app.logger.error(
+            f"Error deleting fund entry ID {fund_id}: {e}", exc_info=True
+        )
+    return redirect(url_for("admin.manage_funds"))
 
-    if request.method == 'POST':
-        new_value = request.form.get('total_funds')
-        if new_value:
-            try:
-                float(new_value)
-                if setting:
-                    setting.value = new_value
-                else:
-                    setting = CompanySetting(key='total_funds', value=new_value)
-                    db.session.add(setting)
-                db.session.commit()
-                flash('Total funds updated successfully.', 'success')
-            except ValueError:
-                flash('Invalid amount entered. Please enter a number.', 'danger')
-            except Exception as e:
-                db.session.rollback()
-                flash(f'Error updating funds: {e}', 'danger')
-        else:
-            flash('Funds value cannot be empty.', 'warning')
-        setting = CompanySetting.query.filter_by(key='total_funds').first()
 
-    current_value = setting.value if setting else '0.00'
-    last_updated = setting.last_updated if setting else None
-
-    return render_template('admin/manage_funds.html', current_value=current_value, last_updated=last_updated)
-
-@admin_bp.route('/users/import', methods=['GET', 'POST'])
+@admin_bp.route("/leaders_list_full")
 @login_required
-@admin_required
-def import_users():
-    if request.method == 'POST':
-        if 'user_file' not in request.files:
-            flash('No file part', 'danger')
-            return redirect(request.url)
-        file = request.files['user_file']
-        if file.filename == '':
-            flash('No selected file', 'danger')
-            return redirect(request.url)
+@role_required("admin")
+def list_all_leaders():
+    leaders_with_member_count = []
+    all_users_who_are_leaders = User.query.filter_by(role="leader").order_by(User.username).all()
 
-        if file and (file.filename.endswith('.xlsx') or file.filename.endswith('.csv')):
-            try:
-                if file.filename.endswith('.xlsx'):
-                    df = pd.read_excel(file, engine='openpyxl')
-                else:
-                    try:
-                        df = pd.read_csv(file)
-                    except UnicodeDecodeError:
-                        file.seek(0)
-                        df = pd.read_csv(file, encoding='latin1')
+    for leader_user in all_users_who_are_leaders:
+        member_count = User.query.filter_by(leader_id=leader_user.id).count() # More direct count
+        leaders_with_member_count.append(
+            {
+                "username": leader_user.username,
+                "email": leader_user.email,
+                "member_count": member_count,
+                "id": leader_user.id,
+                "status": leader_user.status,
+                "created_at": leader_user.created_at
+            }
+        )
+    
+    # Optionally, sort this list as well if needed, e.g., by member count or username
+    sorted_full_leaders_list = sorted(
+        leaders_with_member_count, key=lambda x: x["member_count"], reverse=True
+    )
 
-                required_columns = ['username', 'password', 'role']
-                if not all(col in df.columns for col in required_columns):
-                    flash(f'Missing required columns. Need: {required_columns}', 'danger')
-                    return redirect(request.url)
-
-                created_count = 0
-                skipped_count = 0
-                errors = []
-
-                for index, row in df.iterrows():
-                    username = str(row['username']).strip() if pd.notna(row['username']) else ''
-                    password = str(row['password']).strip() if pd.notna(row['password']) else ''
-                    role = str(row['role']).strip() if pd.notna(row['role']) else ''
-                    leader_username = str(row.get('leader_username', '')).strip() if pd.notna(row.get('leader_username', '')) else ''
-                    can_view_funds = str(row.get('can_view_funds', '')).strip().lower() == 'true' if pd.notna(row.get('can_view_funds', '')) else False
-
-                    row_num = index + 2
-                    error_prefix = f"Row {row_num}: "
-                    row_errors = []
-
-                    if not username or not password or not role:
-                        row_errors.append(f"{error_prefix}Missing username, password, or role.")
-                    existing_user = User.query.filter(User.username.ilike(username)).first()
-                    if existing_user:
-                        row_errors.append(f"{error_prefix}Username '{username}' already exists.")
-                    if role not in ['admin', 'leader', 'offline']:
-                        row_errors.append(f"{error_prefix}Invalid role '{role}' for user '{username}'.")
-
-                    leader_user = None
-                    if role == 'offline':
-                        if not leader_username:
-                            row_errors.append(f"{error_prefix}Leader username is required for role 'offline'.")
-                            continue
-                        leader_user = User.query.filter(User.username.ilike(leader_username), User.role == 'leader').first()
-                        if not leader_user:
-                            row_errors.append(f"{error_prefix}Leader with username '{leader_username}' not found or is not a leader.")
-                            continue
-                    elif leader_username:
-                        flash("Leader username is ignored for roles other than 'offline'.", 'warning')
-
-                    if role != 'leader' and can_view_funds:
-                        flash("Can View Funds flag is ignored for roles other than 'leader'.", 'warning')
-                        can_view_funds = False
-
-                    if row_errors:
-                        errors.extend(row_errors)
-                        skipped_count += 1
-                        continue
-
-                    try:
-                        hashed_password = generate_password_hash(password)
-                        new_user = User(
-                            username=username,
-                            password_hash=hashed_password,
-                            role=role,
-                            leader_id=leader_user.id if leader_user else None,
-                            can_view_funds=can_view_funds
-                        )
-                        db.session.add(new_user)
-                        created_count += 1
-                    except Exception as e:
-                        errors.append(f"{error_prefix}Error creating user '{username}': {e}")
-                        skipped_count += 1
-                        db.session.rollback()
-
-                if errors and created_count == 0:
-                    db.session.rollback()
-                    flash('Import failed. No users were created. See errors below.', 'danger')
-                elif errors:
-                    try:
-                        db.session.commit()
-                        flash(f'Import partially successful. Created: {created_count}, Skipped: {skipped_count}. See errors below.', 'warning')
-                    except Exception as commit_error:
-                        db.session.rollback()
-                        flash(f'Import failed during final commit after partial success. Error: {commit_error}', 'danger')
-                        for error in errors:
-                            flash(error, 'danger')
-                        return redirect(request.url)
-                else:
-                    db.session.commit()
-                    flash(f'User import successful! Created: {created_count}', 'success')
-
-                for error in errors:
-                    flash(error, 'danger')
-
-                return redirect(url_for('admin.list_users'))
-
-            except Exception as e:
-                db.session.rollback()
-                flash(f'An critical error occurred during file processing: {e}', 'danger')
-                return redirect(request.url)
-
-        else:
-            flash('Invalid file type. Please upload .xlsx or .csv', 'danger')
-            return redirect(request.url)
-
-    return render_template('admin/import_users.html')
-
-@admin_bp.route('/performance/import', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def import_performance():
-    if request.method == 'POST':
-        if 'perf_file' not in request.files:
-            flash('No file part', 'danger')
-            return redirect(request.url)
-        file = request.files['perf_file']
-        if file.filename == '':
-            flash('No selected file', 'danger')
-            return redirect(request.url)
-
-        if file and (file.filename.endswith('.xlsx') or file.filename.endswith('.csv')):
-            try:
-                if file.filename.endswith('.xlsx'):
-                    df = pd.read_excel(file, engine='openpyxl')
-                else:
-                    try:
-                        df = pd.read_csv(file)
-                    except UnicodeDecodeError:
-                        file.seek(0)
-                        df = pd.read_csv(file, encoding='latin1')
-
-                required_columns = ['offline_username', 'period', 'sales_amount']
-                if not all(col in df.columns for col in required_columns):
-                    flash(f'Missing required columns. Need: {required_columns}', 'danger')
-                    return redirect(request.url)
-
-                created_count = 0
-                updated_count = 0
-                skipped_count = 0
-                errors = []
-
-                for index, row in df.iterrows():
-                    username = str(row['offline_username']).strip() if pd.notna(row['offline_username']) else ''
-                    period = str(row['period']).strip() if pd.notna(row['period']) else ''
-                    sales_amount_str = str(row['sales_amount']).strip() if pd.notna(row['sales_amount']) else ''
-
-                    row_num = index + 2
-                    error_prefix = f"Row {row_num}: "
-                    row_errors = []
-
-                    if not username or not period or not sales_amount_str:
-                        row_errors.append(f"{error_prefix}Missing offline_username, period, or sales_amount.")
-
-                    if not (len(period) == 7 and period[4] == '-' and period[:4].isdigit() and period[5:].isdigit()):
-                        row_errors.append(f"{error_prefix}Invalid period format '{period}'. Use YYYY-MM.")
-
-                    try:
-                        sales_amount = float(sales_amount_str)
-                    except ValueError:
-                        row_errors.append(f"{error_prefix}Invalid sales_amount '{sales_amount_str}'. Must be a number.")
-
-                    offline_user = None
-                    if username:
-                        offline_user = User.query.filter(User.username.ilike(username), User.role == 'offline').first()
-                        if not offline_user:
-                            row_errors.append(f"{error_prefix}Offline user '{username}' not found.")
-
-                    if row_errors:
-                        errors.extend(row_errors)
-                        skipped_count += 1
-                        continue
-
-                    existing_record = PerformanceData.query.filter_by(
-                        offline_user_id=offline_user.id,
-                        period=period
-                    ).first()
-
-                    try:
-                        if existing_record:
-                            existing_record.metric_value = sales_amount
-                            existing_record.recorded_at = datetime.utcnow()
-                            updated_count += 1
-                        else:
-                            new_record = PerformanceData(
-                                offline_user_id=offline_user.id,
-                                period=period,
-                                metric_value=sales_amount
-                            )
-                            db.session.add(new_record)
-                            created_count += 1
-                    except Exception as e:
-                        errors.append(f"{error_prefix}Error saving performance for '{username}' period '{period}': {e}")
-                        skipped_count += 1
-                        db.session.rollback()
-
-                if errors and (created_count + updated_count == 0):
-                    db.session.rollback()
-                    flash('Import failed. No performance data saved. See errors below.', 'danger')
-                elif errors:
-                    try:
-                        db.session.commit()
-                        flash(f'Import partially successful. Created: {created_count}, Updated: {updated_count}, Skipped: {skipped_count}. See errors below.', 'warning')
-                    except Exception as commit_error:
-                        db.session.rollback()
-                        flash(f'Import failed during final commit. Error: {commit_error}', 'danger')
-                        for error in errors:
-                            flash(error, 'danger')
-                        return redirect(request.url)
-                else:
-                    db.session.commit()
-                    flash(f'Performance import successful! Created: {created_count}, Updated: {updated_count}', 'success')
-
-                for error in errors:
-                    flash(error, 'danger')
-
-                return redirect(url_for('admin.admin_dashboard'))
-
-            except Exception as e:
-                db.session.rollback()
-                flash(f'An critical error occurred during file processing: {e}', 'danger')
-                return redirect(request.url)
-
-        else:
-            flash('Invalid file type. Please upload .xlsx or .csv', 'danger')
-            return redirect(request.url)
-
-    return render_template('admin/import_performance.html')
+    return render_template(
+        "admin/list_all_leaders.html", 
+        title="Full Leaderboard", 
+        leaders_list=sorted_full_leaders_list
+    )

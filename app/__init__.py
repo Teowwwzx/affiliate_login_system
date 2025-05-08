@@ -1,118 +1,149 @@
 import os
 from flask import Flask
-from .models import db
-from .routes import general_bp, admin_bp, leader_bp, offline_bp
-from .auth import auth_bp
+from .database import db
 from dotenv import load_dotenv
-from flask_migrate import Migrate # Import Migrate
-from flask_wtf.csrf import CSRFProtect
-from datetime import datetime # Import datetime
+from flask_migrate import Migrate
+from flask_login import LoginManager
+import logging  # For better debugging
+from datetime import datetime # Make sure datetime is imported from datetime module
+from .routes.general_routes import general_bp
+from .routes.auth_routes import auth_bp
+from .routes.admin_routes import admin_bp
+from .routes.leader_routes import leader_bp
+from .routes.member_routes import member_bp
+import click    
+from .database.models import User 
 
-load_dotenv() # Load environment variables from .env file
+load_dotenv()  # Ensure this is called to load .env variables
 
-# Initialize Migrate outside create_app
 migrate = Migrate()
+login_manager = LoginManager()
 
 def create_app(test_config=None):
     """Create and configure an instance of the Flask application."""
-    app = Flask(__name__, instance_relative_config=True) # instance_relative_config=True allows loading config from instance/ folder
+    app = Flask(__name__, instance_relative_config=True)
 
-    # --- Configuration ---
-    # Default configuration
+    # --- App configurations ---
     app.config.from_mapping(
-        SECRET_KEY=os.environ.get('SECRET_KEY', 'dev'), # Default 'dev' key for development, MUST be overridden in production
-        # Use DATABASE_URL from environment if available, otherwise use SQLite default
-        SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL', f"sqlite:///{os.path.join(app.instance_path, 'app.db')}"),
-        SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        SECRET_KEY=os.environ.get(
+            "SECRET_KEY", "a_default_fallback_secret_key_if_not_in_env"
+        ),
+        SQLALCHEMY_DATABASE_URI=os.environ.get("DATABASE_URL_DEV"),
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,  # Recommended to set to False
     )
 
-    if test_config is None:
-        # Load the instance config, if it exists, when not testing
-        app.config.from_pyfile('config.py', silent=True) # e.g., instance/config.py
-    else:
-        # Load the test config if passed in
-        app.config.update(test_config)
+    if test_config:
+        app.config.from_mapping(test_config)
 
-    # Ensure the instance folder exists
-    try:
-        os.makedirs(app.instance_path)
-    except OSError:
-        pass # Already exists
-
-    # --- Initialize Extensions ---
+    # --- Initialize extensions ---
     db.init_app(app)
-    migrate.init_app(app, db) # Initialize Migrate with app and db
+    migrate.init_app(app, db)
+    login_manager.init_app(app)
+    login_manager.login_view = 'auth.login'
+    login_manager.login_message_category = 'info'
 
-    # --- Register Blueprints ---
-    app.register_blueprint(general_bp)
-    app.register_blueprint(auth_bp, url_prefix='/auth')
-    app.register_blueprint(admin_bp)
-    app.register_blueprint(leader_bp)
-    app.register_blueprint(offline_bp) # Add /auth prefix to auth routes
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
 
-    # --- Database Initialization Command (Optional but helpful) ---
-    @app.cli.command('init-db')
-    def init_db_command():
-        """Clear existing data and create new tables."""
-        with app.app_context():
-            db.drop_all() # Use with caution!
-            db.create_all()
-        print('Initialized the database.')
+    # Set PRAGMA busy_timeout for SQLite to help with 'database is locked' errors
+    if app.config.get('SQLALCHEMY_DATABASE_URI', '').startswith('sqlite'):
+        from sqlalchemy import event
+        from sqlalchemy.engine import Engine
 
-    # --- User Creation Command ---
-    import click
-    from werkzeug.security import generate_password_hash
-    from .models import User # Import User model
+        @event.listens_for(Engine, "connect")
+        def set_sqlite_pragma(dbapi_connection, connection_record):
+            # app is in scope here from create_app
+            cursor = dbapi_connection.cursor()
+            try:
+                app.logger.info("Attempting to set SQLite PRAGMAs...")
+                # Set busy_timeout first
+                cursor.execute("PRAGMA busy_timeout = 5000;")
+                app.logger.info("PRAGMA busy_timeout set to 5000.")
 
-    @app.cli.command('create-user')
-    @click.argument('username')
-    @click.argument('password')
-    @click.option('--role', default='offline', help='User role (admin, leader, offline)')
-    @click.option('--leader', default=None, help='Username of the leader (required for offline role)')
-    @click.option('--can-view-funds', is_flag=True, help='Set if leader can view funds (only for leader role)')
-    def create_user_command(username, password, role, leader, can_view_funds):
-        """Creates a new user."""
-        if User.query.filter_by(username=username).first():
-            print(f"Error: Username '{username}' already exists.")
-            return
+                # Check current journal mode
+                current_journal_mode_row = cursor.execute("PRAGMA journal_mode;").fetchone()
+                current_mode = current_journal_mode_row[0].lower() if current_journal_mode_row else "unknown"
+                app.logger.info(f"Current journal_mode: {current_mode}")
 
-        leader_user = None
-        if role == 'offline':
-            if not leader:
-                print("Error: --leader is required for role 'offline'.")
-                return
-            leader_user = User.query.filter_by(username=leader, role='leader').first()
-            if not leader_user:
-                print(f"Error: Leader with username '{leader}' not found or is not a leader.")
-                return
-        elif leader:
-             print("Warning: --leader option is ignored for roles other than 'offline'.")
+                if current_mode != 'wal':
+                    app.logger.info("Attempting to set journal_mode to WAL...")
+                    cursor.execute("PRAGMA journal_mode=WAL;")
+                    # Verify it changed
+                    new_journal_mode_row = cursor.execute("PRAGMA journal_mode;").fetchone()
+                    if new_journal_mode_row and new_journal_mode_row[0].lower() == 'wal':
+                        app.logger.info("Successfully set journal_mode to WAL.")
+                    else:
+                        app.logger.warning(f"Failed to set journal_mode to WAL. Mode is still: {new_journal_mode_row[0].lower() if new_journal_mode_row else 'unknown'}")
+                else:
+                    app.logger.info("journal_mode is already WAL.")
 
-        if role != 'leader' and can_view_funds:
-            print("Warning: --can-view-funds flag is ignored for roles other than 'leader'.")
-            can_view_funds = False # Ensure it's false if not a leader
+            except Exception as e:
+                # Log the full traceback for the error during PRAGMA setting
+                app.logger.error(f"Error setting SQLite PRAGMAs: {e}", exc_info=True)
+            finally:
+                cursor.close()
 
-        hashed_password = generate_password_hash(password)
-        new_user = User(
-            username=username,
-            password_hash=hashed_password,
-            role=role,
-            leader_id=leader_user.id if leader_user else None,
-            can_view_funds=can_view_funds if role == 'leader' else False
-        )
-        db.session.add(new_user)
-        db.session.commit()
-        print(f"User '{username}' ({role}) created successfully.")
-
-
-    # --- Simple route for testing ---
-    @app.route('/hello')
-    def hello():
-        return 'Hello, World!'
-
-    # --- Add Context Processor ---
+    # Context processors
     @app.context_processor
     def inject_current_year():
-        return dict(current_year=datetime.utcnow().year)
+        return {'current_year': datetime.utcnow().year}
+
+    # --- Custom Jinja Filters ---
+    def format_datetime_custom(value, format_str='%b %d, %Y %I:%M %p'):
+        """Formats a datetime object to a custom string format. Default: Month Day, Year HH:MM AM/PM."""
+        if value is None:
+            return ""
+        if isinstance(value, str):
+            # Try to parse if it's a string, assuming ISO format for robustness if needed
+            try:
+                value = datetime.fromisoformat(value.replace('Z', '+00:00'))
+            except ValueError:
+                # Fallback or re-raise, depending on how strict you want to be
+                try:
+                    value = datetime.strptime(value, '%Y-%m-%d %H:%M:%S.%f') # Example common format
+                except ValueError:
+                    return value # Return original string if parsing fails
+        
+        # Ensure it's a datetime object before formatting
+        if not isinstance(value, datetime):
+            return value # Or handle error appropriately
+        
+        return value.strftime(format_str)
+
+    app.jinja_env.filters['datetime_custom'] = format_datetime_custom
+
+    # --- Register blueprints ---
+    app.register_blueprint(general_bp)
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(leader_bp, url_prefix='/leader')
+    app.register_blueprint(member_bp, url_prefix='/member')
+
+    # --- Setup Logging ---
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+    logging.getLogger("sqlalchemy.pool").setLevel(logging.INFO)
+
+    # Ensure the session is removed after each request
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+        db.session.remove()
+
+    # --- CLI commands ---
+    @app.cli.command("init-db")
+    @click.option(
+        "--seed/--no-seed", default=False, help="Seed the database with initial data."
+    )
+    def init_db_command(seed):
+        """Clear existing data and create new tables. Optionally seed data."""
+        with app.app_context():
+            db.drop_all()
+            db.create_all()
+            click.echo("Initialized the database.")
+            if seed:
+                from .database.seeders import seed_all
+                seed_all()
+                click.echo("Database seeded.")
 
     return app

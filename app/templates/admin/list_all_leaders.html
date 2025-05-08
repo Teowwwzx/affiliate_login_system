@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title if title else "Full Leaderboard" }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>{{ title if title else "Full Leaderboard" }}</h1>
+        <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+
+    {% if leaders_list %}
+    <div class="table-responsive mt-3 mb-5">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <!-- <th>#</th> -->
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Member Count</th>
+                    <th>Status</th>
+                    <th>Registered At</th>
+                    <th>Actions</th> {# Placeholder for future actions like 'View Members' #}
+                </tr>
+            </thead>
+            <tbody>
+                {% for leader_item in leaders_list %}
+                <tr>
+                    <!-- <td>{{ loop.index }}</td> -->
+                    <td>
+                        <a href="{{ url_for('admin.edit_user', user_id=leader_item.id) }}" title="Edit {{ leader_item.username }}">
+                            {{ leader_item.username }}
+                        </a>
+                    </td>
+                    <td>{{ leader_item.email }}</td>
+                    <td><span class="badge bg-info">{{ leader_item.member_count }}</span></td>
+                    <td>
+                        {% if leader_item.status %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ leader_item.created_at | datetime_custom if leader_item.created_at else 'N/A' }}</td>
+                    <td>
+                        <a href="{{ url_for('admin.list_users', leader_id_filter=leader_item.id) }}" class="btn btn-sm btn-outline-info" title="View {{ leader_item.username }}'s Members">
+                            <i class="fas fa-users"></i> View Members
+                        </a>
+                        {# Add other actions like direct edit if needed #}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info mt-3">No leaders found.</div>
+    {% endif %}
+</div>
+{% endblock %}

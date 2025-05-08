@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title if title else "Admin Dashboard" }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- <div
+        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">{{ title if title else "Admin Dashboard" }}</h1>
+        {# Add any top-right controls here, like a date range picker if needed in future #}
+    </div> -->
+
+    <!-- <p>Welcome back, {{ session.username }}!</p> -->
+
+    {# Statistics Row #}
+    <div class="row mt-5 mb-5">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-users"></i> Total Users</h5>
+                    <p class="card-text display-4">{{ stats.total_users if stats else 'N/A' }}</p>
+                    <p class="card-text mb-0">Leaders: {{ stats.count_leaders if stats else 'N/A' }}</p>
+                    <p class="card-text">Members: {{ stats.count_members_under_leader if stats else 'N/A' }}</p>
+                </div>
+                <div class="card-footer text-muted">
+                    <a href="{{ url_for('admin.list_users') }}" class="text-decoration-none">
+                        View All Users
+                        <i class="fas fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-user-check"></i> Active Users</h5>
+                    <p class="card-text display-4">{{ stats.active_users if stats else 'N/A' }}</p>
+                    <!-- You could also add active leaders/members here if desired -->
+                </div>
+                <div class="card-footer text-muted">
+                    <a href="{{ url_for('admin.list_users', status='active') }}" class="text-decoration-none">
+                        View Active Users
+                        <i class="fas fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card text-white bg-info shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-trophy"></i> Dynamic Prize Pool</h5>
+                    <p class="card-text display-4">${{ "%.2f"|format(stats.dynamic_prize_pool_total) if stats and
+                        stats.dynamic_prize_pool_total is not none else 'N/A' }}</p>
+                </div>
+                <div class="card-footer text-muted">
+                    <a href="{{ url_for('admin.manage_funds', fund_type='dynamic_prize_pool') }}"
+                        class="text-decoration-none text-white">
+                        View Details
+                        <i class="fas fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card text-white bg-success shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-piggy-bank"></i> Static Prize Pool</h5>
+                    <p class="card-text display-4">${{ "%.2f"|format(stats.static_prize_pool_total) if stats and
+                        stats.static_prize_pool_total is not none else 'N/A' }}</p>
+                </div>
+                <div class="card-footer text-muted">
+                    <a href="{{ url_for('admin.manage_funds', fund_type='static_prize_pool') }}"
+                        class="text-decoration-none text-white">View Details <i
+                            class="fas fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5 mb-5"></div>
+
+    <!-- Leaderboard Section -->
+    <div class="row mt-5 mb-5">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4><i class="fas fa-medal"></i> Leaderboard
+                        <small class="text-muted fs-6 ms-2">(Value Price per Member: ${{
+                            stats.current_value_price}})</small>
+                    </h4>
+                </div>
+                <div>
+                    <button id="sortOrderToggle" class="btn btn-sm btn-outline-secondary">Sort: Low to High</button>
+                </div>
+            </div>
+            <div id="salesLeaderboardTop3"></div>
+            <div id="salesLeaderboardOthers">
+                <!-- Other leaders will be dynamically inserted here -->
+            </div>
+            {# Add 'View All Leaders' link if there are more than 5 leaders #}
+            {% if stats and stats.total_leader_count_for_view_all and stats.total_leader_count_for_view_all > 5 %}
+            <div class="text-center mt-3">
+                <a href="{{ url_for('admin.list_all_leaders') }}" class="btn btn-sm btn-outline-primary">
+                    View All {{ stats.total_leader_count_for_view_all }} Leaders <i
+                        class="fas fa-angle-double-right ms-1"></i>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row mt-5 mb-5"></div>
+    {# Management Cards Row #}
+    <div class="row mt-5 mb-5">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title"><i class="fas fa-users-cog me-2"></i>Manage Users</h5>
+                    <p class="card-text">View, edit, and create new users.</p>
+                    <a href="{{ url_for('admin.list_users') }}" class="btn btn-primary mt-auto">Go to Users</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title"><i class="fas fa-funnel-dollar me-2"></i>Manage Funds</h5>
+                    <p class="card-text">Oversee and adjust company funds.</p>
+                    <a href="{{ url_for('admin.manage_funds') }}" class="btn btn-primary mt-auto">Go to Funds</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title"><i class="fas fa-sitemap me-2"></i>Full Leaderboard</h5>
+                    <p class="card-text">View all leaders and their member counts.</p>
+                    {% if stats and stats.total_leader_count_for_view_all and stats.total_leader_count_for_view_all > 5
+                    %}
+                    <a href="{{ url_for('admin.list_all_leaders') }}" class="btn btn-info mt-auto">View All {{
+                        stats.total_leader_count_for_view_all }} Leaders</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <!-- Add more cards for other admin functionalities as needed -->
+    </div>
+
+</div>
+
+<style>
+    /* Custom styles for admin dashboard cards */
+    .card.border-left-primary {
+        border-left: .25rem solid #4e73df !important;
+    }
+
+    .card.border-left-success {
+        border-left: .25rem solid #1cc88a !important;
+    }
+
+    .card.border-left-info {
+        border-left: .25rem solid #36b9cc !important;
+    }
+
+    .card.border-left-warning {
+        border-left: .25rem solid #f6c23e !important;
+    }
+
+    .text-xs {
+        font-size: .7rem;
+    }
+
+    .text-gray-300 {
+        color: #dddfeb !important;
+    }
+
+    .text-gray-800 {
+        color: #5a5c69 !important;
+    }
+
+    .shadow {
+        box-shadow: 0 .15rem 1.75rem 0 rgba(58, 59, 69, .15) !important;
+    }
+</style>
+
+<!-- At the end of admin_dashboard.html, or in a scripts block -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const leadersData = {{ stats.leaders_for_sales_calc | tojson
+    }};
+    const currentValuePrice = parseFloat("{{ stats.current_value_price }}") || 0; // Get fixed value price
+
+    const top3Div = document.getElementById('salesLeaderboardTop3');
+    const othersDiv = document.getElementById('salesLeaderboardOthers');
+    const sortOrderToggleButton = document.getElementById('sortOrderToggle');
+
+    let sortAscending = false; // false = High to Low, true = Low to High
+
+    function calculateAndRenderLeaderboard() {
+        if (!leadersData || leadersData.length === 0) {
+            top3Div.innerHTML = '<p class="text-muted">No leader data available.</p>';
+            othersDiv.innerHTML = '';
+            return;
+        }
+
+        const calculatedSales = leadersData.map(leader => ({
+            ...leader,
+            total_sales: leader.member_count * currentValuePrice // Use fixed value price
+        }));
+
+        // Sort based on sortAscending flag
+        calculatedSales.sort((a, b) => {
+            if (sortAscending) {
+                return a.total_sales - b.total_sales; // Low to High
+            } else {
+                return b.total_sales - a.total_sales; // High to Low
+            }
+        });
+
+        renderLeaderboard(calculatedSales);
+        updateSortButtonText();
+    }
+
+    function renderLeaderboard(sortedLeaders) {
+        top3Div.innerHTML = ''; // Clear previous entries
+        othersDiv.innerHTML = ''; // Clear previous entries
+
+        const top3 = sortedLeaders.slice(0, 5);
+        // const others = sortedLeaders.slice(3);
+
+        // Render Top 3 with special styling
+        top3.forEach((leader, index) => {
+            const medalIcon = index === 0 ? 'fas fa-medal text-warning me-2' :
+                index === 1 ? 'fas fa-medal text-silver me-2' :
+                    index === 2 ? 'fas fa-medal text-bronze me-2' : '';
+
+            // Ensure icon is outside the main text flow for sales number alignment
+            const leaderCard = `
+                <div class="card mb-2 shadow-sm leader-card-top3">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-0">
+                                ${medalIcon ? `<i class="${medalIcon}"></i>` : ''}
+                                <a href="/admin/users/edit/${leader.id}" class="text-decoration-none">${leader.username}</a>
+                            </h5>
+                            <small class="text-muted">Members: ${leader.member_count}</small>
+                        </div>
+                        <span class="h5 mb-0 text-success">$${leader.total_sales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                </div>`;
+            top3Div.innerHTML += leaderCard;
+        });
+
+        // Render others in a list group for compactness
+        // if (others.length > 0) {
+        //     let othersHtml = '<ul class="list-group list-group-flush mt-3">';
+        //     others.forEach(leader => {
+        //         othersHtml += `
+        //             <li class="list-group-item d-flex justify-content-between align-items-center">
+        //                 <div>
+        //                    <a href="/admin/users/edit/${leader.id}" class="text-decoration-none">${leader.username}</a>
+        //                    <small class="text-muted ms-2">Members: ${leader.member_count}</small>
+        //                 </div>
+        //                 <span class="text-primary">$${leader.total_sales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        //             </li>`;
+        //     });
+        //     othersHtml += '</ul>';
+        //     othersDiv.innerHTML = othersHtml;
+        // } else if (top3.length > 0 && sortedLeaders.length <= 3) {
+        //     // If only top 1-3 leaders exist and no 'others', no message needed for othersDiv
+        //     othersDiv.innerHTML = '';
+        // } else if (sortedLeaders.length === 0) {
+        //     // This case is handled by the initial check in calculateAndRenderLeaderboard
+        // }
+
+    }
+
+    function updateSortButtonText() {
+        if (sortAscending) {
+            sortOrderToggleButton.textContent = 'Sort: High to Low';
+        } else {
+            sortOrderToggleButton.textContent = 'Sort: Low to High';
+        }
+    }
+
+    sortOrderToggleButton.addEventListener('click', function () {
+        sortAscending = !sortAscending;
+        calculateAndRenderLeaderboard();
+    });
+
+    // Initial calculation and render
+    calculateAndRenderLeaderboard();
+});
+</script>
+
+{% endblock %}

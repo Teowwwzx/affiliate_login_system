@@ -2,6 +2,7 @@
 from functools import wraps
 from flask import session, flash, redirect, url_for, abort, request
 
+
 def login_required(f):
     """Decorate routes to require login."""
     @wraps(f)
@@ -28,4 +29,4 @@ def role_required(role_name):
 
 admin_required = role_required('admin')
 leader_required = role_required('leader')
-# Offline users likely won't have specific restricted routes beyond login_required
+# member users likely won't have specific restricted routes beyond login_required

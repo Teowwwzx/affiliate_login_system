@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title if title else "Manage User" }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>{{ title }}</h1>
+
+    {% set form_action = action_url if action_url else url_for('admin.create_user') %}
+    {% set is_edit_mode = True if user else False %}
+
+    <form method="POST" action="{{ form_action }}" class="mt-5">
+        {{ csrf_token if csrf_token }}
+
+        <div class="mb-3">
+            <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="username" name="username"
+                value="{{ user_data.username if user_data else (user.username if is_edit_mode else '') }}" required {%
+                if is_edit_mode and user.role=='admin' %}disabled{% endif %}>
+        </div>
+
+        <div class="mb-3">
+            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+            <input type="email" class="form-control" id="email" name="email"
+                value="{{ user_data.email if user_data else (user.email if is_edit_mode else '') }}" required {% if
+                is_edit_mode and user.role=='admin' %}disabled{% endif %}>
+        </div>
+
+        {% if not is_edit_mode %} {# Only show password for new user creation #}
+        <div class="mb-3">
+            <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+            <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+        {% else %}
+        <div class="mb-3">
+            <p class="form-text text-muted">Password can be reset via a separate "Reset Password" action (to be
+                implemented).</p>
+        </div>
+        {% endif %}
+
+        <div class="mb-3">
+            <label for="role" class="form-label">Role <span class="text-danger">*</span></label>
+            <select class="form-select" id="role" name="role" required {% if is_edit_mode and user.role=='admin'
+                %}disabled{% endif %}>
+                {% set current_role = user_data.role if user_data else (user.role if is_edit_mode else '') %}
+                <option value="member" {% if current_role=='member' %}selected{% endif %}>Member</option>
+                <option value="leader" {% if current_role=='leader' %}selected{% endif %}>Leader</option>
+                {% if not is_edit_mode or (is_edit_mode and current_role == 'admin') %}
+                {# Allow 'admin' option only if editing an existing admin (field will be disabled), or if some logic
+                allowed creating admins this way #}
+                {# For safety, if creating, we might want to remove admin option completely if only one admin is allowed
+                from seed #}
+                {% if is_edit_mode and current_role == 'admin'%}
+                <option value="admin" {% if current_role=='admin' %}selected{% endif %}>Admin</option>
+                {% elif not is_edit_mode %}
+                {# Do not show Admin option when creating a new user via the form #}
+                {% endif %}
+                {% endif %}
+            </select>
+            {% if is_edit_mode and user.role == 'admin' %}
+            <input type="hidden" name="role" value="admin"> {# Submit the admin role if disabled #}
+            {% endif %}
+        </div>
+
+        <div class="mb-3" id="leaderSelection" style="display: none;">
+            <label for="leader_id" class="form-label">Assign to Leader <span id="leaderRequiredAsterisk"
+                    class="text-danger" style="display: none;">*</span></label>
+            <select class="form-select" id="leader_id" name="leader_id" {% if is_edit_mode and user.role=='admin'
+                %}disabled{% endif %}>
+                <option value="">-- Select Leader --</option>
+                {% set current_leader_id = user_data.leader_id if user_data else (user.leader_id if is_edit_mode and
+                user.leader_id else '') %}
+                {% for leader_user in leaders %} {# Changed variable name from leader to leader_user to avoid conflict
+                with user.leader #}
+                <option value="{{ leader_user.id }}" {% if leader_user.id|string==current_leader_id|string %}selected{%
+                    endif %}>{{ leader_user.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3 form-check">
+            {% set current_status = user_data.status if user_data and 'status' in user_data else (user.status if
+            is_edit_mode else True) %}
+            <input type="checkbox" class="form-check-input" id="status" name="status" value="true" {% if current_status
+                %}checked{% endif %} {% if is_edit_mode and user.role=='admin' %}disabled{% endif %}>
+            <label class="form-check-label" for="status">Active</label>
+        </div>
+
+        {% if not (is_edit_mode and user.role == 'admin') %} {# Hide buttons if editing an admin #}
+        <button type="submit" class="btn btn-primary">{{ 'Update' if is_edit_mode else 'Create' }} User</button>
+        {% endif %}
+        <a href="{{ url_for('admin.list_users') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const roleSelect = document.getElementById('role');
+        const leaderSelectionDiv = document.getElementById('leaderSelection');
+        const leaderRequiredAsterisk = document.getElementById('leaderRequiredAsterisk');
+        const isEditMode = {{ is_edit_mode|tojson }}; // Pass boolean to JS
+        const currentUserRole = "{{ user.role if user else '' }}";
+        const emailInput = document.getElementById('email');
+
+        // Function to toggle leader selection visibility
+        function toggleLeaderSelection() {
+            if (roleSelect.value === 'member' && !(isEditMode && currentUserRole === 'admin')) {
+                leaderSelectionDiv.style.display = 'block';
+                leaderRequiredAsterisk.style.display = 'inline';
+            } else {
+                leaderSelectionDiv.style.display = 'none';
+                leaderRequiredAsterisk.style.display = 'none';
+                if (!(isEditMode && currentUserRole === 'admin')) { // Don't clear if admin edit
+                    document.getElementById('leader_id').value = '';
+                }
+            }
+        }
+
+        if (roleSelect) { // Check if roleSelect exists (it won't if form is disabled for admin edit)
+            roleSelect.addEventListener('change', toggleLeaderSelection);
+            toggleLeaderSelection();
+        } else if (currentUserRole === 'member') { // Handle case where role select is disabled but is member
+            leaderSelectionDiv.style.display = 'block';
+            leaderRequiredAsterisk.style.display = 'inline';
+        }
+
+        if (emailInput && !emailInput.disabled) { // Only add listener if email input exists and is not disabled
+            emailInput.addEventListener('blur', function() {
+                let emailValue = this.value.trim();
+                if (emailValue && !emailValue.includes('@')) {
+                    this.value = emailValue + '@gmail.com';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

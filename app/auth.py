@@ -14,8 +14,8 @@ def login():
             return redirect(url_for('admin.admin_dashboard'))
         elif user_role == 'leader':
             return redirect(url_for('leader.leader_dashboard'))
-        else: # offline user
-            return redirect(url_for('offline.offline_dashboard'))
+        else: # member user
+            return redirect(url_for('member.member_dashboard'))
 
     if request.method == 'POST':
         username = request.form.get('username')
@@ -46,8 +46,8 @@ def login():
                 return redirect(url_for('admin.admin_dashboard'))
             elif user.role == 'leader':
                 return redirect(url_for('leader.leader_dashboard'))
-            else: # offline user
-                return redirect(url_for('offline.offline_dashboard'))
+            else: # member user
+                return redirect(url_for('member.member_dashboard'))
         else:
             flash(error, 'danger')
 

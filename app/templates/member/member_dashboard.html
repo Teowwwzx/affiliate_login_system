@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="fas fa-user me-2"></i>Member Dashboard: {{ member.username }}</h2>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-user-tie me-2"></i>My Leader</h5>
+        </div>
+        <div class="card-body">
+            {% if leader %}
+            <p class="fs-5">Your leader is: <strong>{{ leader.username }}</strong> ({{ leader.email }})</p>
+            {% else %}
+            <p class="text-muted">You are not currently assigned to a leader.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- You can add more member-specific information here if needed -->
+    <div class="mt-4">
+        <a href="{{ url_for('member.change_password') }}" class="btn btn-info"><i class="fas fa-key me-1"></i> Change Password</a>
+    </div>
+</div>
+{% endblock %}

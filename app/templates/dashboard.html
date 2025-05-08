@@ -29,8 +29,8 @@
                         {% endif %}
                         {% if session.user_role == 'leader' %}
                         <li class="list-group-item">
-                            <a href="{{ url_for('leader.create_offline_user') }}" class="btn btn-primary w-100">
-                                Add Offline User
+                            <a href="{{ url_for('leader.create_member_user') }}" class="btn btn-primary w-100">
+                                Add member User
                             </a>
                         </li>
                         {% endif %}

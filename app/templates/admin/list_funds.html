@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title if title else "Manage Fund Entries" }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>{{ title if title else "Manage Fund Entries" }}</h1>
+        <a href="{{ url_for('admin.create_fund') }}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Create New Fund
+        </a>
+    </div>
+
+    {% if funds_data %}
+    <div class="table-responsive mt-5 mb-5">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Amount</th>
+                    <th>Fund Type</th>
+                    <th>Remarks</th>
+                    <th>Created By</th>
+                    <th>Created At</th>
+                    <th style="width: 150px">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fund_entry, creator_username in funds_data %}
+                <tr>
+                    <td>${{ "%.2f"|format(fund_entry.amount) }}</td>
+                    <td>{{ fund_types[fund_entry.fund_type] if fund_entry.fund_type in fund_types else fund_entry.fund_type|capitalize }}</td>
+                    <td>{{ fund_entry.remarks if fund_entry.remarks else '-' }}</td>
+                    <td>{{ creator_username }}</td>
+                    <td>{{ fund_entry.created_at | datetime_custom if fund_entry.created_at else 'N/A' }}</td>
+                    <td>
+                        <a href="{{ url_for('admin.edit_fund', fund_id=fund_entry.id) }}" class="btn btn-sm btn-outline-primary me-1" title="Edit"><i class="fas fa-edit"></i></a>
+                        <a href="{{ url_for('admin.delete_fund', fund_id=fund_entry.id) }}" class="btn btn-sm btn-outline-danger" title="Delete" onclick="return confirm('Are you sure you want to delete this fund entry?');"><i class="fas fa-trash-alt"></i></a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center p-3 mt-5 mb-5">
+        <p>No fund entries found. <a href="{{ url_for('admin.create_fund') }}">Create the first one!</a></p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
