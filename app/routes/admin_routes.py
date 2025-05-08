@@ -30,6 +30,21 @@ FUND_TYPES = {
 @login_required
 @role_required("admin")
 def admin_dashboard():
+    # --- ADD THESE LOGS ---
+    current_app.logger.info(f"--- ADMIN_DASHBOARD ACCESS ---")
+    current_app.logger.info(f"Session _user_id: {session.get('_user_id')}")
+    current_app.logger.info(f"Session _fresh: {session.get('_fresh')}")
+    current_app.logger.info(f"Session _id: {session.get('_id')} (session cookie value if different)") # _id is often the session cookie's hash
+    current_app.logger.info(f"current_user object: {current_user}")
+    current_app.logger.info(f"current_user.is_authenticated: {current_user.is_authenticated}")
+    if hasattr(current_user, 'id'): # Check if it's not an AnonymousUserMixin
+        current_app.logger.info(f"current_user.id: {current_user.id}")
+        current_app.logger.info(f"current_user.email: {current_user.email}")
+        current_app.logger.info(f"current_user.status (is_active): {current_user.is_active}")
+    else:
+        current_app.logger.info(f"current_user appears to be AnonymousUserMixin or similar.")
+    # --- END OF ADDED LOGS ---
+
     # Flash welcome message
     username = session.get('username', 'Admin') # Default to 'Admin' if username not in session
     flash(f"Welcome back, {username}!", "success")
