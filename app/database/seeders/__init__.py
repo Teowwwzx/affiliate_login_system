@@ -13,12 +13,12 @@ def seed_all():
     
     # Call individual seeders
     seed_user()  # Handles admin and other users
-    seed_fund()  # Handles initial funds
+    # seed_fund()  # Handles initial funds
     # seed_sale() # Uncomment if/when you want to seed sales data
     
     try:
         db.session.commit()
-        click.echo("All data committed successfully.")
+        click.echo("Admin user committed successfully.")
     except Exception as e:
         db.session.rollback()
         click.echo(f"Error during seeding commit: {e}", err=True)

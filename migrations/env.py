@@ -4,7 +4,6 @@ from logging.config import fileConfig
 from flask import current_app
 
 from alembic import context
-import sqlalchemy
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -15,15 +14,6 @@ config = context.config
 fileConfig(config.config_file_name)
 logger = logging.getLogger('alembic.env')
 
-# Define a naming convention for constraints
-# This helps especially with SQLite in batch mode
-NAMING_CONVENTION = {
-    "ix": 'ix_%(column_0_label)s',
-    "uq": "uq_%(table_name)s_%(column_0_name)s",
-    "ck": "ck_%(table_name)s_%(constraint_name)s",
-    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-    "pk": "pk_%(table_name)s"
-}
 
 def get_engine():
     try:
@@ -56,20 +46,9 @@ target_db = current_app.extensions['migrate'].db
 
 
 def get_metadata():
-    # Create MetaData with naming convention
-    metadata = sqlalchemy.MetaData(naming_convention=NAMING_CONVENTION)
-    # Reflect existing tables into this MetaData object
-    # This ensures that autogenerate compares against a DB state that understands these names
-    # Only needed if you had pre-existing tables NOT created by Alembic using this convention
-    # with get_engine().connect() as conn:
-    #     metadata.reflect(bind=conn)
-
-    # Then merge with the target_db metadata from your Flask app models
-    # This is a simplified approach; for complex scenarios, more detailed merging might be needed.
-    # The primary goal here is to ensure the MetaData used by Alembic has the naming convention.
-    for table in target_db.metadata.tables.values():
-        table.to_metadata(metadata)
-    return metadata
+    if hasattr(target_db, 'metadatas'):
+        return target_db.metadatas[None]
+    return target_db.metadata
 
 
 def run_migrations_offline():
@@ -86,12 +65,7 @@ def run_migrations_offline():
     """
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
-        url=url, 
-        target_metadata=get_metadata(), 
-        literal_binds=True,
-        dialect_opts={"paramstyle": "named"},
-        render_as_batch=True, # ADDED for SQLite offline support
-        naming_convention=NAMING_CONVENTION # ADDED
+        url=url, target_metadata=get_metadata(), literal_binds=True
     )
 
     with context.begin_transaction():
@@ -123,20 +97,11 @@ def run_migrations_online():
     connectable = get_engine()
 
     with connectable.connect() as connection:
-        # Pass naming_convention to context.configure
-        context_opts = {
-            'connection': connection,
-            'target_metadata': get_metadata(), # This should now return metadata with naming convention
-            'process_revision_directives': process_revision_directives,
+        context.configure(
+            connection=connection,
+            target_metadata=get_metadata(),
             **conf_args
-        }
-        # Enable batch mode for SQLite
-        if connection.engine.name == 'sqlite':
-            context_opts['render_as_batch'] = True
-            # Naming convention is now part of get_metadata()
-            # context_opts['naming_convention'] = NAMING_CONVENTION
-
-        context.configure(**context_opts)
+        )
 
         with context.begin_transaction():
             context.run_migrations()
