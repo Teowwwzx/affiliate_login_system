@@ -55,7 +55,10 @@ def create_app(test_config=None):
 
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))
+        app.logger.info(f"--- load_user CALLED with user_id: {user_id} (type: {type(user_id)}) ---")
+        user = User.query.get(int(user_id))
+        app.logger.info(f"--- load_user RETURNING user: {user} ---")
+        return user
 
     # Set PRAGMA busy_timeout for SQLite to help with 'database is locked' errors
     if app.config.get('SQLALCHEMY_DATABASE_URI', '').startswith('sqlite'):
