@@ -57,7 +57,10 @@ def create_app(test_config=None):
     def load_user(user_id):
         app.logger.info(f"--- load_user CALLED with user_id: {user_id} (type: {type(user_id)}) ---")
         user = User.query.get(int(user_id))
-        app.logger.info(f"--- load_user RETURNING user: {user} ---")
+        if user: 
+            app.logger.info(f"--- load_user RETURNING user: {user}, Role: {user.role}, Status: {user.status} ---") 
+        else: 
+            app.logger.info(f"--- load_user: No user found for id {user_id} ---") 
         return user
 
     # Set PRAGMA busy_timeout for SQLite to help with 'database is locked' errors
