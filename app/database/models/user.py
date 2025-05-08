@@ -1,10 +1,10 @@
 from .. import db
 from datetime import datetime, timezone
-from werkzeug.security import generate_password_hash
-from werkzeug.security import check_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
 
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     __tablename__ = 'users'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -25,6 +25,11 @@ class User(db.Model):
         
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.password_hash, password)
+    
+    @property
+    def is_active(self):
+        """True if the user's account is active."""
+        return self.status
     
     def __repr__(self):
         return f'<User {self.username}>'
