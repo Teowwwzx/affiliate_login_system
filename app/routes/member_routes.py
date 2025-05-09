@@ -4,6 +4,7 @@ from functools import wraps
 from app.database.models import User
 from app import db
 from werkzeug.security import check_password_hash, generate_password_hash
+from flask_login import current_user, login_required
 
 member_bp = Blueprint('member', __name__, url_prefix='/member')
 
@@ -12,23 +13,23 @@ member_bp = Blueprint('member', __name__, url_prefix='/member')
 def member_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if session.get('user_role') != 'member':
+        if not current_user.is_authenticated:
+            flash('Please log in to access this page.', 'warning')
+            return redirect(url_for('auth.login'))
+        
+        if current_user.role != 'member':
             flash('You do not have permission to access this page.', 'danger')
-            return redirect(url_for('general.dashboard')) # Or auth.login if preferred for unauthorized
+            return redirect(url_for('general.dashboard'))
+        
         return f(*args, **kwargs)
     return decorated_function
 
 @member_bp.route('/dashboard')
-@member_required # Or just login_required if no specific role check needed beyond being a member
+@member_required
+@login_required
 def member_dashboard():
-    # Add any data fetching specific to the member dashboard
-    member_id = session.get('user_id')
-    member = User.query.get(member_id)
-
-    if not member:
-        flash('Member details not found. Please log in again.', 'danger')
-        return redirect(url_for('auth.login')) # Or a more appropriate page
-
+    member = current_user
+    
     leader = None
     if member.leader_id:
         leader = User.query.get(member.leader_id)
@@ -42,13 +43,9 @@ def member_dashboard():
 
 @member_bp.route('/change-password', methods=['GET', 'POST'])
 @member_required
+@login_required
 def change_password():
-    member_id = session.get('user_id')
-    member = User.query.get(member_id)
-
-    if not member:
-        flash('User not found.', 'danger')
-        return redirect(url_for('auth.login'))
+    member = current_user
 
     if request.method == 'POST':
         current_password = request.form.get('current_password')

@@ -5,6 +5,7 @@ from app.database.models import User, Fund
 from app import db
 from sqlalchemy import func
 from werkzeug.security import generate_password_hash
+from flask_login import current_user
 
 leader_bp = Blueprint("leader", __name__, url_prefix="/leader")
 
@@ -13,9 +14,14 @@ leader_bp = Blueprint("leader", __name__, url_prefix="/leader")
 def leader_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if session.get('user_role') != 'leader':
+        if not current_user.is_authenticated:
+            flash('Please log in to access this page.', 'warning')
+            return redirect(url_for('auth.login'))
+        
+        if current_user.role != 'leader':
             flash('You do not have permission to access this page.', 'danger')
-            return redirect(url_for('general.dashboard')) # Or auth.login if preferred for unauthorized
+            return redirect(url_for('general.dashboard'))
+        
         return f(*args, **kwargs)
     return decorated_function
 
@@ -23,14 +29,14 @@ def leader_required(f):
 @leader_bp.route("/dashboard")
 @leader_required
 def leader_dashboard():
-    leader_id = session.get('user_id')
-    leader = User.query.get(leader_id)
+    # leader_id = session.get('user_id')
+    leader = User.query.get(current_user.id)
 
     if not leader:
         flash('Leader information not found. Please log in again.', 'danger')
         return redirect(url_for('auth.login'))
 
-    members = User.query.filter_by(leader_id=leader_id).order_by(User.username).all()
+    members = User.query.filter_by(leader_id=leader.id).order_by(User.username).all()
 
     # Calculate prize pools (assuming global as per admin dashboard logic)
     # Using FUND_TYPES defined in admin_routes or directly as strings if consistent
@@ -70,7 +76,8 @@ def my_sales():
 @leader_bp.route('/member/add', methods=['GET', 'POST'])
 @leader_required
 def create_member():
-    leader_id = session.get('user_id')
+    # leader_id = session.get('user_id')
+    leader_id = current_user.id
     if request.method == 'POST':
         username = request.form.get('username')
         email = request.form.get('email')
@@ -105,7 +112,8 @@ def create_member():
 @leader_required
 def edit_member(user_id):
     member_to_edit = User.query.get_or_404(user_id)
-    current_leader_id = session.get('user_id')
+    # current_leader_id = session.get('user_id')
+    current_leader_id = current_user.id
 
     # Ensure leader can only edit their own members and not other leaders or admins
     if member_to_edit.leader_id != current_leader_id or member_to_edit.role != 'member':
@@ -145,7 +153,8 @@ def edit_member(user_id):
 @leader_required
 def delete_member(user_id):
     member_to_delete = User.query.get_or_404(user_id)
-    current_leader_id = session.get('user_id')
+    # current_leader_id = session.get('user_id')
+    current_leader_id = current_user.id
 
     if member_to_delete.leader_id != current_leader_id or member_to_delete.role != 'member':
         flash('You do not have permission to delete this user or this user is not your member.', 'danger')

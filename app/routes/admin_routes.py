@@ -16,6 +16,7 @@ from sqlalchemy import func  # Import func for sum
 from werkzeug.security import (
     generate_password_hash,
 )  # Add this import at the top of the file
+from flask_login import current_user
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -493,7 +494,7 @@ def create_fund():
                 amount=amount,
                 remarks=remarks,
                 fund_type=fund_type,
-                created_by=session["user_id"],
+                created_by=current_user.id,  # Use current_user.id instead of session['user_id']
             )
             db.session.add(new_fund_entry)
             db.session.commit()

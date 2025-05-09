@@ -39,9 +39,8 @@ def login():
 
         # Store user info in session for convenience (Flask-Login handles user_id)
         session['username'] = user.username
-        session['user_role'] = user.role
 
-        flash(f'Welcome back, {user.username}!', 'success')
+        # flash(f'Welcome back, {user.username}!', 'success')
         
         # Handle the next parameter if it exists
         next_page = request.args.get('next')

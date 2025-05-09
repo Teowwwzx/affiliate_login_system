@@ -97,17 +97,16 @@
                     <td>{{ user.created_at | datetime_custom if user.created_at else 'N/A' }}</td>
                     <td>
                         {% if user.role != 'admin' %}
-                        <a href="{{ url_for('admin.edit_user', user_id=user.id) }}"
-                            class="btn btn-sm btn-outline-primary me-1" title="Edit"><i class="fas fa-edit"></i></a>
-                        {# Ensure current admin cannot delete self - already handled in route, but good for UI too #}
-                        {% if user.id != session.user_id %}
-                        <a href="{{ url_for('admin.delete_user', user_id=user.id) }}"
-                            class="btn btn-sm btn-outline-danger" title="Delete"
-                            onclick="return confirm('Are you sure you want to delete this user \'{{ user.username }}\'? If this user is a leader, their members will become unassigned.');"><i
-                                class="fas fa-trash-alt"></i></a>
-                        {% endif %}
+                            <a href="{{ url_for('admin.edit_user', user_id=user.id) }}"
+                                class="btn btn-sm btn-outline-primary me-1" title="Edit"><i class="fas fa-edit"></i></a>
+                            {% if user.id != current_user.id %}
+                                <a href="{{ url_for('admin.delete_user', user_id=user.id) }}"
+                                    class="btn btn-sm btn-outline-danger" title="Delete"
+                                    onclick="return confirm('Are you sure you want to delete this user \''{{ user.username }}\''? If this user is a leader, their members will become unassigned.');"><i
+                                        class="fas fa-trash-alt"></i></a>
+                            {% endif %}
                         {% else %}
-                        <span class="text-muted">N/A (Admin)</span>
+                            <span class="text-muted">N/A (Admin)</span>
                         {% endif %}
                     </td>
                 </tr>
@@ -144,13 +143,8 @@
         </ul>
     </nav>
     {% endif %}
-
     {% else %}
     <div class="alert alert-info">No users found.</div>
     {% endif %}
 </div>
-
-{# Font Awesome for icons (if not already in base.html) - Add to base.html if used globally #}
-{#
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"> #}
 {% endblock %}
