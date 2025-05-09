@@ -30,32 +30,16 @@ FUND_TYPES = {
 @login_required
 @role_required("admin")
 def admin_dashboard():
-    # --- ADD THESE LOGS ---
-    current_app.logger.info(f"--- ADMIN_DASHBOARD ACCESS ---")
-    current_app.logger.info(f"Session _user_id: {session.get('_user_id')}")
-    current_app.logger.info(f"Session _fresh: {session.get('_fresh')}")
-    current_app.logger.info(f"Session _id: {session.get('_id')} (session cookie value if different)") # _id is often the session cookie's hash
-    current_app.logger.info(f"current_user object: {current_user}")
-    current_app.logger.info(f"current_user.is_authenticated: {current_user.is_authenticated}")
-    if hasattr(current_user, 'id'): # Check if it's not an AnonymousUserMixin
-        current_app.logger.info(f"current_user.id: {current_user.id}")
-        current_app.logger.info(f"current_user.email: {current_user.email}")
-        current_app.logger.info(f"current_user.status (is_active): {current_user.is_active}")
-    else:
-        current_app.logger.info(f"current_user appears to be AnonymousUserMixin or similar.")
-    # --- END OF ADDED LOGS ---
-
-    # Flash welcome message
     username = session.get('username', 'Admin') # Default to 'Admin' if username not in session
-    flash(f"Welcome back, {username}!", "success")
-
     total_users = User.query.count()
     active_users = User.query.filter_by(status=True).count()
 
     # Count users who are leaders (have members reporting to them)
     # We query for distinct user IDs that appear as a leader_id in the User table.
     # Or, more directly, count users who have associated members.
-    count_leaders = User.query.filter_by(role='leader').count() # CORRECTED: Count all users with 'leader' role
+    count_leaders = User.query.filter_by(
+        role="leader"
+    ).count()  # CORRECTED: Count all users with 'leader' role
 
     # Count users who are members (report to a leader)
     count_members_under_leader = User.query.filter(User.leader_id.isnot(None)).count()
@@ -103,8 +87,10 @@ def admin_dashboard():
         "count_members_under_leader": count_members_under_leader,
         "dynamic_prize_pool_total": dynamic_prize_pool_total,
         "static_prize_pool_total": static_prize_pool_total,
-        "leaders_for_sales_calc": sorted_leaders_by_member_count[:5], # Limit to top 5
-        "total_leader_count_for_view_all": len(sorted_leaders_by_member_count), # For 'View All' link logic
+        "leaders_for_sales_calc": sorted_leaders_by_member_count[:5],  # Limit to top 5
+        "total_leader_count_for_view_all": len(
+            sorted_leaders_by_member_count
+        ),  # For 'View All' link logic
         "current_value_price": 5000,
     }
     return render_template(
@@ -122,43 +108,55 @@ def list_users():
     # Get filter parameters from request arguments
     filter_role = request.args.get("role", None)
     filter_status_str = request.args.get("status", None)
-    filter_leader_id = request.args.get("leader_id_filter", None) # New filter
+    filter_leader_id = request.args.get("leader_id_filter", None)  # New filter
 
     # Build the base query
     query = User.query
 
     # Apply filters if they are provided
-    if filter_role: # An empty string for role (from 'All Roles') will evaluate to False here, which is correct.
+    if (
+        filter_role
+    ):  # An empty string for role (from 'All Roles') will evaluate to False here, which is correct.
         query = query.filter(User.role == filter_role)
-    
+
     # Correctly handle status filter: only filter if 'true' or 'false' is explicitly passed.
-    if filter_status_str and filter_status_str in ('true', 'false'): 
-        filter_status = filter_status_str.lower() == 'true'
+    if filter_status_str and filter_status_str in ("true", "false"):
+        filter_status = filter_status_str.lower() == "true"
         query = query.filter(User.status == filter_status)
-    
-    if filter_leader_id: # An empty string for leader_id_filter (from 'All Leaders / Unassigned') will evaluate to False here.
-        if filter_leader_id == '0': # Check for 'Unassigned Members' filter
+
+    if (
+        filter_leader_id
+    ):  # An empty string for leader_id_filter (from 'All Leaders / Unassigned') will evaluate to False here.
+        if filter_leader_id == "0":  # Check for 'Unassigned Members' filter
             query = query.filter(User.leader_id.is_(None))
         else:
             try:
                 leader_id_int = int(filter_leader_id)
                 query = query.filter(User.leader_id == leader_id_int)
             except ValueError:
-                flash("Invalid Leader ID provided for filtering.", "warning") # Or log, or ignore
+                flash(
+                    "Invalid Leader ID provided for filtering.", "warning"
+                )  # Or log, or ignore
 
     users_pagination = query.order_by(User.created_at.desc()).paginate(
         page=page, per_page=per_page, error_out=False
     )
 
     # Fetch all leaders for the filter dropdown
-    all_leaders = User.query.filter_by(role='leader', status=True).order_by(User.username).all()
-    
+    all_leaders = (
+        User.query.filter_by(role="leader", status=True).order_by(User.username).all()
+    )
+
     return render_template(
-        "admin/list_users.html", 
-        users_pagination=users_pagination, 
+        "admin/list_users.html",
+        users_pagination=users_pagination,
         title="Manage Users",
-        current_filters={'role': filter_role, 'status': filter_status_str, 'leader_id': filter_leader_id}, # Pass current filters
-        all_leaders=all_leaders # Pass leaders for dropdown
+        current_filters={
+            "role": filter_role,
+            "status": filter_status_str,
+            "leader_id": filter_leader_id,
+        },  # Pass current filters
+        all_leaders=all_leaders,  # Pass leaders for dropdown
     )
 
 
@@ -624,10 +622,14 @@ def delete_fund(fund_id):
 @role_required("admin")
 def list_all_leaders():
     leaders_with_member_count = []
-    all_users_who_are_leaders = User.query.filter_by(role="leader").order_by(User.username).all()
+    all_users_who_are_leaders = (
+        User.query.filter_by(role="leader").order_by(User.username).all()
+    )
 
     for leader_user in all_users_who_are_leaders:
-        member_count = User.query.filter_by(leader_id=leader_user.id).count() # More direct count
+        member_count = User.query.filter_by(
+            leader_id=leader_user.id
+        ).count()  # More direct count
         leaders_with_member_count.append(
             {
                 "username": leader_user.username,
@@ -635,17 +637,17 @@ def list_all_leaders():
                 "member_count": member_count,
                 "id": leader_user.id,
                 "status": leader_user.status,
-                "created_at": leader_user.created_at
+                "created_at": leader_user.created_at,
             }
         )
-    
+
     # Optionally, sort this list as well if needed, e.g., by member count or username
     sorted_full_leaders_list = sorted(
         leaders_with_member_count, key=lambda x: x["member_count"], reverse=True
     )
 
     return render_template(
-        "admin/list_all_leaders.html", 
-        title="Full Leaderboard", 
-        leaders_list=sorted_full_leaders_list
+        "admin/list_all_leaders.html",
+        title="Full Leaderboard",
+        leaders_list=sorted_full_leaders_list,
     )

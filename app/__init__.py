@@ -3,7 +3,7 @@ from flask import Flask
 from .database import db
 from dotenv import load_dotenv
 from flask_migrate import Migrate
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 import logging  # For better debugging
 from datetime import datetime # Make sure datetime is imported from datetime module
 from .routes.general_routes import general_bp
@@ -55,13 +55,7 @@ def create_app(test_config=None):
 
     @login_manager.user_loader
     def load_user(user_id):
-        app.logger.info(f"--- load_user CALLED with user_id: {user_id} (type: {type(user_id)}) ---")
-        user = User.query.get(int(user_id))
-        if user: 
-            app.logger.info(f"--- load_user RETURNING user: {user}, Role: {user.role}, Status: {user.status} ---") 
-        else: 
-            app.logger.info(f"--- load_user: No user found for id {user_id} ---") 
-        return user
+        return User.query.get(int(user_id))
 
     # Set PRAGMA busy_timeout for SQLite to help with 'database is locked' errors
     if app.config.get('SQLALCHEMY_DATABASE_URI', '').startswith('sqlite'):
@@ -105,6 +99,10 @@ def create_app(test_config=None):
     @app.context_processor
     def inject_current_year():
         return {'current_year': datetime.utcnow().year}
+
+    @app.context_processor
+    def inject_current_user():
+        return dict(current_user=current_user)
 
     # --- Custom Jinja Filters ---
     def format_datetime_custom(value, format_str='%b %d, %Y %I:%M %p'):

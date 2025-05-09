@@ -47,41 +47,20 @@
 <body>
     <div class="app-layout d-flex flex-column">
         <!-- Navigation section -->
-        {% if session.user_id %}
-        <!-- Top Navbar Navigation (Default) -->
+        {% if current_user.is_authenticated %}
         <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 border-bottom flex-shrink-0">
             <div class="container-fluid">
-                <a class="navbar-brand" href="{{ url_for('general.dashboard') }}"><strong>Affiliate System</strong></a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <!-- <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('general.dashboard') }}">Dashboard</a>
-                        </li> -->
-                        {% if session.user_role == 'admin' %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('admin.list_users') }}">Manage Users</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('admin.manage_funds') }}">Manage Funds</a>
-                        </li>
-                        {% elif session.user_role == 'leader' %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('leader.create_member') }}">Manage Members</a>
-                        </li>
-                        {% endif %}
-                    </ul>
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.logout') }}">({{ session.username }}) Logout</a>
-                        </li>
-                    </ul>
-                </div>
+                <a class="navbar-brand" href="{{ url_for('general.index') }}"><strong>Affiliate System</strong></a>
+                <!-- Manage users and funds -->
+                <a class="nav-link me-2" href="{{ url_for('admin.list_users') }}">Manage Users</a>
+                <a class="nav-link me-2" href="{{ url_for('admin.manage_funds') }}">Manage Funds</a>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+                    </li>
+                </ul>
             </div>
         </nav>
-
         {% else %}
         <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 border-bottom flex-shrink-0">
             <div class="container-fluid">

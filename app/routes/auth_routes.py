@@ -1,30 +1,15 @@
 # app/routes/auth_routes.py
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import check_password_hash
-from flask_login import login_user, logout_user, current_user
+from flask_login import login_user, logout_user, current_user, login_required
 from ..database.models import User
 from .. import db # If you need to interact with db directly in more complex auth logic
-from urllib.parse import urlparse, urljoin
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
-def is_safe_url(target):
-    """
-    Checks if a URL is safe for redirection.
-    Ensures that the target URL is on the same domain as the application.
-    """
-    ref_url = urlparse(request.host_url)
-    test_url = urlparse(urljoin(request.host_url, target))
-    # Ensure the scheme is http or https and the network location (domain) matches.
-    return test_url.scheme in ('http', 'https') and \
-           ref_url.netloc == test_url.netloc
-
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    if current_user.is_authenticated:
-        current_app.logger.info(f"User '{current_user.username}' (Role: {current_user.role}) already authenticated, redirecting to their dashboard.")
-        # If user is already logged in, ALWAYS redirect to their respective dashboard
-        # Ignore any 'next' parameter in this specific scenario to break loops.
+    if current_user.is_authenticated:  # Check if already logged in
         if current_user.role == 'admin':
             return redirect(url_for('admin.admin_dashboard'))
         elif current_user.role == 'leader':
@@ -32,51 +17,56 @@ def login():
         elif current_user.role == 'member':
             return redirect(url_for('member.member_dashboard'))
         else:
-            # Fallback if role is somehow not set or recognized
-            current_app.logger.warning(f"Authenticated user '{current_user.username}' has unrecognized role '{current_user.role}', redirecting to general dashboard.")
-            return redirect(url_for('general.dashboard'))
+            return redirect(url_for('general.index'))
 
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
-        remember = True if request.form.get('remember') else False
+
         user = User.query.filter_by(email=email).first()
 
         if not user or not check_password_hash(user.password_hash, password):
-            flash('Please check your login details and try again.', 'error')
-            current_app.logger.warning(f"Failed login attempt for email: {email}")
+            flash('Please check your login details and try again.', 'danger')
+            return redirect(url_for('auth.login'))
+        
+        # Check if user account is active
+        if not user.status:
+            flash('Your account is inactive. Please contact an administrator.', 'warning')
             return redirect(url_for('auth.login'))
 
-        login_user(user, remember=remember)
-        current_app.logger.info(f"User '{user.username}' (Role: {user.role}) logged in successfully.")
+        # Use Flask-Login's login_user function
+        login_user(user)
+
+        # Store user info in session for convenience (Flask-Login handles user_id)
+        session['username'] = user.username
+        session['user_role'] = user.role
+
+        flash(f'Welcome back, {user.username}!', 'success')
         
+        # Handle the next parameter if it exists
         next_page = request.args.get('next')
-        
-        if next_page and is_safe_url(next_page):
-            current_app.logger.info(f"Redirecting to 'next' URL: {next_page}")
+        if next_page and next_page.startswith('/'):  # Ensure it's a relative URL
             return redirect(next_page)
+        
+        # Redirect to appropriate dashboard based on role
+        if user.role == 'admin':
+            return redirect(url_for('admin.admin_dashboard'))
+        elif user.role == 'leader':
+            return redirect(url_for('leader.leader_dashboard'))
+        elif user.role == 'member':
+            return redirect(url_for('member.member_dashboard'))
         else:
-            if next_page: # Log if next_page was present but unsafe
-                current_app.logger.warning(f"'next' URL '{next_page}' was unsafe or invalid. Redirecting to role-based dashboard.")
-            
-            current_app.logger.info(f"No 'next' URL or unsafe, redirecting to role-based dashboard for user '{user.username}'.")
-            if user.role == 'admin':
-                return redirect(url_for('admin.admin_dashboard'))
-            elif user.role == 'leader':
-                return redirect(url_for('leader.leader_dashboard'))
-            elif user.role == 'member':
-                return redirect(url_for('member.member_dashboard'))
-            else:
-                current_app.logger.warning(f"User '{user.username}' has unrecognized role '{user.role}' post-login, redirecting to general dashboard.")
-                return redirect(url_for('general.dashboard'))
+            flash('Login successful, but role dashboard not found.', 'warning')
+            return redirect(url_for('general.index'))
 
     return render_template('auth/login.html', title='Login')
 
 @auth_bp.route('/logout')
+@login_required
 def logout():
-    logout_user() # Use Flask-Login's logout_user
-    # session.clear() # logout_user() is generally preferred as it cleans up Flask-Login specific session keys
-    flash('You have been successfully logged out.', 'success')
+    logout_user()  # Use Flask-Login's logout_user function
+    session.clear()  # Clear any custom session data
+    flash('You have been logged out successfully.', 'success')
     return redirect(url_for('general.index'))
 
 # Placeholder for registration - you'll need to implement this

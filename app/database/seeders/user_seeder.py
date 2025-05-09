@@ -11,7 +11,7 @@ def seed_user():
     # --- Create Admin User from Environment Variables ---
     admin_username = os.environ.get("ADMIN_DEFAULT_USERNAME", "admin")
     admin_email = os.environ.get("ADMIN_DEFAULT_EMAIL", "admin@gmail.com")
-    admin_password = os.environ.get("ADMIN_DEFAULT_PASSWORD", "123")
+    admin_password = os.environ.get("ADMIN_DEFAULT_PASSWORD", "123123123")
 
     if not User.query.filter_by(username=admin_username).first():
         admin = User(

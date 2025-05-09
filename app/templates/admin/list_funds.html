@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}{{ title if title else "Manage Fund Entries" }}{% endblock %}
+{% block title %}{{ title if title else "Manage Fund" }}{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>{{ title if title else "Manage Fund Entries" }}</h1>
+        <h1>{{ title if title else "Manage Fund" }}</h1>
         <a href="{{ url_for('admin.create_fund') }}" class="btn btn-success">
             <i class="fas fa-plus"></i> Create New Fund
         </a>
