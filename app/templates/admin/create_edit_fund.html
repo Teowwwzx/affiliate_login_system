@@ -2,61 +2,49 @@
 
 {% block title %}{{ title }}{% endblock %}
 
-{% block page_title %}
-<h1>{{ title }}</h1>
-{% endblock %}
-
 {% block content %}
+<h1>{{ title }}</h1>
 <div class="container-fluid mt-4">
-    <div class="card card-primary">
-        <div class="card-header">
-            <h3 class="card-title">{{ title }}</h3>
+    <form method="POST" action="{{ action_url }}" class="mt-5">
+        {{ csrf_token_form_field() if 'csrf_token_form_field' in globals else '' }}
+        <div class="mb-3">
+            <label for="amount">Amount</label>
+            <input type="number"
+                class="form-control {% if form_errors and 'amount' in form_errors %}is-invalid{% endif %}"
+                id="amount" name="amount" step="0.01" min="0.01" required
+                value="{{ fund.amount if fund and fund.amount is not none else fund_data.amount if fund_data and fund_data.amount is not none else '' }}">
+            {% if form_errors and 'amount' in form_errors %}
+            <div class="invalid-feedback">{{ form_errors['amount'] }}</div>
+            {% endif %}
         </div>
-        <form method="POST" action="{{ action_url }}">
-            {{ csrf_token_form_field() if 'csrf_token_form_field' in globals else '' }}
-            <div class="card-body">
-                <div class="form-group mb-3">
-                    <label for="amount">Amount</label>
-                    <input type="number"
-                        class="form-control {% if form_errors and 'amount' in form_errors %}is-invalid{% endif %}"
-                        id="amount" name="amount" step="0.01" min="0.01" required
-                        value="{{ fund.amount if fund and fund.amount is not none else fund_data.amount if fund_data and fund_data.amount is not none else '' }}">
-                    {% if form_errors and 'amount' in form_errors %}
-                    <div class="invalid-feedback">{{ form_errors['amount'] }}</div>
-                    {% endif %}
-                </div>
 
-                <div class="form-group mb-3">
-                    <label for="fund_type">Fund Type</label>
-                    <select class="form-select {% if form_errors and 'fund_type' in form_errors %}is-invalid{% endif %}" id="fund_type" name="fund_type" required>
-                        <option value="" disabled {% if not (fund and fund.fund_type) and not (fund_data and fund_data.fund_type) %}selected{% endif %}>Select a type...</option>
-                        {% for type_key, type_name in fund_types.items() %}
-                            <option value="{{ type_key }}" 
-                                    {% if fund and fund.fund_type == type_key %}selected
-                                    {% elif fund_data and fund_data.fund_type == type_key and not fund %}selected
-                                    {% endif %}>
-                                {{ type_name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                    {% if form_errors and 'fund_type' in form_errors %}
-                        <div class="invalid-feedback">{{ form_errors['fund_type'] }}</div>
-                    {% endif %}
-                </div>
+        <div class="mb-3">
+            <label for="fund_type">Fund Type</label>
+            <select class="form-select {% if form_errors and 'fund_type' in form_errors %}is-invalid{% endif %}" id="fund_type" name="fund_type" required>
+                <option value="" disabled {% if not (fund and fund.fund_type) and not (fund_data and fund_data.fund_type) %}selected{% endif %}>Select a type...</option>
+                {% for type_key, type_name in fund_types.items() %}
+                    <option value="{{ type_key }}" 
+                            {% if fund and fund.fund_type == type_key %}selected
+                            {% elif fund_data and fund_data.fund_type == type_key and not fund %}selected
+                            {% endif %}>
+                        {{ type_name }}
+                    </option>
+                {% endfor %}
+            </select>
+            {% if form_errors and 'fund_type' in form_errors %}
+                <div class="invalid-feedback">{{ form_errors['fund_type'] }}</div>
+            {% endif %}
+        </div>
 
-                <div class="form-group mb-3">
-                    <label for="remarks">Remarks (Optional)</label>
-                    <textarea class="form-control" id="remarks" name="remarks"
-                        rows="3">{{ fund.remarks if fund and fund.remarks is not none else fund_data.remarks if fund_data and fund_data.remarks is not none else '' }}</textarea>
-                </div>
-            </div>
-            <div class="card-footer">
-                <button type="submit" class="btn btn-primary">
-                    {% if fund %}Update{% else %}Create{% endif %} Fund Entry
-                </button>
-                <a href="{{ url_for('admin.manage_funds') }}" class="btn btn-secondary">Cancel</a>
-            </div>
-        </form>
-    </div>
+        <div class="mb-3">
+            <label for="remarks">Remarks (Optional)</label>
+            <textarea class="form-control" id="remarks" name="remarks"
+                rows="3">{{ fund.remarks if fund and fund.remarks is not none else fund_data.remarks if fund_data and fund_data.remarks is not none else '' }}</textarea>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">{{ 'Update' if fund else 'Create' }} Fund</button>
+            <a href="{{ url_for('admin.manage_funds') }}" class="btn btn-secondary">Cancel</a>        </div>
+    </form>
 </div>
 {% endblock %}

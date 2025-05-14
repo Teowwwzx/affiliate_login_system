@@ -1,3 +1,19 @@
+:root {
+    --primary-color: #FF6F20;
+    --secondary-color: #3E3E3E;
+    --yellow-color: #FFB300;
+    --skin-color: #FFCC80;
+    --orange-color: #FF7043; /* This is a slightly different orange, used for warning */
+    --white-color: #FFFFFF;
+    --black-color: #000000;
+
+    /* Theme-specific status colors */
+    --success-color: #198754; /* Standard Bootstrap green */
+    --info-color: #0dcaf0;    /* Standard Bootstrap cyan/blue */
+    --warning-color: var(--orange-color); /* Using the defined orange for warning */
+}
+
+
 /* General Styles */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -18,18 +34,18 @@ body {
 }
 
 h1, h2, h3 {
-    color: #0056b3; /* Darker blue for headings */
+    color: var(--secondary-color); /* Use secondary color for headings */
     margin-top: 0;
 }
 
 a {
-    color: #007bff;
+    color: var(--primary-color); /* Use primary color for links */
     text-decoration: none;
 }
 
 a:hover {
     text-decoration: underline;
-    color: #0056b3;
+    color: var(--secondary-color); /* Use secondary color for link hover */
 }
 
 hr {
@@ -66,6 +82,39 @@ hr {
     font-weight: bold;
 }
 
+/* Make navbar slightly thicker */
+.navbar {
+    padding-top: 0.8rem; 
+    padding-bottom: 0.8rem;
+}
+
+/* Custom Navbar Adjustments for Small Screens */
+.navbar-toggler {
+    padding: 0.2rem 0.5rem; /* Reduce padding */
+    font-size: 1rem; /* Reduce font size of the button itself if it had text */
+}
+
+.navbar-toggler-icon {
+    width: 1.2em; /* Reduce width of the icon lines */
+    height: 1.2em; /* Reduce height of the icon lines */
+}
+
+@media (max-width: 575.98px) { /* Targeting extra small screens (Bootstrap's < sm) */
+    .navbar-brand {
+        font-size: 1rem; /* Slightly smaller brand font */
+        margin-left: 0.5rem;
+        margin-right: 0.5rem; /* Add some space between brand and toggler if they are too close */
+    }
+    .navbar {
+        padding-top: 0.5rem; 
+        padding-bottom: 0.5rem;
+    }
+    .navbar .ms-auto .nav-link {
+        padding-right: 0.5rem;
+        padding-left: 0.5rem;
+    }
+}
+
 /* Flashed Messages */
 .flash-messages {
     margin-bottom: 20px;
@@ -83,6 +132,15 @@ hr {
 .flash.danger { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
 .flash.warning { background-color: #fff3cd; color: #856404; border-color: #ffeeba; }
 .flash.info { background-color: #d1ecf1; color: #0c5460; border-color: #bee5eb; }
+
+/* Medal Colors */
+.text-silver {
+    color: #C0C0C0 !important; /* Silver */
+}
+
+.text-bronze {
+    color: #CD7F32 !important; /* Bronze */
+}
 
 /* Forms */
 form div {
@@ -187,89 +245,68 @@ td a {
     display: none;
 }
 
-/* Layout */
-.app-layout {
-    display: flex; /* Use flexbox for main layout */
-    min-height: 100vh; /* Ensure layout takes full viewport height */
+/* Custom styles for admin dashboard cards */
+.card.border-left-primary {
+    border-left: .40rem solid var(--primary-color) !important;
 }
 
-.sidebar {
-    width: 200px; /* Fixed width for sidebar */
-    background-color: #f8f9fa; /* Light background */
-    padding: 20px;
-    border-right: 1px solid #dee2e6; /* Separator line */
-    flex-shrink: 0; /* Prevent sidebar from shrinking */
+.card.border-left-success {
+    border-left: .40rem solid var(--success-color) !important;
 }
 
-.sidebar h3 {
-    margin-top: 0;
-    color: #0056b3;
-    font-size: 1.1em;
-    margin-bottom: 15px;
+.card.border-left-info {
+    border-left: .40rem solid var(--info-color) !important;
 }
 
-.sidebar ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+.card.border-left-warning {
+    border-left: .40rem solid var(--warning-color) !important;
 }
 
-.sidebar li {
-    margin-bottom: 10px;
+.text-xs {
+    font-size: .7rem;
 }
 
-.sidebar a {
-    display: block; /* Make links fill the list item */
-    color: #007bff;
+.text-gray-300 {
+    color: #dddfeb !important; /* Consider making these themeable if used widely */
+}
+
+.text-gray-800 {
+    color: #5a5c69 !important; /* Consider making these themeable if used widely */
+}
+
+/* Sidebar link styling for dark hover/active and left accent bar */
+#sidebar .nav-link {
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-left-color 0.2s ease-in-out;
+    color: var(--secondary-color); /* Default dark text for light sidebar */
+    border-left: 4px solid transparent; /* All links have space for active border */
+    padding-left: 0.75rem; /* Adjust this value as needed, (1rem default - approx 0.25rem for 4px border) */
+    border-radius: 0 0.25rem 0.25rem 0; /* Rounded corners on the right, flat on the left for the bar */
+    margin-bottom: 0.125rem; /* Optional: small space between links */
+}
+
+#sidebar .nav-link:hover {
+    background-color: var(--secondary-color); /* Dark background on hover (Bootstrap's bg-dark) */
+    color: white; /* Light text/icon on hover (Bootstrap's text-light) */
+    border-left-color: transparent; /* Ensure hover on non-active link doesn't show bar */
     text-decoration: none;
-    padding: 5px 0;
 }
 
-.sidebar a:hover {
-    text-decoration: underline;
-    color: #0056b3;
+#sidebar .nav-link.active {
+    background-color: #f0f0f0; /* Light grey background */
+    color: var(--primary-color); /* Orange text */
+    border-left: 5px solid var(--primary-color); /* Orange border for emphasis */
+}
+#sidebar .nav-link.active i {
+    color: var(--primary-color); /* Orange icon */
 }
 
-.content {
-    flex-grow: 1; /* Allow content area to take remaining space */
-    padding: 20px;
+#sidebar .mt-auto .nav-link {
+    color: var(--secondary-color); /* Muted color for these utility links */
 }
 
-/* Adjust container margin when sidebar is present */
-.app-layout .content .container {
-    margin-top: 0;
-}
-
-/* Card View for Top Performers */
-.card-container {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    margin-top: 20px;
-}
-
-.card {
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    padding: 15px;
-    margin: 10px;
-    width: 200px;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    background-color: #fff;
-}
-
-.card h4 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    color: #007bff;
-}
-
-.card p {
-    margin: 5px 0;
-    font-size: 0.95em;
-}
-
-.card strong {
-    color: #333;
+#sidebar .mt-auto .nav-link:hover {
+    background-color: var(--secondary-color); /* A lighter hover, distinct from main nav links */
+    color: var(--primary-color); /* Primary color text on hover for emphasis */
+    border-left-color: transparent; /* Ensure no bar on hover */
+    text-decoration: none;
 }

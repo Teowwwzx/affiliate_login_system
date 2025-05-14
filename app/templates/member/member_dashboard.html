@@ -2,25 +2,71 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2 class="mb-4"><i class="fas fa-user me-2"></i>Member Dashboard: {{ member.username }}</h2>
-
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-user-tie me-2"></i>My Leader</h5>
+<div class="container-fluid">
+    <div class="row">
+        <!-- My Leader Card -->
+        <div class="col-xl-4 col-lg-5 mb-4">
+            <div class="card shadow-sm h-100 border-left-info">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h5 class="m-0 font-weight-bold text-info"><i class="fas fa-user-tie me-2"></i>My Leader</h5>
+                </div>
+                <div class="card-body">
+                    {% if leader %}
+                        <p><strong>Username:</strong> {{ leader.username }}</p>
+                        <p><strong>Email:</strong> {{ leader.email }}</p>
+                    {% else %}
+                        <p class="text-muted">You are not currently assigned to a leader.</p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            {% if leader %}
-            <p class="fs-5">Your leader is: <strong>{{ leader.username }}</strong> ({{ leader.email }})</p>
-            {% else %}
-            <p class="text-muted">You are not currently assigned to a leader.</p>
-            {% endif %}
-        </div>
-    </div>
 
-    <!-- You can add more member-specific information here if needed -->
-    <div class="mt-4">
-        <a href="{{ url_for('member.change_password') }}" class="btn btn-info"><i class="fas fa-key me-1"></i> Change Password</a>
+        <!-- My Profile Card -->
+        <div class="col-xl-8 col-lg-7 mb-4">
+            <div class="card shadow-sm h-100 border-left-primary">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h5 class="m-0 font-weight-bold text-primary"><i class="fas fa-id-card me-2"></i>My Profile</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Username:
+                            <span class="font-weight-bold">{{ member.username }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Email:
+                            <span class="font-weight-bold">{{ member.email }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Joined:
+                            <span class="font-weight-bold">{{ member.created_at | datetime_custom }}</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{{ url_for('member.change_password') }}" class="btn btn-sm btn-info"><i class="fas fa-key me-1"></i> Change Password</a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<style>
+    /* in style.css */
+    /* .border-left-primary {
+        border-left: .25rem solid #4e73df !important;
+    }
+    
+    .border-left-info {
+        border-left: .25rem solid #36b9cc !important;
+    }
+    
+    .text-primary {
+        color: #4e73df !important;
+    }
+    
+    .text-info {
+        color: #36b9cc !important;
+    } */
+</style>
 {% endblock %}

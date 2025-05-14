@@ -3,7 +3,7 @@
 {% block title %}{{ title if title else "Full Leaderboard" }}{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>{{ title if title else "Full Leaderboard" }}</h1>
         <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-outline-secondary">

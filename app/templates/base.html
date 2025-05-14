@@ -7,86 +7,119 @@
     <title>{% block title %}Affiliate Login System{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <style>
-        /* Custom dark mode styles (keep for theme toggle, but sidebar specific can be removed if unused) */
-        .bg-custom-dark {
-            background-color: #1a1a1a !important;
-        }
-
-        .text-custom-dark {
-            color: #e0e0e0 !important;
-        }
-
-        .custom-dark {
-            background-color: #2d2d2d !important;
-        }
-
-        .custom-link-dark {
-            color: #66a3ff !important;
-        }
-
-        .custom-border-dark {
-            border-color: #444 !important;
-        }
-
-        .custom-input-bg-dark {
-            background-color: #333 !important;
-        }
-
-        .custom-input-text-dark {
-            color: #e0e0e0 !important;
-        }
-
-        /* Layout styles */
-        .app-layout {
-            min-height: 100vh;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
-<body>
-    <div class="app-layout d-flex flex-column">
-        <!-- Navigation section -->
-        {% if current_user.is_authenticated %}
-        <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 border-bottom flex-shrink-0">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="{{ url_for('general.index') }}"><strong>Affiliate System</strong></a>
-                
-                {% if current_user.role == 'admin' %}
-                <!-- Admin links -->
-                <a class="nav-link me-2" href="{{ url_for('admin.list_users') }}">Manage Users</a>
-                <a class="nav-link me-2" href="{{ url_for('admin.manage_funds') }}">Manage Funds</a>
-                {% elif current_user.role == 'leader' %}
-                <!-- Leader links -->
-                <!-- <a class="nav-link me-2" href="{{ url_for('leader.leader_dashboard') }}">Leader Dashboard</a> -->
-                <a class="nav-link me-2" href="{{ url_for('leader.create_member') }}">Add Member</a>
-                {% elif current_user.role == 'member' %}
-                <!-- Member links -->
-                <a class="nav-link me-2" href="{{ url_for('member.member_dashboard') }}">Member Dashboard</a>
-                {% endif %}
+<body class="d-flex flex-column min-vh-100">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            {% if not ((request.endpoint == 'general.index' and not current_user.is_authenticated) or request.endpoint
+            == 'auth.login') %}
+            <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar"
+                aria-controls="sidebar" aria-label="Toggle sidebar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            {% endif %}
 
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+            <a class="navbar-brand" href="{{ url_for('general.index') }}"><strong>Affiliate System</strong></a>
+
+            <!-- Profile and Logout Links -->
+            <div class="ms-auto">
+                <ul class="navbar-nav">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarUserDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle me-1"></i> {{ current_user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarUserDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i
+                                        class="fas fa-sign-out-alt me-1"></i> Logout</a></li>
+                        </ul>
                     </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.login') }}"><i class="fas fa-sign-in-alt me-1"></i>
+                            Login</a>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
-        </nav>
-        {% else %}
-        <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 border-bottom flex-shrink-0">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="{{ url_for('general.index') }}"><strong>Affiliate System</strong></a>
-                <ul class="navbar-nav ms-auto">
+
+        </div>
+    </nav>
+
+    <div class="d-flex flex-grow-1 overflow-hidden">
+        <!-- Sidebar -->
+        {% if not ((request.endpoint == 'general.index' and not current_user.is_authenticated) or request.endpoint ==
+        'auth.login') %}
+        <nav id="sidebar" class="offcanvas-lg offcanvas-start bg-light p-0 border-end d-flex flex-column" tabindex="-1"
+            aria-label="Admin sidebar" style="width: 250px;">
+            <div class="offcanvas-header d-lg-none border-bottom">
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebar"
+                    aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body d-flex flex-column flex-grow-1">
+                {% if current_user.is_authenticated %}
+                <ul class="nav flex-column">
+                    {% if current_user.role == 'admin' %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
+                        <a class="nav-link {% if request.endpoint == 'admin.admin_dashboard' %}active{% endif %}"
+                            href="{{ url_for('admin.admin_dashboard') }}">
+                            <i class="fas fa-tachometer-alt me-2"></i> Admin Dashboard
+                        </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin.list_users' %}active{% endif %}"
+                            href="{{ url_for('admin.list_users') }}">
+                            <i class="fas fa-users me-2"></i> Manage Users
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin.manage_funds' %}active{% endif %}"
+                            href="{{ url_for('admin.manage_funds') }}">
+                            <i class="fas fa-funnel-dollar me-2"></i> Manage Funds
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin.list_all_leaders' %}active{% endif %}"
+                            href="{{ url_for('admin.list_all_leaders') }}">
+                            <i class="fas fa-sitemap me-2"></i> Full Leaderboard
+                        </a>
+                    </li>
+                    {% elif current_user.role == 'leader' %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'leader.leader_dashboard' %}active{% endif %}"
+                            href="{{ url_for('leader.leader_dashboard') }}">
+                            <i class="fas fa-user-tie me-2"></i> Leader Dashboard
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'leader.create_member' %}active{% endif %}"
+                            href="{{ url_for('leader.create_member') }}">
+                            <i class="fas fa-user-plus me-2"></i> Add New Member
+                        </a>
+                    </li>
+
+                    {% elif current_user.role == 'member' %}
+                    <!-- Member-specific links can go here -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'member.member_dashboard' %}active{% endif %}"
+                            href="{{ url_for('member.member_dashboard') }}">
+                            <i class="fas fa-tachometer-alt me-2"></i> My Dashboard
+                        </a>
+                    </li>
+                    {% endif %}
                 </ul>
+                {% else %}
+                {% endif %}
             </div>
         </nav>
         {% endif %}
 
-        <!-- Main content -->
-        <main class="container mt-4 flex-grow-1">
+        <main role="main"
+            class="flex-grow-1 ps-2 pe-2 overflow-auto bg-body-secondary {% if (request.endpoint == 'general.index' and not current_user.is_authenticated) or request.endpoint == 'auth.login' %}w-100{% endif %}">
             {# Flash Messages #}
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -103,34 +136,85 @@
             {# Main Content Block #}
             {% block content %}{% endblock %}
         </main>
-
-        <!-- Footer or other elements -->
-        <footer class="mt-auto py-3 bg-light border-top">
-            <div class="container text-center">
-                <span class="text-muted">Affiliate System &copy; {{ current_year }}</span>
-            </div>
-        </footer>
-
-        <!-- JavaScript -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script>
-            // Auto-hide flash messages after 5 seconds
-            document.addEventListener('DOMContentLoaded', function () {
-                const flashMessages = document.querySelectorAll('.alert.alert-dismissible');
-                flashMessages.forEach(message => {
-                    setTimeout(() => {
-                        // Use Bootstrap's JS to close the alert if available, otherwise just remove
-                        const bsAlert = bootstrap.Alert.getInstance(message);
-                        if (bsAlert) {
-                            bsAlert.close();
-                        } else {
-                            message.remove();
-                        }
-                    }, 5000);
-                });
-            });
-        </script>
     </div>
+
+    {% if request.endpoint == 'general.index' or request.endpoint == 'auth.login' or not current_user.is_authenticated
+    %}
+    <footer class="footer mt-auto py-3 bg-light border-top text-center">
+        <div
+            class="{% if (request.endpoint == 'general.index' and not current_user.is_authenticated) or request.endpoint == 'auth.login' %}container-fluid{% else %}container{% endif %}">
+            <span class="text-muted">Affiliate System &copy; <span id="currentYear"></span>. All rights reserved.</span>
+        </div>
+    </footer>
+    {% endif %}
+
+    <style>
+        main {
+            color: grey;
+        }
+    </style>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Update current year in footer
+            var currentYearSpan = document.getElementById('currentYear');
+            if (currentYearSpan) {
+                currentYearSpan.textContent = new Date().getFullYear();
+            }
+
+            // Active link highlighting for sidebar (simplified approach)
+            var sidebarLinks = document.querySelectorAll('#sidebar .nav-link');
+            var currentUrl = window.location.pathname;
+
+            // Normalize currentUrl to remove trailing slash if not root
+            if (currentUrl !== '/' && currentUrl.endsWith('/')) {
+                currentUrl = currentUrl.slice(0, -1);
+            }
+
+            sidebarLinks.forEach(function (link) {
+                // Ensure we are not targeting the logout/login link in this part of the logic
+                if (link.getAttribute('href') === "{{ url_for('auth.logout') }}" || link.getAttribute('href') === "{{ url_for('auth.login') }}") {
+                    return;
+                }
+
+                var linkPath = new URL(link.href).pathname;
+                // Normalize linkPath 
+                if (linkPath !== '/' && linkPath.endsWith('/')) {
+                    linkPath = linkPath.slice(0, -1);
+                }
+
+                // Clear existing active states
+                link.classList.remove('active');
+                link.removeAttribute('aria-current');
+
+                // Check for exact match or if current URL starts with link path (for parent routes)
+                // Ensure the link path is not just "/" for the startsWith check unless currentUrl is also "/"
+                if (linkPath === currentUrl || (linkPath !== "/" && currentUrl.startsWith(linkPath) && linkPath !== "")) {
+                    link.classList.add('active');
+                    link.setAttribute('aria-current', 'page');
+                }
+            });
+
+            // Specifically activate dashboard if it's the root of admin or the exact match
+            const adminDashboardUrl = "{{ url_for('admin.admin_dashboard') }}";
+            let normalizedAdminDashboardUrl = adminDashboardUrl;
+            if (adminDashboardUrl !== '/' && adminDashboardUrl.endsWith('/')) {
+                normalizedAdminDashboardUrl = adminDashboardUrl.slice(0, -1);
+            }
+            if (currentUrl === normalizedAdminDashboardUrl) {
+                const dashboardLink = document.querySelector('#sidebar .nav-link[href*="admin_dashboard"]');
+                if (dashboardLink) {
+                    // Clear active from other links first if needed, though the loop above should handle it
+                    // sidebarLinks.forEach(l => l.classList.remove('active')); 
+                    dashboardLink.classList.add('active');
+                    dashboardLink.setAttribute('aria-current', 'page');
+                }
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
 </body>
 
 </html>
