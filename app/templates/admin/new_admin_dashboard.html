@@ -1,0 +1,323 @@
+{% extends "new_base.html" %}
+
+{% block title %}Admin Dashboard - Overview{% endblock %}
+
+{% block page_header %}
+<h1>Dashboard</h1>
+<p>Welcome, Admin! Here's an overview of your system.</p>
+{% endblock %}
+
+{% block page_content %}
+<!-- Dashboard Widgets Grid -->
+<div class="row">
+    <!-- Statistics Overview Card -->
+    <div class="col-xl-6 col-lg-12 mb-4">
+        <div class="new-admin-card h-100">
+            <div class="card-header">
+                System Statistics
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Total Users</h6>
+                        <h3 class="fw-bold">{{ stats.total_users if stats else 'N/A' }}</h3>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Active Users</h6>
+                        <h3 class="fw-bold">{{ stats.active_users if stats else 'N/A' }}</h3>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Total Leaders</h6>
+                        <h3 class="fw-bold">{{ stats.count_leaders if stats else 'N/A' }}</h3>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Members (under Leaders)</h6>
+                        <h3 class="fw-bold">{{ stats.count_members_under_leader if stats else 'N/A' }}</h3>
+                    </div>
+                </div>
+                <!-- <div class="row">
+                    <div class="col-md-3 col-6 mb-4">
+                        <div class="stat-item text-center p-3 h-100" style="background-color: #fefcf7;">
+                            <h5 class="stat-value display-6 fw-bold mb-0">{{ stats.count_members_under_leader if stats and stats.count_members_under_leader is not none else 'N/A' }}</h5>
+                            <p class="stat-label text-muted mb-0">Members (under Leaders)</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-4">
+                        <div class="stat-item text-center p-3 h-100" style="background-color: #fefcf7;">
+                            <h5 class="stat-value display-6 fw-bold mb-0">{{ stats.total_referral_codes_generated if stats and stats.total_referral_codes_generated is not none else 'N/A' }}</h5>
+                            <p class="stat-label text-muted mb-0">Total Referral Codes</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-4">
+                        <div class="stat-item text-center p-3 h-100" style="background-color: #fefcf7;">
+                            <h5 class="stat-value display-6 fw-bold mb-0">{{ stats.users_joined_via_referral if stats and stats.users_joined_via_referral is not none else 'N/A' }}</h5>
+                            <p class="stat-label text-muted mb-0">Users via Referral</p>
+                        </div>
+                    </div>
+                </div> -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Prize Pools Overview Card -->
+    <div class="col-xl-6 col-lg-12 mb-4">
+        <div class="new-admin-card h-100">
+            <div class="card-header">
+                Prize Pool Overview
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-2">
+                    <span class="amount me-2 display-5 fw-bold">${{ "%.2f"|format(stats.total_available_funds) if stats
+                        and stats.total_available_funds is not none else '0.00' }}</span>
+                </div>
+                <h6 class="text-muted mb-3">Total Available Funds</h6>
+                <div class="row align-items-center">
+                    <div class="col-md-5">
+                        <div class="mb-3 mx-auto" style="height: 180px; width: 180px; position: relative;">
+                            <canvas id="prizePoolChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="legend">
+                            <div class="legend-item d-flex justify-content-between align-items-center mb-2">
+                                <span><span class="legend-color-box me-2"
+                                        ></span>Dynamic Pool</span>
+                                <span class="fw-semibold">${{ "%.2f"|format(stats.dynamic_prize_pool_total) if stats and
+                                    stats.dynamic_prize_pool_total is not none else 'N/A' }}</span>
+                            </div>
+                            <div class="legend-item d-flex justify-content-between align-items-center mb-2">
+                                <span><span class="legend-color-box me-2"
+                                        ></span>Static Pool</span>
+                                <span class="fw-semibold">${{ "%.2f"|format(stats.static_prize_pool_total) if stats and
+                                    stats.static_prize_pool_total is not none else 'N/A' }}</span>
+                            </div>
+                            <div class="legend-item d-flex justify-content-between align-items-center mb-2">
+                                <span><span class="legend-color-box me-2"
+                                        ></span>General/Operational</span>
+                                <span class="fw-semibold">${{ "%.2f"|format(stats.general_operational_total) if stats
+                                    and stats.general_operational_total is not none else 'N/A' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- <div class="text-center mt-3">
+                    <a href="{{ url_for('admin.manage_funds') }}" class="btn btn-sm btn-outline-main-custom">Manage
+                        Funds</a>
+                </div> -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Top Leaders Card -->
+    <div class="col-xl-5 col-lg-12 mb-4">
+        <div class="new-admin-card h-100 d-flex flex-column">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    Top Leaders
+                    <small class="text-muted fs-7 ms-1">(Value per Member: ${{ stats.current_value_price if stats and
+                        stats.current_value_price is not none else 'N/A' }})</small>
+                </span>
+                <button id="sortOrderToggle" class="btn btn-sm btn-outline-main-custom button-custom">Sort: High to Low</button>
+            </div>
+            <div class="card-body p-0 flex-grow-1" id="salesLeaderboardTop3Container" style="overflow-y: auto;">
+                <ul class="list-group list-group-flush" id="salesLeaderboardTop3">
+                    <!-- JavaScript will populate this -->
+                </ul>
+            </div>
+            <!-- <div class="card-footer text-center mt-auto">
+                <a href="{{ url_for('admin.list_all_leaders') }}" class="btn btn-main-custom w-100">View Full
+                    Leaderboard</a>
+            </div> -->
+        </div>
+    </div>
+
+    <!-- Referral Codes Card -->
+    <div class="col-xl-7 col-lg-12 mb-4">
+        <div class="new-admin-card h-100 d-flex flex-column"> <!-- Ensure card takes full height -->
+            <div class="card-header d-flex justify-content-between align-items-center">
+                Referral Codes
+            </div>
+            <!-- Made this div grow and scroll -->
+            <div class="card-body p-0 flex-grow-1" style="overflow-y: auto; max-height: 340px;">
+                <ul class="list-group list-group-flush referral-code-list-dashboard" id="referralCodeList">
+                    {% if referral_codes_users %}
+                    {% for user_code_entry_debug in referral_codes_users[:5] %}  {# Changed variable name for test #}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong class="code">{{ user_code_entry_debug.personal_referral_code }}</strong>
+                            <small class="text-muted d-block">{{ user_code_entry_debug.username }} ({{ user_code_entry_debug.email
+                                if user_code_entry_debug.email else 'N/A' }})</small>
+                        </div>
+                        <div>
+                            {% if user_code_entry_debug.status %}
+                            <span class="status-badge status-active">Active</span>
+                            {% else %}
+                            <span class="status-badge status-inactive">Inactive</span>
+                            {% endif %}
+                            <small class="text-muted d-block text-end">{{
+                                user_code_entry_debug.created_at.strftime('%Y-%m-%d') if user_code_entry_debug.created_at else 'N/A'
+                                }}</small>
+                        </div>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                    <li class="list-group-item text-center text-muted">No referral codes found.</li>
+                    {% endif %}
+                </ul>
+            </div>
+                        <!-- <div class="card-footer text-center mt-auto">
+                <a href="{{ url_for('admin.list_all_leaders') }}" class="btn btn-main-custom w-100">View Full
+                    Leaderboard</a>
+            </div> -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const leadersData = {{ stats.leaders_for_sales_calc | tojson | safe if stats and stats.leaders_for_sales_calc else '[]' }};
+        let sortAscending = false; // false for High to Low, true for Low to High
+        const valuePerMember = {{ stats.current_value_price if stats and stats.current_value_price is not none else 0 }};
+        const sortOrderToggleButton = document.getElementById('sortOrderToggle');
+
+        function calculateAndRenderLeaderboard() {
+            const sortedLeaders = [...leadersData].map(leader => {
+                const sales = (leader.member_count || 0) * valuePerMember;
+                return { ...leader, sales };
+            }).sort((a, b) => {
+                return sortAscending ? a.sales - b.sales : b.sales - a.sales;
+            });
+            renderLeaderboard(sortedLeaders.slice(0, 5)); // Display top 5
+            updateSortButtonText();
+        }
+
+        function renderLeaderboard(sortedLeaders) {
+            const leaderboardList = document.getElementById('salesLeaderboardTop3');
+            if (!leaderboardList) return;
+            leaderboardList.innerHTML = ''; // Clear existing items
+
+            if (sortedLeaders.length === 0) {
+                leaderboardList.innerHTML = '<li class="list-group-item text-center text-muted">No leader data available.</li>';
+                return;
+            }
+
+            const icons = [
+                '<i class="bi bi-trophy-fill text-warning me-3"></i>',   // 1st (Gold)
+                '<i class="bi bi-trophy-fill text-secondary me-3"></i>', // 2nd (Silver)
+                '<i class="bi bi-trophy-fill me-3" style="color: #cd7f32;"></i>', // 3rd (Bronze) - added me-2
+                '<i class="bi bi-award-fill text-muted me-3"></i>',      // 4th
+                '<i class="bi bi-award-fill text-muted me-3"></i>'       // 5th
+            ];
+
+            sortedLeaders.forEach((leader, index) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+
+                let iconHtml = '';
+                if (index < icons.length) { // Use icons from the array for top 5
+                    iconHtml = icons[index];
+                } else {
+                    // Fallback for ranks beyond what we have icons for (shouldn't be hit for top 5)
+                    iconHtml = `<span class="leader-rank me-2">${index + 1}</span>`;
+                }
+
+                const leaderInfoHtml = `
+                    <div class="leader-info d-flex align-items-center">
+                        ${iconHtml}
+                        <div>
+                            <strong class="leader-name">${leader.username}</strong>
+                            <small class="text-muted d-block">${leader.member_count} members</small>
+                        </div>
+                    </div>
+                `;
+                const salesAmountHtml = `<span class="sales-amount fw-semibold text-success">$${leader.sales.toFixed(2)}</span>`;
+
+                listItem.innerHTML = `${leaderInfoHtml}${salesAmountHtml}`;
+                leaderboardList.appendChild(listItem);
+            });
+        }
+
+        function updateSortButtonText() {
+            if (sortOrderToggleButton) {
+                sortOrderToggleButton.textContent = sortAscending ? 'Sort: Low to High' : 'Sort: High to Low';
+            }
+        }
+
+        if (sortOrderToggleButton) {
+            sortOrderToggleButton.addEventListener('click', function () {
+                sortAscending = !sortAscending;
+                calculateAndRenderLeaderboard();
+            });
+        }
+
+        // Initial render
+        calculateAndRenderLeaderboard();
+
+        // Prize Pool Chart
+        const prizePoolCtx = document.getElementById('prizePoolChart');
+        if (prizePoolCtx) {
+            const dynamicPoolTotal = {{ stats.dynamic_prize_pool_total if stats and stats.dynamic_prize_pool_total is not none else 0 }};
+            const staticPoolTotal = {{ stats.static_prize_pool_total if stats and stats.static_prize_pool_total is not none else 0 }};
+            const generalOperationalTotal = {{ stats.general_operational_total if stats and stats.general_operational_total is not none else 0 }};
+
+            // Ensure legend color boxes have styles if not done in CSS
+            document.querySelectorAll('.legend-color-box').forEach((box, index) => {
+                const colors = ['#007bff', '#ffc107', '#28a745']; // Blue, Yellow, Green
+                if (!box.style.backgroundColor) { // Apply if not already set by inline style in HTML
+                    box.style.backgroundColor = colors[index];
+                }
+            });
+
+            new Chart(prizePoolCtx, {
+                type: 'doughnut', // or 'pie'
+                data: {
+                    labels: ['Dynamic Pool', 'Static Pool', 'General/Operational'],
+                    datasets: [{
+                        label: 'Prize Pool Distribution',
+                        data: [dynamicPoolTotal, staticPoolTotal, generalOperationalTotal],
+                        backgroundColor: [
+                            '#f06445', // Blue for Dynamic
+                            '#4fc9da', // Yellow for Static
+                            '#e4e6ef'  // Green for General/Operational
+                        ],
+                        borderColor: [ // Optional: if you want borders
+                            '#FFFFFF',
+                            '#FFFFFF',
+                            '#FFFFFF'
+                        ],
+                        borderWidth: 2 // Optional: border width
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false // Set to false since we have a custom HTML legend
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '60%' // For doughnut chart
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

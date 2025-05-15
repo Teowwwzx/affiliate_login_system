@@ -1,0 +1,576 @@
+/* General Body Styles */
+body.new-admin-dashboard-body {
+    font-family: 'Inter', sans-serif;
+    /* A modern sans-serif font */
+    background-color: #f4f7f6;
+    /* Light grey background for the page */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    min-height: 100vh;
+    /* Use min-height for full viewport height */
+    overflow-x: hidden;
+    /* Prevent horizontal scroll */
+}
+
+/* Sidebar Styles */
+.new-admin-sidebar {
+    width: 260px;
+    min-width: 260px;
+    background-color: #f7f6f2; /* Consider changing to #f6f1e9 if you want sidebar to match cards, or keep distinct */
+    color: #333;
+    /* Darker text color for better contrast on new bg */
+    border-right: 1px solid #e0e0e0; /* Consider #e4e6ef (your third color) for borders */
+    padding: 20px 15px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    /* Full viewport height */
+    position: fixed;
+    /* Fixed sidebar */
+    left: 0;
+    top: 0;
+    overflow-y: auto;
+    /* Allow sidebar to scroll if content exceeds height */
+    z-index: 1030;
+    /* Ensure sidebar is above other content if overlap occurs */
+}
+
+.new-admin-sidebar .nav-link.active,
+.new-admin-sidebar .nav-link:hover {
+    background-color: #e4e6ef; /* Third color for hover/active background */
+    color: #f06445; /* Primary color for text on hover/active */
+    border-radius: 8px;
+}
+
+.new-admin-sidebar .nav-link.active i,
+.new-admin-sidebar .nav-link:hover i {
+    color: #f06445; /* Primary color for icon on hover/active */
+}
+
+.new-admin-sidebar .btn-primary {
+    background-color: #f06445;
+    border-color: #f06445;
+}
+
+.new-admin-sidebar .btn-primary:hover {
+    background-color: #d95436; /* Darker shade of primary for hover */
+    border-color: #d95436;
+}
+
+.new-admin-sidebar .logo-section {
+    padding: 10px 0 20px 5px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #f0f0f0;
+    text-align: center;
+    /* Center logo if it's an image */
+}
+
+.new-admin-sidebar .logo-section img {
+    height: 35px;
+    /* max-width: 100%; Remove if logo is SVG or has fixed aspect */
+}
+
+.new-admin-sidebar .project-selector .form-select {
+    font-size: 0.9rem;
+}
+
+.new-admin-sidebar .nav-item .nav-link {
+    color: #555;
+    /* Adjust link color for new bg */
+    padding: 10px 15px;
+    margin-bottom: 5px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.new-admin-sidebar .nav-item .nav-link i {
+    margin-right: 12px;
+    width: 20px;
+    /* Ensure icons align */
+    text-align: center;
+    font-size: 1.1rem;
+    line-height: 1;
+    /* Better vertical alignment for icons */
+}
+
+.new-admin-sidebar .nav-item .nav-link:hover,
+.new-admin-sidebar .nav-item .nav-link.active {
+    background-color: #e4e6ef;
+    /* Third color for hover/active background */
+    color: #f06445;
+    /* Primary color for text on hover/active */
+}
+
+.new-admin-sidebar .nav-category {
+    font-size: 0.75rem;
+    color: #9da5b1;
+    text-transform: uppercase;
+    padding: 15px 15px 8px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.new-admin-sidebar .mt-auto a.btn {
+    font-size: 0.9rem;
+}
+
+.new-admin-sidebar .btn-primary {
+    background-color: #f06445;
+    border-color: #f06445;
+}
+
+.new-admin-sidebar .btn-primary:hover {
+    background-color: #d95436;
+    /* Darker shade of primary for hover */
+    border-color: #d95436;
+}
+
+/* Main Content Area Styles */
+.new-admin-main-content {
+    flex-grow: 1;
+    padding: 25px 30px;
+    background-color: #ffffff;
+    /* Main content area background - could also be f4f7f6 or transparent */
+    margin-left: 260px;
+    /* Offset by sidebar width */
+    height: 100vh;
+    overflow-y: auto;
+    /* Allow main content to scroll */
+}
+
+/* Top Bar Styles */
+.new-admin-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 0 25px 0;
+}
+
+.new-admin-top-bar .dashboard-header h1 {
+    font-size: 1.7rem;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 0.25rem;
+}
+
+.new-admin-top-bar .dashboard-header p {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 0;
+}
+
+.new-admin-top-bar .search-form {
+    position: relative;
+    min-width: 220px;
+}
+
+.new-admin-top-bar .search-form .form-control {
+    background-color: #ffffff;
+    border: 1px solid #dfe3e8;
+    border-radius: 6px;
+    padding-left: 35px;
+    /* Space for search icon */
+    font-size: 0.9rem;
+}
+
+.new-admin-top-bar .search-form .bi-search {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9da5b1;
+    pointer-events: none;
+    /* So it doesn't interfere with input click */
+}
+
+.new-admin-top-bar .top-bar-actions .btn-icon {
+    color: #5a6372;
+    font-size: 1.2rem;
+    /* Slightly smaller icons */
+    margin-left: 10px;
+    /* Reduced margin */
+    padding: 0.375rem 0.5rem;
+    /* Smaller padding */
+    background: transparent;
+    border: none;
+}
+
+.new-admin-top-bar .top-bar-actions .btn-icon:hover {
+    color: #0d6efd;
+}
+
+.new-admin-top-bar .user-profile img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    margin-left: 15px;
+    /* Reduced margin */
+    border: 2px solid #e0e0e0;
+}
+
+/* Card Styles */
+.new-admin-card {
+    border: none;
+    border-radius: 12px;
+    background-color: #fdfcfb;
+    /* USER REQUESTED CARD BACKGROUND */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+    /* Added margin for consistent spacing */
+    transition: all 0.3s ease;
+}
+
+.new-admin-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.new-admin-card .card-header {
+    background-color: #f6f1e9;
+    border-bottom: 1px solid #e4e6ef;
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    color: #333;
+    border-radius: 12px 12px 0 0;
+}
+
+.new-admin-card .card-body {
+    padding: 1.25rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.new-admin-card .card-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+.new-admin-card .text-muted {
+    color: #868e96 !important;
+}
+
+/* Button Styles */
+.btn-main-custom {
+    background-color: #f06445 !important;
+    /* Primary color */
+    color: #fff !important;
+    border-color: #f06445 !important;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.btn-main-custom:hover {
+    background-color: #d95436 !important;
+    /* Darker primary on hover */
+    border-color: #d95436 !important;
+}
+
+.btn-outline-main-custom {
+    color: #f06445 !important;
+    /* Primary color for text */
+    border-color: #f06445 !important;
+    /* Primary color for border */
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-outline-main-custom:hover {
+    background-color: #f06445 !important;
+    /* Primary color for background on hover */
+    color: #fff !important;
+}
+
+/* Referral Code Table/List Specific Styles */
+.referral-codes-card .list-group-item {
+    border-left: none;
+    border-right: none;
+    padding: 0.85rem 1.25rem;
+}
+
+.referral-codes-card .list-group-item:first-child {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.referral-codes-card .list-group-item:last-child {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.status-badge {
+    padding: 0.35em 0.65em;
+    font-size: .75em;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: .25rem;
+}
+
+.status-badge.status-active {
+    background-color: #4fc9da;
+    /* Secondary color for Active */
+}
+
+.status-badge.status-inactive {
+    background-color: #f06445;
+    /* Primary color for Inactive (as it's reddish, implies caution) */
+}
+
+.status-badge.status-pending {
+    background-color: #adb5bd;
+    /* Muted/grey for Pending */
+    color: #fff;
+    /* White text for better contrast on grey */
+}
+
+/* Top Leaders Card Specific Styles */
+.leader-link {
+    color: #333;
+    /* Default link color, can be customized */
+    font-weight: 500;
+}
+
+.leader-link:hover {
+    color: #f06445;
+    /* Primary color on hover */
+}
+
+.sales-amount {
+    font-weight: 600;
+}
+
+/* Make fs-7 available if not in Bootstrap 5.3 */
+.fs-7 {
+    font-size: .875rem !important;
+    /* Adjust as needed, bs fs-6 is 1rem, fs-5 is 1.25rem. This is between text-muted and standard small */
+}
+
+/* Specific Card Content Styles */
+.earnings-card .amount {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #343a40;
+}
+
+.earnings-card .percentage {
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.2em 0.5em;
+    border-radius: 4px;
+}
+
+.bg-success-soft {
+    background-color: rgba(40, 167, 69, 0.1);
+}
+
+.text-success {
+    color: #28a745 !important;
+}
+
+.earnings-card .chart-placeholder {
+    height: 120px;
+    /* Adjusted height */
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    color: #6c757d;
+    margin-top: 1rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    color: #5a6372;
+}
+
+.legend-color-box {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    margin-right: 10px;
+}
+
+.cta-card {
+    color: #ffffff;
+    position: relative;
+    /* For pseudo-element overlay if needed */
+    background-color: #343a40;
+    /* Dark grey background */
+    /* background: url('...') no-repeat center center; /* Remove or replace if you were using an image */
+    /* background-size: cover; */
+}
+
+.cta-card .card-body {
+    position: relative;
+    /* To ensure text is above background image/gradient */
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Center content */
+    justify-content: center;
+    /* Center content */
+}
+
+.cta-card .card-title {
+    color: #ffffff;
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.cta-card p {
+    font-size: 0.95rem;
+    max-width: 80%;
+    margin-bottom: 1.5rem;
+}
+
+.cta-card .btn-light {
+    font-weight: 600;
+    padding: 0.5rem 1.5rem;
+    font-size: 0.9rem;
+}
+
+/* New Brand Action Button Style */
+.btn-brand-action {
+    background-color: #ec6341;
+    /* Vibrant Orange-Red */
+    color: #ffffff;
+    border-color: #ec6341;
+    font-weight: 600;
+    padding: 0.5rem 1.5rem;
+    font-size: 0.9rem;
+}
+
+.btn-brand-action:hover,
+.btn-brand-action:focus {
+    background-color: #d85331;
+    /* Darker shade for hover/focus */
+    color: #ffffff;
+    border-color: #d85331;
+}
+
+/* Utility classes */
+.fw-semibold {
+    font-weight: 600 !important;
+}
+
+/* Make rows behave better with equal height cards */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.row>[class*='col-'] {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+    .new-admin-sidebar {
+        transform: translateX(-100%);
+        /* Basic setup for a toggleable sidebar - more JS needed for actual toggle */
+        /* For now, let's just make content full width */
+    }
+
+    .new-admin-main-content {
+        margin-left: 0;
+    }
+
+    .new-admin-top-bar .dashboard-header {
+        display: none;
+        /* Hide dashboard title on small screens if top bar becomes too crowded */
+    }
+}
+
+@media (max-width: 767.98px) {
+    .new-admin-main-content {
+        padding: 15px;
+    }
+
+    .new-admin-top-bar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .new-admin-top-bar .search-form {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .new-admin-top-bar .top-bar-actions {
+        width: 100%;
+        justify-content: flex-end;
+        margin-top: 10px;
+    }
+
+    .earnings-card .amount {
+        font-size: 1.8rem;
+    }
+
+    .cta-card .card-title {
+        font-size: 1.2rem;
+    }
+
+    .cta-card p {
+        max-width: 100%;
+    }
+}
+
+.button-custom {
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+}
+
+/* Responsive Sidebar Styles */
+@media (max-width: 991.98px) { /* Corresponds to Bootstrap's <lg breakpoint */
+    .new-admin-sidebar {
+        transform: translateX(-100%); /* Hide off-screen by default on mobile */
+        transition: transform 0.3s ease-in-out;
+        z-index: 1040; /* Ensure sidebar is above other content like the top bar if it were fixed */
+    }
+
+    .new-admin-sidebar.active {
+        transform: translateX(0); /* Show sidebar */
+    }
+
+    .new-admin-main-content {
+        margin-left: 0; /* Main content takes full width as sidebar will overlay */
+        transition: margin-left 0.3s ease-in-out; /* Smooth transition if sidebar pushed content (not in this overlay case) */
+    }
+
+    /* When mobile sidebar is active, prevent body scroll */
+    body.new-admin-dashboard-body.sidebar-mobile-active { /* Target the specific body class if new-admin-dashboard-body is consistently used */
+        overflow-y: hidden;
+    }
+
+    /* The hamburger toggle button is handled by d-lg-none for visibility. */
+    /* Styles for the hamburger button icon if needed, though .btn-icon should cover general styling. */
+    /* We added an inline style for font-size, which is fine for now. */
+    /* #sidebarToggle { */
+        /* any specific positioning or z-index if necessary */
+    /* } */
+}
+
+/* Optional: Style for the icon inside the toggle button if general .btn-icon i is not specific enough */
+/* #sidebarToggle i { */
+    /* color: #yourPreferedColor; */
+/* } */

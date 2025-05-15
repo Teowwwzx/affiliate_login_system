@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuristic Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/futuristic_style.css') }}">
+    <!-- Assuming Font Awesome is available via base.html or you can add the CDN link here -->
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> -->
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Top Navigation Bar -->
+        <header class="top-nav">
+            <div class="logo">
+                <span class="hud-h">[</span>H<span class="hud-h">]</span> HUD ADMIN
+            </div>
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search...">
+            </div>
+            <div class="nav-icons">
+                <i class="fas fa-th-large"></i>
+                <i class="fas fa-bell"></i>
+                <div class="user-profile">
+                    <img src="https://via.placeholder.com/30/0D1B2A/E0E1DD?text=U" alt="User">
+                    <span>username@account.com</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <nav>
+                <p class="nav-category">Navigation</p>
+                <ul>
+                    <li class="active"><a href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="#"><i class="fas fa-chart-line"></i> Analytics</a></li>
+                    <li><a href="#"><i class="fas fa-envelope"></i> Email <i class="fas fa-chevron-down float-right"></i></a></li>
+                </ul>
+                <p class="nav-category">Components</p>
+                <ul>
+                    <li><a href="#"><i class="fas fa-puzzle-piece"></i> Widgets</a></li>
+                    <li><a href="#"><i class="fas fa-atom"></i> AI Studio <i class="fas fa-chevron-down float-right"></i></a></li>
+                    <li><a href="#"><i class="fas fa-cash-register"></i> POS System <i class="fas fa-chevron-down float-right"></i></a></li>
+                    <li><a href="#"><i class="fas fa-tools"></i> UI Kits <i class="fas fa-chevron-down float-right"></i></a></li>
+                    <li><a href="#"><i class="fas fa-file-alt"></i> Forms <i class="fas fa-chevron-down float-right"></i></a></li>
+                    <li><a href="#"><i class="fas fa-table"></i> Tables <i class="fas fa-chevron-down float-right"></i></a></li>
+                    <li><a href="#"><i class="fas fa-chart-pie"></i> Charts <i class="fas fa-chevron-down float-right"></i></a></li>
+                    <li><a href="#"><i class="fas fa-map-marked-alt"></i> Map <i class="fas fa-chevron-down float-right"></i></a></li>
+                    <li><a href="#"><i class="fas fa-layer-group"></i> Layout <i class="fas fa-chevron-down float-right"></i></a></li>
+                    <li><a href="#"><i class="fas fa-file"></i> Pages <i class="fas fa-chevron-down float-right"></i></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <div class="widget-grid">
+                <!-- Example Widget 1: Site Visitors -->
+                <div class="widget">
+                    <div class="widget-header">
+                        <span>SITE VISITORS</span>
+                        <span class="widget-menu-icon"></span> <!-- For the L L icon -->
+                    </div>
+                    <div class="widget-content">
+                        <div class="stat-prominent">4.2M</div>
+                        <div class="stat-details">
+                            <p><i class="fas fa-arrow-up"></i> 33.3% more than last week</p>
+                            <p><i class="fas fa-users"></i> 45.5% new visitors</p>
+                            <p><i class="fas fa-mouse-pointer"></i> 3.25% bounce rate</p>
+                        </div>
+                        <div class="mini-chart">
+                            <!-- Placeholder for chart -->
+                            <svg width="100" height="40" viewBox="0 0 100 40" class="chart-svg">
+                                <polyline points="5,35 15,20 25,25 35,10 45,15 55,5 65,12 75,20 85,15 95,30" fill="none" stroke="#4ECDC4" stroke-width="2"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example Widget 2: Store Sales -->
+                <div class="widget">
+                    <div class="widget-header">
+                        <span>STORE SALES</span>
+                        <span class="widget-menu-icon"></span>
+                    </div>
+                    <div class="widget-content">
+                        <div class="stat-prominent">$35.2K</div>
+                         <div class="stat-details">
+                            <p><i class="fas fa-arrow-up"></i> 20.4% more than last week</p>
+                            <p><i class="fas fa-shopping-cart"></i> 33.5% new orders</p>
+                            <p><i class="fas fa-dollar-sign"></i> 6.21% conversion rate</p>
+                        </div>
+                        <div class="mini-chart">
+                            <svg width="100" height="40" viewBox="0 0 100 40" class="chart-svg">
+                                <path d="M 5 25 Q 15 10, 25 20 T 45 22 Q 55 5, 65 15 T 85 18 L 95 30" fill="none" stroke="#4ECDC4" stroke-width="2"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example Widget 3: New Members -->
+                <div class="widget">
+                    <div class="widget-header">
+                        <span>NEW MEMBERS</span>
+                        <span class="widget-menu-icon"></span>
+                    </div>
+                    <div class="widget-content">
+                        <div class="stat-prominent">4,490</div>
+                        <div class="stat-details">
+                            <p><i class="fas fa-arrow-up"></i> 59.5% more than last week</p>
+                            <p><i class="fab fa-facebook"></i> 45.5% from facebook</p>
+                            <p><i class="fab fa-youtube"></i> 15.75% from youtube</p>
+                        </div>
+                         <div class="mini-progress-circle">
+                            <svg width="60" height="60" viewBox="0 0 36 36">
+                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                                <path class="circle" stroke-dasharray="60, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example Widget 4: Bandwidth -->
+                <div class="widget">
+                    <div class="widget-header">
+                        <span>BANDWIDTH</span>
+                        <span class="widget-menu-icon"></span>
+                    </div>
+                    <div class="widget-content">
+                        <div class="stat-prominent">4.5TB</div>
+                        <div class="stat-details">
+                            <p><i class="fas fa-arrow-up"></i> 5.3% more than last week</p>
+                            <p><i class="fas fa-database"></i> 10.5% from total usage</p>
+                            <p><i class="fas fa-network-wired"></i> 2MB per visit</p>
+                        </div>
+                        <div class="mini-progress-circle">
+                             <svg width="60" height="60" viewBox="0 0 36 36">
+                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                                <path class="circle" stroke-dasharray="85, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example Widget 5: Server Stats (Full Width) -->
+                <div class="widget full-width">
+                    <div class="widget-header">
+                        <span>SERVER STATS</span>
+                        <span class="widget-menu-icon"></span>
+                    </div>
+                    <div class="widget-content">
+                        <!-- Placeholder for larger chart -->
+                        <div class="large-chart-placeholder">Large Bar Chart Area</div>
+                         <div class="chart-legend">
+                            <span><span class="legend-color memory"></span> MEMORY USAGE</span>
+                            <span><span class="legend-color cpu"></span> CPU USAGE</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example Widget 6: Traffic Analytics (Full Width) -->
+                <div class="widget full-width">
+                    <div class="widget-header">
+                        <span>TRAFFIC ANALYTICS</span>
+                        <span class="widget-menu-icon"></span>
+                    </div>
+                    <div class="widget-content">
+                        <!-- Placeholder for map -->
+                        <div class="map-placeholder">World Map Area</div>
+                        <div class="map-controls">
+                            <button>+</button>
+                            <button>-</button>
+                            <button><i class="fas fa-filter"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <!-- You might need to add Font Awesome if not globally available -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script> -->
+</body>
+</html>

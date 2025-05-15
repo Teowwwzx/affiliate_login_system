@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Section{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS for new admin -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/new_admin_dashboard.css') }}">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .btn-theme-orange {
+            background-color: #FF8C00; /* Dark Orange */
+            border-color: #FF8C00;
+            color: #ffffff; /* White text */
+        }
+        .btn-theme-orange:hover, 
+        .btn-theme-orange:focus, 
+        .btn-theme-orange:active {
+            background-color: #FFA500; /* Lighter Orange for interaction */
+            border-color: #FFA500;
+            color: #ffffff;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="new-admin-dashboard-body">
+
+    {% if current_user.is_authenticated %}
+    <!-- Sidebar (Copied from new_admin_dashboard.html) -->
+    <nav class="new-admin-sidebar" id="sidebar">
+        <div class="logo-section">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Apple_logo_grey.svg/758px-Apple_logo_grey.svg.png"
+                alt="Company Logo">
+        </div>
+        <ul class="nav flex-column">
+            <li class="nav-category">Dashboards</li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'admin.admin_dashboard' %}active{% endif %}" href="{{ url_for('admin.admin_dashboard') }}">
+                    <i class="bi bi-house-door-fill"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'admin.list_users' %}active{% endif %}" href="{{ url_for('admin.list_users') }}">
+                    <i class="bi bi-briefcase-fill"></i> Manage Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'admin.manage_funds' %}active{% endif %}" href="{{ url_for('admin.manage_funds') }}">
+                    <i class="bi bi-cart-fill"></i> Manage Funds
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'admin.list_all_leaders' %}active{% endif %}" href="{{ url_for('admin.list_all_leaders') }}">
+                    <i class="bi bi-graph-up"></i> View Leaderboard
+                </a>
+            </li>
+        </ul>
+        <div class="mt-auto p-2">
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-primary btn-sm w-100">Logout</a>
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Main Content Area -->
+    <main class="new-admin-main-content">
+        <!-- Top Bar (Copied from new_admin_dashboard.html) -->
+        <header class="new-admin-top-bar">
+            {% if current_user.is_authenticated %}
+            <button class="btn btn-outline-secondary d-md-none" id="sidebarToggle" type="button">
+                <i class="bi bi-list" style="font-size: 1.5rem;"></i>
+            </button>
+            {% endif %}
+            <div class="dashboard-header flex-grow-1">
+                {% block page_header %}
+                    {% if current_user.is_authenticated %}
+                    <!-- Default page header, can be overridden by child templates -->
+                    <h1>Dashboard</h1>
+                    <p>Welcome, Admin! Here's an overview of your system.</p>
+                    {% endif %}
+                {% endblock %}
+            </div>
+            <!-- User Profile (visible on md screens and up) -->
+            <div id="userProfileTop" class="user-profile-top-container d-none d-md-flex align-items-center">
+                {% if current_user.is_authenticated %}
+                    <span class="mr-2 d-none d-lg-inline text-gray-600 small me-3">Hello, {{ current_user.username }}</span>
+                    <img class="img-profile rounded-circle" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3Fjc74ZCdeNRx1R-Yy_ixzSL2rjDjh8rEabTup0AnNDJL73WLOlnbkLR5zlwxu2WWqTg&usqp=CAU" alt="User Profile" style="width: 30px; height: 30px;">
+                {% else %}
+                    {# For unauthenticated users, show relevant link #}
+                    {% if request.endpoint == 'auth.login' %}
+                        <a href="{{ url_for('auth.register_member') }}" class="btn btn-sm btn-outline-primary">Sign Up</a>
+                    {% elif request.endpoint == 'auth.register_member' %}
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-outline-primary">Login</a>
+                    {% else %}
+                        {# Fallback, though typically they'd be on login/register if unauth #}
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-outline-primary me-2">Login</a>
+                        <a href="{{ url_for('auth.register_member') }}" class="btn btn-sm btn-primary">Sign Up</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </header>
+
+        <!-- Page Specific Content -->
+        {% block page_content %}{% endblock %}
+
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js (if needed on multiple pages, otherwise move to page_scripts block in child) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% block page_scripts %}{% endblock %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('DOM fully loaded and parsed.'); // 1. Check if script runs
+
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const body = document.body;
+
+            if (!sidebar) {
+                console.error('Sidebar element with id="sidebar" NOT FOUND!'); // 2. Check if sidebar element exists
+            } else {
+                console.log('Sidebar element found:', sidebar);
+            }
+
+            if (!sidebarToggle) {
+                console.error('Sidebar toggle button with id="sidebarToggle" NOT FOUND!'); // 3. Check if button element exists
+            } else {
+                console.log('Sidebar toggle button found:', sidebarToggle);
+            }
+
+            if (sidebarToggle && sidebar && body) {
+                console.log('Attaching click listener to sidebar toggle button.');
+                sidebarToggle.addEventListener('click', function () {
+                    console.log('Sidebar toggle button CLICKED!'); // 4. Check if click is registered
+                    sidebar.classList.toggle('active');
+                    console.log('Sidebar active class toggled. Current classes:', sidebar.className);
+                    body.classList.toggle('sidebar-mobile-active');
+                    console.log('Body sidebar-mobile-active class toggled. Current classes:', body.className);
+                });
+            } else {
+                console.error('Could not attach click listener because sidebar or toggle button (or body) was not found.');
+            }
+
+            // New: Close sidebar on click outside
+            document.addEventListener('click', function(event) {
+                const isClickInsideSidebar = sidebar.contains(event.target);
+                const isClickOnToggler = sidebarToggle.contains(event.target);
+
+                // Check if sidebar exists and is active before trying to close
+                if (sidebar && sidebar.classList.contains('active') && !isClickInsideSidebar && !isClickOnToggler) {
+                    sidebar.classList.remove('active');
+                    if (body) { // Check if body exists
+                        body.classList.remove('sidebar-mobile-active');
+                    }
+                    console.log('Clicked outside. Sidebar closed.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

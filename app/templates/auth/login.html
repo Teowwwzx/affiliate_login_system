@@ -1,47 +1,44 @@
-{% extends "base.html" %}
+{% extends "new_base.html" %}
 
 {% block title %}{{ title if title else 'Login' }}{% endblock %}
 
-{% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h2 class="card-title text-center mb-4">{{ title if title else 'Login' }}</h2>
-                <form method="POST" action="{{ url_for('auth.login') }}">
-                    {{ csrf_token if csrf_token }} {# Include if you set up CSRF protection #}
-                    
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email address</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
+
+{% block page_content %}
+
+        <div class="row justify-content-center mt-4">
+            <div class="col-11 col-sm-9 col-md-7 col-lg-5 col-xl-4">
+                <div class="card shadow-lg">
+                    <div class="card-body p-4 p-md-5">
+                        <h2 class="card-title text-center mb-4">{{ title if title else 'Login' }}</h2>
+                        
+                        {% include '_flash_messages.html' %}
+
+                        <form method="POST" action="{{ url_for('auth.login') }}">
+                            {{ csrf_token if csrf_token }} {# Include if you set up CSRF protection #}
+                            
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email address</label>
+                                <input type="email" class="form-control form-control-lg" id="email" name="email" required>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control form-control-lg" id="password" name="password" required>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-theme-orange btn-lg">Login</button>
+                            </div>
+                        </form>
+                        <hr class="my-4">
+                        <div class="text-center">
+                            <p class="mb-0">Don't have an account? 
+                                <a href="{{ url_for('auth.register_member') }}">Sign Up Here</a>
+                            </p>
+                            <p class="mb-0"><small>Forgot password? Please contact admin.</small></p>
+                        </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                    </div>
-                    
-                    {# Optional: Remember Me Checkbox #}
-                    {# <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                        <label class="form-check-label" for="remember">Remember me</label>
-                    </div> #}
-                    
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Login</button>
-                    </div>
-                </form>
-                <hr>
-                <!-- <div class="text-center">
-                    {# Link to registration page if you have one #}
-                    <p class="mb-0">Don't have an account? 
-                        <a href="{{ url_for('auth.register') }}">Sign Up</a>
-                    </p>
-                    {# Link to password reset if you implement it #}
-                    {# <p><a href="#">Forgot password?</a></p> #}
-                </div> -->
+                </div>
             </div>
         </div>
-    </div>
-</div>
 {% endblock %}

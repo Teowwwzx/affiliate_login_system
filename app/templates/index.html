@@ -1,9 +1,38 @@
 {% extends 'base.html' %}
 
-{% block title %}Home{% endblock %}
+{% block title %}Welcome - Affiliate System{% endblock %}
 
 {% block content %}
-    <h2>Welcome to the Affiliate Login System!</h2>
-    <p>Please log in to access your dashboard.</p>
-    {# Optional: Add some introductory text or images here #}
+<div class="container-fluid mt-5">
+    <div class="hero-section mb-5">
+        <h1 class="display-4 mb-2"><strong>Welcome to the Affiliate Network!</strong></h1>
+        <p class="lead mb-2">Join our growing community of affiliates and start earning today. Access your dashboard to track performance, manage your referrals, and grow your network.</p>
+    </div>
+
+    <div class="features-section mt-5"> 
+        <div class="row mb-2">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                    <h5>Track Your Performance</h5>
+                    <p>Access real-time analytics and detailed reports to monitor your earnings and referral success.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-users"></i></div>
+                    <h5>Grow Your Network</h5>
+                    <p>Utilize your unique referral code to expand your downline and increase your earning potential.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                    <h5>Reliable & Secure</h5>
+                    <p>Our platform is built with security and reliability in mind, ensuring your data and earnings are safe.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

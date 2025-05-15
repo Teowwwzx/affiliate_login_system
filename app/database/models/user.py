@@ -2,7 +2,9 @@ from .. import db
 from datetime import datetime, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-
+from sqlalchemy.orm import relationship
+import secrets
+import string
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
@@ -16,10 +18,29 @@ class User(db.Model, UserMixin):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
+    personal_referral_code = db.Column(db.String(10), unique=True, nullable=True, index=True) # Changed to nullable=True
+    signup_referral_code_used = db.Column(db.String(10), nullable=True) 
+    
     # Relationships
     leader_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     members = db.relationship('User', backref=db.backref('leader', remote_side=[id]))
     
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
+        if not hasattr(self, 'personal_referral_code') or not self.personal_referral_code:
+            # Assuming the field is named personal_referral_code
+            self.personal_referral_code = self._generate_unique_personal_code() 
+
+    @staticmethod
+    def _generate_unique_personal_code(length_alpha=3, length_num=5):
+        while True:
+            letters = ''.join(secrets.choice(string.ascii_uppercase) for _ in range(length_alpha))
+            numbers = ''.join(secrets.choice(string.digits) for _ in range(length_num))
+            code = letters + numbers
+            # Ensure this field name matches your column
+            if not User.query.filter_by(personal_referral_code=code).first(): 
+                return code
+
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)
         

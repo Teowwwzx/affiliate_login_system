@@ -1,0 +1,61 @@
+{% extends "new_base.html" %}
+
+{% block title %}Member Registration{% endblock %}
+
+
+{% block page_content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-11 col-sm-9 col-md-7 col-lg-6 col-xl-5">
+        <div class="card shadow-lg">
+            <div class="card-body p-4 p-md-5">
+                <h3 class="card-title text-center mb-4">Register New Account</h3>
+
+                {% include '_flash_messages.html' %}
+
+                <form method="POST" action="{{ url_for('auth.register_member') }}" novalidate>
+
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control form-control-lg" id="username" name="username"
+                            placeholder="Choose a username" required value="{{ username or '' }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control form-control-lg" id="email" name="email"
+                            placeholder="Enter your email" required value="{{ email or '' }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control form-control-lg" id="password" name="password"
+                            placeholder="Create a password" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control form-control-lg" id="confirm_password"
+                            name="confirm_password" placeholder="Confirm your password" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="referral_code" class="form-label">Referral Code</label>
+                        <input type="text" class="form-control form-control-lg" id="referral_code" name="referral_code"
+                            placeholder="Enter referral code" required value="{{ referral_code or '' }}">
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-theme-orange btn-lg">Register</button>
+                    </div>
+                </form>
+                <hr class="my-4">
+                <div class="text-center">
+                    <p class="mb-0">Already have an account?
+                        <a href="{{ url_for('auth.login') }}">Login Here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

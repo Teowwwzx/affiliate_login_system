@@ -45,6 +45,12 @@ def admin_dashboard():
     # Count users who are members (report to a leader)
     count_members_under_leader = User.query.filter(User.leader_id.isnot(None)).count()
 
+    # New: Count total personal referral codes generated
+    total_referral_codes_generated = User.query.filter(User.personal_referral_code.isnot(None)).count()
+
+    # New: Count users who joined using a referral code
+    users_joined_via_referral = User.query.filter(User.signup_referral_code_used.isnot(None)).count()
+
     # Calculate sum of fund amounts. If no entries, default to 0.0
     dynamic_pool_total_query = (
         db.session.query(func.sum(Fund.amount))
@@ -64,6 +70,15 @@ def admin_dashboard():
         static_pool_total_query if static_pool_total_query is not None else 0.0
     )
 
+    general_operational_total_query = (
+        db.session.query(func.sum(Fund.amount))
+        .filter(Fund.fund_type == "general")
+        .scalar()
+    )
+    general_operational_total = (
+        general_operational_total_query if general_operational_total_query is not None else 0.0
+    )
+
     leaders_with_member_count = []
     all_users_who_are_leaders = User.query.filter_by(role="leader").all()
 
@@ -81,6 +96,11 @@ def admin_dashboard():
         leaders_with_member_count, key=lambda x: x["member_count"], reverse=True
     )
 
+    # Fetch all users with a personal referral code for the admin dashboard
+    all_referral_codes_users = User.query.filter(User.personal_referral_code.isnot(None)).order_by(User.created_at.desc()).all()
+
+    total_available_funds = dynamic_prize_pool_total + static_prize_pool_total + general_operational_total
+
     stats = {
         "total_users": total_users,
         "active_users": active_users,
@@ -88,14 +108,21 @@ def admin_dashboard():
         "count_members_under_leader": count_members_under_leader,
         "dynamic_prize_pool_total": dynamic_prize_pool_total,
         "static_prize_pool_total": static_prize_pool_total,
+        "general_operational_total": general_operational_total,
+        "total_available_funds": total_available_funds,  # Sum of all fund types
         "leaders_for_sales_calc": sorted_leaders_by_member_count[:5],  # Limit to top 5
         "total_leader_count_for_view_all": len(
             sorted_leaders_by_member_count
         ),  # For 'View All' link logic
         "current_value_price": 5000,
+        "total_referral_codes_generated": total_referral_codes_generated,
+        "users_joined_via_referral": users_joined_via_referral,
     }
     return render_template(
-        "admin/admin_dashboard.html", title="Admin Dashboard", stats=stats
+        "admin/new_admin_dashboard.html", 
+        title="Admin Dashboard", 
+        stats=stats,
+        referral_codes_users=all_referral_codes_users  # Pass the users with codes
     )
 
 

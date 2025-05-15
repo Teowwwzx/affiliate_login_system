@@ -1,0 +1,698 @@
+/* Futuristic Dashboard Styles */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap');
+
+:root {
+    --primary-bg: #0D1B2A; /* Dark blue-black */
+    --secondary-bg: #1B263B; /* Slightly lighter dark blue */
+    --widget-bg: #141E2F; /* Widget background */
+    --border-color: #415A77; /* Muted blue for borders */
+    --accent-color: #4ECDC4; /* Teal/Cyan accent */
+    --text-primary: #E0E1DD; /* Light grey/off-white */
+    --text-secondary: #A9BCD0; /* Softer grey */
+    --font-body: 'Roboto', sans-serif;
+    --font-display: 'Orbitron', sans-serif; /* Futuristic display font */
+    --sidebar-width: 260px;
+    --top-nav-height: 60px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--primary-bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    overflow-x: hidden;
+}
+
+a {
+    color: var(--primary-color); /* Use primary color for links */
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+    color: var(--secondary-color); /* Use secondary color for link hover */
+}
+
+.dashboard-container {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) 1fr;
+    grid-template-rows: var(--top-nav-height) 1fr;
+    grid-template-areas:
+        "sidebar top-nav"
+        "sidebar main-content";
+    height: 100vh;
+    width: 100vw;
+}
+
+/* Top Navigation */
+.top-nav {
+    grid-area: top-nav;
+    background-color: var(--secondary-bg);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    justify-content: space-between;
+    color: var(--text-primary);
+    position: fixed; /* Fix to top */
+    top: 0;
+    left: var(--sidebar-width); /* Offset by sidebar width */
+    right: 0;
+    height: var(--top-nav-height);
+    z-index: 1000;
+}
+
+.top-nav .logo {
+    font-family: var(--font-display);
+    font-size: 1.5em;
+    color: var(--accent-color);
+    font-weight: 700;
+}
+.top-nav .logo .hud-h {
+    color: var(--text-secondary);
+}
+
+.top-nav .search-bar-form {
+    display: flex;
+    align-items: center;
+    max-width: 250px; /* Increased default max-width for desktop */
+    flex-grow: 1; /* Allow it to take available space up to max-width */
+    margin: 0 15px;
+}
+
+.top-nav .search-bar-form .search-bar {
+    display: flex;
+    align-items: center;
+    background-color: var(--primary-bg);
+    padding: 3px 10px; /* Smaller padding */
+    border-radius: 4px;
+    width: 100%;
+}
+
+.top-nav .search-bar-form input[type="text"] {
+    background: transparent;
+    border: none;
+    color: var(--text-color, #E0E1DD);
+    margin-left: 8px;
+    font-size: 0.9rem; /* Smaller font */
+    width: 100%;
+    outline: none;
+    padding: 6px 4px;
+}
+
+.top-nav .search-bar-form .fa-search {
+    color: var(--icon-color, #4ECDC4);
+    font-size: 0.9rem; /* Smaller icon */
+}
+
+.top-nav .nav-icons {
+    display: flex;
+    align-items: center;
+}
+
+.top-nav .nav-icons i {
+    margin-left: 20px;
+    font-size: 1.2em;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color 0.2s ease;
+}
+
+.top-nav .nav-icons i:hover {
+    color: var(--accent-color);
+}
+
+.top-nav .nav-icons .user-profile {
+    position: relative; /* Needed for absolute positioning of dropdown */
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: var(--border-radius);
+    transition: background-color 0.3s ease;
+}
+
+.top-nav .nav-icons .user-profile:hover {
+    background-color: var(--hover-bg-color, rgba(78, 205, 196, 0.1));
+}
+
+.top-nav .nav-icons .user-profile .dropdown-menu {
+    display: none; /* Hidden by default */
+    position: absolute;
+    top: 100%; /* Position below the user profile */
+    right: 0;
+    background-color: var(--widget-bg, #16222E); /* Use a theme color */
+    border: 1px solid var(--widget-border-color, #2A3B4C);
+    border-radius: var(--border-radius, 5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 1001; /* Ensure it's above other content */
+    min-width: 160px; /* Adjust as needed */
+    padding: 5px 0;
+}
+
+.top-nav .nav-icons .user-profile .dropdown-menu.show {
+    display: block; /* Show when .show class is added by JS */
+}
+
+.top-nav .nav-icons .user-profile .dropdown-menu a {
+    display: block;
+    padding: 8px 15px;
+    color: var(--text-color, #E0E1DD);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+}
+
+.top-nav .nav-icons .user-profile .dropdown-menu a:hover {
+    background-color: var(--accent-color-translucent, rgba(78, 205, 196, 0.2));
+    color: var(--accent-color, #4ECDC4);
+}
+
+.top-nav .nav-icons .user-profile .dropdown-menu a i {
+    margin-right: 8px;
+    width: 16px; /* Align icons */
+    text-align: center;
+}
+
+.top-nav .nav-icons .user-profile img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-right: 8px;
+    border: 1px solid var(--accent-color);
+}
+
+.top-nav .nav-icons .user-profile span {
+    font-size: 0.9em;
+    color: var(--text-primary);
+}
+
+.top-nav .nav-icons .user-profile i {
+    font-size: 0.8em;
+    margin-left: 5px;
+}
+
+/* Sidebar */
+.sidebar {
+    grid-area: sidebar;
+    background-color: var(--secondary-bg);
+    border-right: 1px solid var(--border-color);
+    padding: 20px 0;
+    color: var(--text-secondary);
+    position: fixed; /* Fix to left */
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-width);
+    overflow-y: auto;
+}
+
+.sidebar nav .nav-category {
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 10px 20px;
+    color: var(--text-secondary);
+    font-weight: 700;
+    margin-top: 15px;
+}
+.sidebar nav .nav-category:first-child {
+    margin-top: 0;
+}
+
+.sidebar nav ul {
+    list-style: none;
+}
+
+.sidebar nav ul li a {
+    display: flex; /* Use flex for icon alignment */
+    align-items: center;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    transition: background-color 0.2s ease, color 0.2s ease;
+    font-size: 0.95em;
+}
+
+.sidebar nav ul li a i {
+    margin-right: 12px;
+    width: 20px; /* Ensure consistent icon spacing */
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 1.1em;
+}
+
+.sidebar nav ul li a .float-right {
+    margin-left: auto;
+    font-size: 0.8em;
+}
+
+.sidebar nav ul li.active a,
+.sidebar nav ul li a:hover {
+    background-color: var(--primary-bg);
+    color: var(--accent-color);
+    border-left: 3px solid var(--accent-color);
+    padding-left: 17px; /* Adjust for border */
+}
+
+.sidebar nav ul li.active a i,
+.sidebar nav ul li a:hover i {
+    color: var(--accent-color);
+}
+
+/* Main Content Area */
+.main-content {
+    grid-area: main-content;
+    padding: 0 20px;
+    overflow-y: auto;
+    background-color: var(--primary-bg);
+    padding-top: var(--top-nav-height); /* Ensure content below fixed top-nav */
+}
+
+.widget-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.widget {
+    background-color: var(--widget-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 20px;
+    position: relative;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2), 0 0 5px rgba(78, 205, 196, 0.1);
+}
+
+.widget.full-width {
+    grid-column: 1 / -1; /* Span all columns */
+}
+
+.widget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    color: var(--text-secondary);
+    font-family: var(--font-display);
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+/* HUD-like corners for widgets */
+.widget::before, .widget::after {
+    content: '';
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    border-color: var(--accent-color);
+    border-style: solid;
+}
+.widget::before {
+    top: -2px;
+    left: -2px;
+    border-width: 2px 0 0 2px;
+}
+.widget::after {
+    bottom: -2px;
+    right: -2px;
+    border-width: 0 2px 2px 0;
+}
+
+.widget-menu-icon {
+    /* Placeholder for L L icon from image, can use FontAwesome or SVG */
+    /* For now, a simple representation */
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--text-secondary);
+    border-radius: 2px;
+    position: relative;
+}
+.widget-menu-icon::before, .widget-menu-icon::after {
+    content: '';
+    position: absolute;
+    background-color: var(--text-secondary);
+}
+.widget-menu-icon::before {
+    width: 6px; height: 1px; top: 4px; left: 4px;
+}
+.widget-menu-icon::after {
+    width: 6px; height: 1px; top: 9px; left: 4px;
+}
+
+
+.widget-content .stat-prominent {
+    font-size: 2.5em;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    margin-bottom: 10px;
+}
+
+.widget-content .stat-details p {
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.widget-content .stat-details p i {
+    margin-right: 8px;
+    color: var(--accent-color);
+    width: 16px;
+}
+
+.widget-content .mini-chart {
+    margin-top: 15px;
+    height: 40px; /* Fixed height for consistency */
+}
+.chart-svg polyline, .chart-svg path {
+    stroke: var(--accent-color);
+    stroke-opacity: 0.8;
+}
+
+.mini-progress-circle {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center; /* Or align as needed */
+    align-items: center;
+}
+.mini-progress-circle svg {
+    transform: rotate(-90deg); /* Start from top */
+}
+.mini-progress-circle .circle-bg {
+    fill: none;
+    stroke: var(--border-color);
+    stroke-width: 3.0;
+}
+.mini-progress-circle .circle {
+    fill: none;
+    stroke: var(--accent-color);
+    stroke-width: 3.0;
+    stroke-linecap: round; /* Optional */
+    transition: stroke-dasharray 0.3s ease;
+}
+
+.large-chart-placeholder, .map-placeholder {
+    height: 250px;
+    background-color: rgba(0,0,0,0.1);
+    border: 1px dashed var(--border-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-secondary);
+    margin-bottom: 15px;
+}
+
+.chart-legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    font-size: 0.8em;
+    color: var(--text-secondary);
+}
+.chart-legend span {
+    display: flex;
+    align-items: center;
+}
+.legend-color {
+    width: 10px;
+    height: 10px;
+    margin-right: 5px;
+    border-radius: 2px;
+}
+.legend-color.memory { background-color: #4ECDC4; }
+.legend-color.cpu { background-color: #A9BCD0; }
+
+.map-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 5px;
+}
+.map-controls button {
+    background-color: var(--secondary-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    padding: 5px 8px;
+    cursor: pointer;
+}
+.map-controls button:hover {
+    background-color: var(--border-color);
+}
+
+/* Font Awesome Icons (ensure you have it linked) */
+.fas, .fab {
+    /* Basic styling if needed, already handled by sidebar icon width */
+}
+
+/* Scrollbar styling (optional, for a more themed look) */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: var(--primary-bg);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-color);
+}
+
+/* futuristic_style.css */
+/* ... existing styles ... */
+
+.futuristic-table {
+    width: 100%;
+    border-collapse: collapse; /* Or use 'separate' with border-spacing */
+    margin-top: 20px;
+    color: #E0E1DD; /* Light text for dark theme */
+}
+
+.futuristic-table th,
+.futuristic-table td {
+    border: 1px solid var(--widget-border-color, #2A3B4C); /* Use existing border color or a new one */
+    padding: 10px 15px;
+    text-align: left;
+}
+
+.futuristic-table th {
+    background-color: var(--widget-header-bg, #1A2533); /* Darker header for table */
+    font-weight: 600;
+}
+
+.futuristic-table tbody tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.03); /* Subtle striping for rows */
+}
+
+.futuristic-table tbody tr:hover {
+    background-color: rgba(var(--accent-color-rgb, 78, 205, 196), 0.2); /* Accent color on hover */
+}
+
+.status-active {
+    color: #4CAF50; /* Green for active */
+    font-weight: bold;
+}
+
+.status-inactive {
+    color: #F44336; /* Red for inactive */
+    font-weight: bold;
+}
+
+.table-responsive {
+    overflow-x: auto; /* Allows table to scroll horizontally on small screens */
+}
+
+/* Responsive Adjustments - PLACE AT THE VERY END OF CSS FILE */
+.menu-toggle {
+    display: none; /* Hidden by default on desktop */
+    align-items: center;
+    font-size: 1.5rem;
+    color: var(--text-color, #E0E1DD);
+    cursor: pointer;
+    padding: 0 15px;
+}
+
+@media (max-width: 992px) { /* For tablets and smaller */
+    .dashboard-container {
+        grid-template-columns: 1fr; /* Main content takes full width */
+        grid-template-rows: auto 1fr; /* Top Nav, then Main Area */
+        grid-template-areas:
+            "top-nav"
+            "main";
+        /* padding-top: var(--top-nav-height, 60px); /* Add padding to body/container if top-nav is fixed and opaque */
+    }
+
+    .top-nav { /* Added for sticky behavior */
+        position: sticky;
+        top: 0;
+        z-index: 1001; /* Ensure it's above sidebar and content */
+        /* background-color: var(--top-nav-bg, #0D1B2A); /* Ensure it has a background if it becomes transparent */
+    }
+
+    .menu-toggle {
+        display: flex !important; /* Override default none - ensure it's visible */
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--accent-color, #4ECDC4);
+        cursor: pointer;
+        padding: 0 15px;
+        flex-shrink: 0; /* Prevent shrinking */
+        width: 40px; /* Fixed width */
+        height: 40px; /* Fixed height */
+    }
+
+    .sidebar {
+        grid-area: initial; /* Remove from main grid flow, rely on fixed positioning */
+        transform: translateX(-100%);
+        position: fixed;
+        left: 0;
+        top: 60px; /* Add space below the navbar - adjust this value as needed */
+        height: calc(100vh - 60px); /* Adjust height to account for top space */
+        width: var(--sidebar-width, 250px);
+        z-index: 1000;
+        transition: transform 0.3s ease-in-out;
+        background-color: var(--sidebar-bg, #0D1B2A); /* Re-state for clarity */
+        padding: 20px; /* Re-state for clarity */
+        overflow-y: auto; /* Re-state for clarity */
+        color: var(--text-secondary); /* Re-state for clarity */
+        border-top: 1px solid var(--widget-border-color, #2A3B4C); /* Add top border */
+    }
+
+    .dashboard-container.sidebar-toggled .sidebar {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        grid-area: main;
+        margin-left: 0;
+        width: 100%; /* Ensure it takes full viewport width */
+        padding: 20px; /* Adjust padding as needed */
+        /* overflow-x: hidden; /* Prevent horizontal scroll if content accidentally overflows */
+    }
+
+    .menu-toggle {
+        display: flex; /* Use flex to better align icon if needed */
+        align-items: center;
+        font-size: 1.5rem;
+        color: var(--text-color, #E0E1DD);
+        cursor: pointer;
+        padding: 0 15px;
+    }
+
+    .top-nav .logo {
+        /* Adjust logo margin if menu-toggle pushes it */
+        margin-left: 10px; 
+    }
+
+    .top-nav .search-bar-form {
+        margin-left: 15px; /* Adjust spacing due to menu toggle */
+        flex-grow: 1; /* Allow search to take available space */
+    }
+}
+
+@media (max-width: 768px) { /* For mobile phones */
+    .top-nav {
+        padding: 10px 15px; /* Consistent padding */
+    }
+    
+    /* Hide the bracket elements in the logo */
+    .hud-h {
+        display: none;
+    }
+    
+    .top-nav .logo {
+        font-size: clamp(0.8rem, 3.5vw, 1rem); /* Responsive font size */
+        margin-left: 5px; /* Further adjust for smaller screens */
+    }
+    
+    .top-nav .nav-icons .user-profile span {
+        display: none; /* Hide username text, show only icon */
+    }
+    
+    /* Modified search bar to only show icon on mobile */
+    .search-bar-form {
+        max-width: 180px; /* Wider for better input on standard mobile */
+        margin: 0 5px;
+        flex-grow: 1; /* Allow it to take space */
+    }
+    
+    .search-bar-form input[type="text"] {
+        width: 100%; /* Ensure input takes full width of the form */
+        padding: 6px 4px; /* Adjust padding */
+        font-size: 0.8rem;
+    }
+
+    .search-bar-form .search-bar {
+        width: 100%;
+        padding: 4px 5px;
+        justify-content: flex-start; /* Align icon to start */
+    }
+
+    .top-nav .nav-icons .user-profile img {
+        width: 28px;
+    }
+    
+    .widget-grid {
+        grid-template-columns: 1fr; /* Stack widgets vertically */
+        gap: 15px; /* Reduce gap between widgets */
+    }
+
+    .widget {
+        padding: 15px;
+    }
+    
+    .stat-prominent {
+        font-size: clamp(2rem, 10vw, 2.5rem); /* Responsive prominent stats */
+    }
+
+    .futuristic-table th,
+    .futuristic-table td {
+        padding: 8px 10px; /* Smaller padding in tables */
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 576px) { 
+    .top-nav .logo {
+        font-size: clamp(0.7rem, 3vw, 0.9rem);
+    }
+
+    /* Make search bar usable, not icon-only */
+    .search-bar-form {
+        max-width: 120px; /* Smallest usable width */
+        margin: 0 3px;
+    }
+    
+    .search-bar-form input[type="text"] {
+        width: 100%; /* Ensure input takes full width of the form */
+        padding: 8px 5px; /* Adjust padding */
+        font-size: 0.8rem;
+    }
+
+    .search-bar-form .search-bar {
+        width: 100%;
+        padding: 4px 5px;
+        justify-content: flex-start; /* Align icon to start */
+    }
+}
+/* END OF RESPONSIVE ADJUSTMENTS */
+
+.member-icon {
+    margin-right: 10px;
+}
+

@@ -1,72 +1,125 @@
-{% extends "base.html" %}
-{% block title %}{{ title }}{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
 
-{% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <!-- My Leader Card -->
-        <div class="col-xl-4 col-lg-5 mb-4">
-            <div class="card shadow-sm h-100 border-left-info">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h5 class="m-0 font-weight-bold text-info"><i class="fas fa-user-tie me-2"></i>My Leader</h5>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title if title else 'Member Dashboard' }} - Member Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/futuristic_style.css') }}">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Top Navigation Bar -->
+        <header class="top-nav">
+            <div class="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <a href="{{ url_for('member.member_dashboard') }}" class="logo">
+                <span class="hud-h">[</span>CW<span class="hud-h">]</span> MEMBER DASHBOARD
+            </a>
+            <div class="nav-icons">
+                <div class="user-profile">
+                    <img src="https://via.placeholder.com/30/0D1B2A/E0E1DD?text={{ current_user.username[0]|upper if current_user and current_user.is_authenticated else 'M' }}"
+                        alt="User">
+                    <span>{{ current_user.username if current_user and current_user.is_authenticated else 'Member'
+                        }}</span>
+                    <i class="fas fa-chevron-down"></i>
+                    <div class="dropdown-menu">
+                        <a href="{{ url_for('member.change_password') }}"><i class="fas fa-key"></i> Change Password</a>
+                        <a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
                 </div>
-                <div class="card-body">
-                    {% if leader %}
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <nav>
+                <p class="nav-category">Navigation</p>
+                <ul>
+                    <li class="active"><a href="{{ url_for('member.member_dashboard') }}"><i
+                                class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="{{ url_for('member.change_password') }}"><i class="fas fa-key"></i> Change Password</a>
+                    </li>
+                    <li><a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <!-- <h2 class="page-title">Member Overview</h2> -->
+            </div>
+            <div class="widget-grid">
+                <!-- My Leader Widget -->
+                <div class="widget">
+                    <div class="widget-header">
+                        <h3><i class="member-icon fas fa-user-tie"></i>My Leader</h3>
+                    </div>
+                    <div class="widget-content">
+                        {% if leader %}
                         <p><strong>Username:</strong> {{ leader.username }}</p>
                         <p><strong>Email:</strong> {{ leader.email }}</p>
-                    {% else %}
+                        {% else %}
                         <p class="text-muted">You are not currently assigned to a leader.</p>
-                    {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- My Profile Widget -->
+                <div class="widget">
+                    <div class="widget-header">
+                        <h3><i class="member-icon fas fa-id-card"></i>My Profile</h3>
+                    </div>
+                    <div class="widget-content">
+                        <p><strong>Username:</strong> {{ member.username }}</p>
+                        <p><strong>Email:</strong> {{ member.email }}</p>
+                        <p><strong>Joined:</strong> {{ member.created_at | datetime_custom }}</p>
+                        <p><strong>Referral Code:</strong> {{ member.referral_code }}</p>
+                    </div>
                 </div>
             </div>
-        </div>
+        </main>
+    </div> <!-- Closing dashboard-container -->
 
-        <!-- My Profile Card -->
-        <div class="col-xl-8 col-lg-7 mb-4">
-            <div class="card shadow-sm h-100 border-left-primary">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h5 class="m-0 font-weight-bold text-primary"><i class="fas fa-id-card me-2"></i>My Profile</h5>
-                </div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Username:
-                            <span class="font-weight-bold">{{ member.username }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Email:
-                            <span class="font-weight-bold">{{ member.email }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Joined:
-                            <span class="font-weight-bold">{{ member.created_at | datetime_custom }}</span>
-                        </li>
-                    </ul>
-                </div>
-                <div class="card-footer text-end">
-                    <a href="{{ url_for('member.change_password') }}" class="btn btn-sm btn-info"><i class="fas fa-key me-1"></i> Change Password</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Sidebar Toggle
+            const menuToggle = document.querySelector('.menu-toggle');
+            const dashboardContainer = document.querySelector('.dashboard-container');
 
-<style>
-    /* in style.css */
-    /* .border-left-primary {
-        border-left: .25rem solid #4e73df !important;
-    }
-    
-    .border-left-info {
-        border-left: .25rem solid #36b9cc !important;
-    }
-    
-    .text-primary {
-        color: #4e73df !important;
-    }
-    
-    .text-info {
-        color: #36b9cc !important;
-    } */
-</style>
-{% endblock %}
+            if (menuToggle && dashboardContainer) {
+                menuToggle.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dashboardContainer.classList.toggle('sidebar-toggled');
+                    console.log('Toggled sidebar'); // Debug line
+                });
+            }
+
+            // User Profile Dropdown Toggle
+            const userProfile = document.querySelector('.top-nav .user-profile');
+            const dropdownMenu = userProfile ? userProfile.querySelector('.dropdown-menu') : null;
+
+            if (userProfile && dropdownMenu) {
+                userProfile.addEventListener('click', function (event) {
+                    event.stopPropagation(); // Prevent click from bubbling to document
+                    dropdownMenu.classList.toggle('show');
+                });
+
+                // Close dropdown if clicked outside
+                document.addEventListener('click', function (event) {
+                    if (!userProfile.contains(event.target) && dropdownMenu.classList.contains('show')) {
+                        dropdownMenu.classList.remove('show');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
