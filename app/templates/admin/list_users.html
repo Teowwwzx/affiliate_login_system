@@ -2,44 +2,48 @@
 
 {% block title %}{{ title if title else "Manage Users" }}{% endblock %}
 
+{% block page_header %}
+<h1>Manage Users</h1>
+<p>Welcome, Admin! Here's an overview of your users.</p>
+{% endblock %}
+
 {% block page_content %}
 <div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>{{ title if title else "Manage Users" }}</h1>
-        {# Link to create user page - to be implemented #}
-
         <a href="{{ url_for('admin.create_user') }}" class="btn btn-success">
             <i class="fas fa-plus"></i> Create New User
         </a>
-    </div>
 
-    {# Filter Toggle Button #}
-    <div class="mb-3">
-        <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse" aria-expanded="false" aria-controls="filtersCollapse">
+        <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse"
+            data-bs-target="#filtersCollapse" aria-expanded="false" aria-controls="filtersCollapse">
             <i class="fas fa-filter me-1"></i> Show/Hide Filters
         </button>
     </div>
 
-    {# Collapsible Filter Form #}
     <div class="collapse mb-4" id="filtersCollapse">
         <div class="card card-body">
             <form method="GET" action="{{ url_for('admin.list_users') }}" class="">
-                <div class="row g-3 align-items-end"> 
+                <div class="row g-3 align-items-end">
                     <div class="col-md-3">
                         <label for="filter_role" class="form-label small mb-1">Role:</label>
                         <select name="role" id="filter_role" class="form-select form-select-sm">
                             <option value="">All Roles</option>
-                            <option value="admin" {% if current_filters.role == 'admin' %}selected{% endif %}>Admin</option>
-                            <option value="leader" {% if current_filters.role == 'leader' %}selected{% endif %}>Leader</option>
-                            <option value="member" {% if current_filters.role == 'member' %}selected{% endif %}>Member</option>
+                            <option value="admin" {% if current_filters.role=='admin' %}selected{% endif %}>Admin
+                            </option>
+                            <option value="leader" {% if current_filters.role=='leader' %}selected{% endif %}>Leader
+                            </option>
+                            <option value="member" {% if current_filters.role=='member' %}selected{% endif %}>Member
+                            </option>
                         </select>
                     </div>
                     <div class="col-md-3">
                         <label for="filter_status" class="form-label small mb-1">Status:</label>
                         <select name="status" id="filter_status" class="form-select form-select-sm">
                             <option value="">All Statuses</option>
-                            <option value="true" {% if current_filters.status == 'true' %}selected{% endif %}>Active</option>
-                            <option value="false" {% if current_filters.status == 'false' %}selected{% endif %}>Inactive</option>
+                            <option value="true" {% if current_filters.status=='true' %}selected{% endif %}>Active
+                            </option>
+                            <option value="false" {% if current_filters.status=='false' %}selected{% endif %}>Inactive
+                            </option>
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -47,10 +51,13 @@
                         <select name="leader_id_filter" id="filter_leader" class="form-select form-select-sm">
                             <option value="">All Leaders / Unassigned</option>
                             {% for leader in all_leaders %}
-                                <option value="{{ leader.id }}" {% if current_filters.leader_id == leader.id|string %}selected{% endif %}>{{ leader.username }} (ID: {{ leader.id }})</option>
+                            <option value="{{ leader.id }}" {% if current_filters.leader_id==leader.id|string
+                                %}selected{% endif %}>{{ leader.username }} (ID: {{ leader.id }})</option>
                             {% endfor %}
-                             {# Option for members not assigned to any leader (leader_id is None or 0, handled by empty value) #}
-                            <option value="0" {% if current_filters.leader_id == '0' %}selected{% endif %}>Unassigned Members</option>
+                            {# Option for members not assigned to any leader (leader_id is None or 0, handled by empty
+                            value) #}
+                            <option value="0" {% if current_filters.leader_id=='0' %}selected{% endif %}>Unassigned
+                                Members</option>
                         </select>
                     </div>
                     <div class="col-md-3 d-flex align-items-end">
@@ -63,11 +70,10 @@
     </div>
 
     {% if users_pagination and users_pagination.items %}
-    <div class="table-responsive mt-3 mb-5">
+    <div class="table-responsive mt-5 mb-5">
         <table class="table table-striped table-hover">
             <thead>
                 <tr>
-                    <!-- <th>ID</th> -->
                     <th>Username</th>
                     <th>Email</th>
                     <th>Role</th>
@@ -80,33 +86,34 @@
             <tbody>
                 {% for user in users_pagination.items %}
                 <tr>
-                    <!-- <td>{{ user.id }}</td> -->
                     <td>{{ user.username }}</td>
                     <td>{{ user.email }}</td>
-                    <td><span
-                            class="badge bg-{{ 'primary' if user.role == 'admin' else ('info' if user.role == 'leader' else 'secondary') }}">{{
+                    <td><span class="badge" style="background-color: var(--secondary-color); color: white;">{{
                             user.role|capitalize }}</span></td>
                     <td>
                         {% if user.status %}
-                        <span class="badge bg-success">Active</span>
+                        <span class="badge" style="background-color: var(--success-color); color: white;">Active</span>
                         {% else %}
-                        <span class="badge bg-danger">Inactive</span>
+                        <span class="badge" style="background-color: var(--danger-color); color: white;">Inactive</span>
                         {% endif %}
                     </td>
                     <td>{{ user.leader.username if user.leader else 'N/A' }}</td>
                     <td>{{ user.created_at | datetime_custom if user.created_at else 'N/A' }}</td>
                     <td>
                         {% if user.role != 'admin' %}
-                            <a href="{{ url_for('admin.edit_user', user_id=user.id) }}"
-                                class="btn btn-sm btn-outline-primary me-1" title="Edit"><i class="fas fa-edit"></i></a>
-                            {% if user.id != current_user.id %}
-                                <a href="{{ url_for('admin.delete_user', user_id=user.id) }}"
-                                    class="btn btn-sm btn-outline-danger" title="Delete"
-                                    onclick="return confirm('Are you sure you want to delete this user \''{{ user.username }}\'? If this user is a leader, their members will become unassigned.');"><i
-                                        class="fas fa-trash-alt"></i></a>
-                            {% endif %}
+                        <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn"
+                            style="background-color: var(--info-color); color: white;" title="Edit">
+                            Edit
+                        </a>
+                        {% if user.id != current_user.id %}
+                        <a href="{{ url_for('admin.delete_user', user_id=user.id) }}" class="btn"
+                            style="background-color: var(--danger-color); color: white;" title="Delete"
+                            onclick="return confirm('Are you sure you want to delete this user \'' + '{{ user.username }}' + '\'? If this user is a leader, their members will become unassigned.');">
+                            Delete
+                        </a>
+                        {% endif %}
                         {% else %}
-                            <span class="text-muted">N/A (Admin)</span>
+                        <span class="text-muted">N/A (Admin)</span>
                         {% endif %}
                     </td>
                 </tr>
@@ -121,14 +128,17 @@
         <ul class="pagination justify-content-center">
             {# Previous Page Link #}
             <li class="page-item {% if not users_pagination.has_prev %}disabled{% endif %}">
-                <a class="page-link" href="{{ url_for('admin.list_users', page=users_pagination.prev_num if users_pagination.has_prev else '#', role=current_filters.role, status=current_filters.status) }}">Previous</a>
+                <a class="page-link"
+                    href="{{ url_for('admin.list_users', page=users_pagination.prev_num if users_pagination.has_prev else '#', role=current_filters.role, status=current_filters.status) }}">Previous</a>
             </li>
 
             {# Page Numbers #}
             {% for page_num in users_pagination.iter_pages() %}
             {% if page_num %}
             <li class="page-item {% if page_num == users_pagination.page %}active{% endif %}">
-                <a class="page-link" href="{{ url_for('admin.list_users', page=page_num, role=current_filters.role, status=current_filters.status) }}">{{ page_num }}</a>
+                <a class="page-link"
+                    href="{{ url_for('admin.list_users', page=page_num, role=current_filters.role, status=current_filters.status) }}">{{
+                    page_num }}</a>
             </li>
             {% else %}
             <li class="page-item disabled"><span class="page-link">...</span></li>

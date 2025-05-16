@@ -4,7 +4,7 @@ from functools import wraps
 from app.database.models import User, Fund
 from app import db
 from sqlalchemy import func, desc
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import current_user
 from datetime import datetime
 
@@ -209,6 +209,49 @@ def edit_member(user_id):
                            title=f"Edit Member: {member_to_edit.username}",
                            user=member_to_edit,
                            form_action=url_for('leader.edit_member', user_id=user_id))
+
+
+@leader_bp.route('/member/<int:member_id>/reset-password', methods=['GET', 'POST'])
+@leader_required
+def reset_member_password(member_id):
+    member_to_reset = User.query.get_or_404(member_id)
+
+    # Authorization: Check if the member is under the current leader and is a 'member'
+    if member_to_reset.leader_id != current_user.id or member_to_reset.role != 'member':
+        flash('You do not have permission to reset the password for this user.', 'danger')
+        return redirect(url_for('leader.my_downlines'))
+
+    if request.method == 'POST':
+        new_password = request.form.get('new_password')
+        confirm_new_password = request.form.get('confirm_new_password')
+
+        if not new_password or not confirm_new_password:
+            flash('Both password fields are required.', 'warning')
+            return render_template('leader/reset_member_password.html', title="Reset Member Password", member=member_to_reset)
+
+        if new_password != confirm_new_password:
+            flash('New passwords do not match.', 'warning')
+            return render_template('leader/reset_member_password.html', title="Reset Member Password", member=member_to_reset)
+        
+        # Basic password complexity (e.g., length) - can be enhanced
+        if len(new_password) < 6:
+            flash('Password must be at least 6 characters long.', 'warning')
+            return render_template('leader/reset_member_password.html', title="Reset Member Password", member=member_to_reset)
+
+        member_to_reset.password_hash = generate_password_hash(new_password)
+        try:
+            db.session.commit()
+            flash(f'Password for {member_to_reset.username} has been reset successfully.', 'success')
+            # Consider sending an email notification to the member here
+            return redirect(url_for('leader.my_downlines'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'An error occurred while resetting the password. Please try again.', 'danger')
+            # It's good practice to log the actual error e for debugging
+            # current_app.logger.error(f"Error resetting password for member {member_id} by leader {current_user.id}: {e}")
+            return render_template('leader/reset_member_password.html', title="Reset Member Password", member=member_to_reset)
+
+    return render_template('leader/reset_member_password.html', title="Reset Member Password", member=member_to_reset)
 
 
 @leader_bp.route('/member/<int:user_id>/delete', methods=['POST'])  # POST only for deletion

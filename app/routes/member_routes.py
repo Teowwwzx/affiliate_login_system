@@ -48,35 +48,9 @@ def member_dashboard():
 @member_required
 @login_required
 def change_password():
-    member = current_user
-
-    if request.method == "POST":
-        current_password = request.form.get("current_password")
-        new_password = request.form.get("new_password")
-        confirm_new_password = request.form.get("confirm_new_password")
-
-        if not current_password or not new_password or not confirm_new_password:
-            flash("All password fields are required.", "warning")
-            return redirect(url_for("member.change_password"))
-
-        if not check_password_hash(member.password_hash, current_password):
-            flash("Incorrect current password.", "danger")
-            return redirect(url_for("member.change_password"))
-
-        if new_password != confirm_new_password:
-            flash("New passwords do not match.", "danger")
-            return redirect(url_for("member.change_password"))
-
-        if len(new_password) < 6:  # Basic password length validation
-            flash("New password must be at least 6 characters long.", "warning")
-            return redirect(url_for("member.change_password"))
-
-        member.password_hash = generate_password_hash(new_password)
-        db.session.commit()
-        flash("Your password has been updated successfully!", "success")
-        return redirect(url_for("member.member_dashboard"))
-
-    return render_template("member/change_password.html", title="Change Password")
+    # Redirect to the central change_password route in auth_routes.py
+    # This maintains backward compatibility for any existing links
+    return redirect(url_for("auth.change_password"))
 
 
 # Add other member-specific routes if any, e.g., viewing personal sales, profile details

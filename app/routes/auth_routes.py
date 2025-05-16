@@ -1,9 +1,10 @@
 # app/routes/auth_routes.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import jsonify  # Added missing import
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_login import login_user, logout_user, current_user, login_required
 from ..database.models import User
-from .. import db
+from ..database import db
 from datetime import datetime
 from sqlalchemy.exc import IntegrityError
 
@@ -145,3 +146,52 @@ def register_member():
 
     # For GET request or if POST logic falls through (e.g. validation error before try/except)
     return render_template('auth/register_member.html', title='Register Member', **form_data)
+
+
+@auth_bp.route("/change_password", methods=["GET", "POST"])
+@login_required
+def change_password():
+    if request.method == "POST":
+        current_password = request.form.get("current_password")
+        new_password = request.form.get("new_password")
+        confirm_password = request.form.get("confirm_password")
+
+        # Validation checks
+        if not current_password or not new_password or not confirm_password:
+            flash("All password fields are required.", "warning")
+            return redirect(url_for("auth.change_password"))
+
+        if new_password != confirm_password:
+            flash("New password and confirmation do not match.", "warning")
+            return redirect(url_for("auth.change_password"))
+
+        if len(new_password) < 6:
+            flash("Password must be at least 6 characters long.", "warning")
+            return redirect(url_for("auth.change_password"))
+
+        # Verify current password
+        if not check_password_hash(current_user.password_hash, current_password):
+            flash("Current password is incorrect.", "danger")
+            return redirect(url_for("auth.change_password"))
+
+        # Update password
+        current_user.password_hash = generate_password_hash(new_password)
+        try:
+            db.session.commit()
+            flash("Password updated successfully.", "success")
+            # Determine the correct dashboard to redirect to
+            if current_user.role == 'admin':
+                return redirect(url_for('admin.admin_dashboard'))
+            elif current_user.role == 'leader':
+                return redirect(url_for('leader.leader_dashboard'))
+            elif current_user.role == 'member':
+                return redirect(url_for('member.member_dashboard'))
+            else:
+                # Fallback, though this case should ideally not be reached if roles are well-defined
+                return redirect(url_for('general.index')) 
+        except Exception as e:
+            db.session.rollback()
+            flash("An error occurred while updating your password. Please try again.", "danger")
+            return redirect(url_for("auth.change_password"))
+
+    return render_template("auth/change_password.html", title="Change Password")

@@ -47,13 +47,15 @@
             <nav>
                 <p class="nav-category">Navigation</p>
                 <ul>
-                    <li><a href="{{ url_for('leader.leader_dashboard') }}"><i class="fas fa-tachometer-alt"></i>
-                            Dashboard</a></li>
-                    <li class="active"><a href="{{ url_for('leader.my_downlines') }}"><i class="fas fa-sitemap"></i> My
-                            Downlines</a></li>
+                    <li class="active"><a href="{{ url_for('leader.leader_dashboard') }}"><i
+                                class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="{{ url_for('leader.my_downlines') }}"><i class="fas fa-sitemap"></i> My Downlines</a>
+                    </li>
                 </ul>
                 <p class="nav-category">Account</p>
                 <ul>
+                    <li><a href="{{ url_for('auth.change_password') }}"><i class="fas fa-key"></i> Change Password</a>
+                    </li>
                     <li><a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 </ul>
             </nav>
@@ -76,7 +78,6 @@
                                     <th>Email</th>
                                     <th>Joined On</th>
                                     <th>Status</th>
-                                    <!-- Add more columns as needed -->
                                 </tr>
                             </thead>
                             <tbody>
@@ -84,8 +85,7 @@
                                 <tr>
                                     <td>{{ member.username }}</td>
                                     <td>{{ member.email }}</td>
-                                    <td>{{ member.created_at.strftime('%Y-%m-%d %H:%M') if member.created_at else 'N/A'
-                                        }}</td>
+                                    <td>{{ member.created_at.strftime('%Y-%m-%d %H:%M') if member.created_at else 'N/A' }}</td>
                                     <td>
                                         {% if member.status %}
                                         <span class="status-active">Active</span>

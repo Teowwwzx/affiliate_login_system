@@ -1,39 +1,44 @@
-/* General Body Styles */
-body.new-admin-dashboard-body {
+:root {
+    --primary-color: #f06445;
+    --secondary-color: #4fc9da;
+    --text-color: #333;
+    --border-color: #e0e0e0;
+    --success-color: #b8d935;
+    --info-color: #4f55da;
+    --warning-color: #e8c444;
+    --danger-color: #f35d81;
+    --black-color: #1e2129;
+    --white-color: #ffffff;
+}
+
+body {
     font-family: 'Inter', sans-serif;
-    /* A modern sans-serif font */
     background-color: #f4f7f6;
-    /* Light grey background for the page */
     margin: 0;
     padding: 0;
     display: flex;
     min-height: 100vh;
-    /* Use min-height for full viewport height */
     overflow-x: hidden;
-    /* Prevent horizontal scroll */
+}
+
+.container-fluid {
+    margin: 0;
+    padding: 0;
 }
 
 /* Sidebar Styles */
 .new-admin-sidebar {
     width: 260px;
     min-width: 260px;
-    background-color: #f7f6f2; /* Consider changing to #f6f1e9 if you want sidebar to match cards, or keep distinct */
+    background-color: #f7f6f2;
     color: #333;
-    /* Darker text color for better contrast on new bg */
-    border-right: 1px solid #e0e0e0; /* Consider #e4e6ef (your third color) for borders */
     padding: 20px 15px;
-    display: flex;
-    flex-direction: column;
     height: 100vh;
-    /* Full viewport height */
     position: fixed;
-    /* Fixed sidebar */
     left: 0;
     top: 0;
     overflow-y: auto;
-    /* Allow sidebar to scroll if content exceeds height */
     z-index: 1030;
-    /* Ensure sidebar is above other content if overlap occurs */
 }
 
 .new-admin-sidebar .nav-link.active,

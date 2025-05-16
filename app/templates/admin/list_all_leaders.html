@@ -2,53 +2,60 @@
 
 {% block title %}{{ title if title else "Full Leaderboard" }}{% endblock %}
 
+{% block page_header %}
+<h1>Leaderboard</h1>
+<p>Welcome, Admin! Here's an overview of your leaderboard.</p>
+{% endblock %}
+
 {% block page_content %}
 <div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>{{ title if title else "Full Leaderboard" }}</h1>
-        <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
-        </a>
+        <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse"
+            data-bs-target="#filtersCollapse" aria-expanded="false" aria-controls="filtersCollapse">
+            <i class="fas fa-filter me-1"></i> Sort: High to Low (Coming Soon)
+        </button>
     </div>
 
     {% if leaders_list %}
-    <div class="table-responsive mt-3 mb-5">
-        <table class="table table-striped table-hover">
+    <div class="table-responsive mt-5 mb-5">
+        <table id="leaderTable" class="table table-striped table-hover">
             <thead>
                 <tr>
-                    <!-- <th>#</th> -->
                     <th>Username</th>
                     <th>Email</th>
                     <th>Member Count</th>
                     <th>Status</th>
                     <th>Registered At</th>
-                    <th>Actions</th> {# Placeholder for future actions like 'View Members' #}
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for leader_item in leaders_list %}
                 <tr>
-                    <!-- <td>{{ loop.index }}</td> -->
                     <td>
-                        <a href="{{ url_for('admin.edit_user', user_id=leader_item.id) }}" title="Edit {{ leader_item.username }}">
+                        <a href="{{ url_for('admin.edit_user', user_id=leader_item.id) }}"
+                            title="Edit {{ leader_item.username }}">
                             {{ leader_item.username }}
                         </a>
                     </td>
                     <td>{{ leader_item.email }}</td>
-                    <td><span class="badge bg-info">{{ leader_item.member_count }}</span></td>
+                    <td><span class="badge" style="background-color: var(--secondary-color);">{{
+                            leader_item.member_count
+                            }}</span></td>
                     <td>
                         {% if leader_item.status %}
-                            <span class="badge bg-success">Active</span>
+                        <span class="badge" style="background-color: var(--success-color);">Active</span>
                         {% else %}
-                            <span class="badge bg-danger">Inactive</span>
+                        <span class="badge" style="background-color: var(--danger-color);">Inactive</span>
                         {% endif %}
                     </td>
                     <td>{{ leader_item.created_at | datetime_custom if leader_item.created_at else 'N/A' }}</td>
                     <td>
-                        <a href="{{ url_for('admin.list_users', leader_id_filter=leader_item.id) }}" class="btn btn-sm btn-outline-info" title="View {{ leader_item.username }}'s Members">
-                            <i class="fas fa-users"></i> View Members
+                        <a href="{{ url_for('admin.list_users', leader_id_filter=leader_item.id) }}" class="btn"
+                        style="background-color: var(--primary-color); color: white;"
+                            title="View {{ leader_item.username }}'s Members">
+                            View Members
                         </a>
-                        {# Add other actions like direct edit if needed #}
                     </td>
                 </tr>
                 {% endfor %}
@@ -59,4 +66,54 @@
     <div class="alert alert-info mt-3">No leaders found.</div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block page_scripts %}
+{# Only call super if the parent template has this block #}
+{% if 'page_scripts' in self._TemplateReference__context.parent %}
+{{ super() }}
+{% endif %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const sortOrderToggleButton = document.getElementById('sortOrderToggle');
+        const tableBody = document.querySelector('#leaderTable tbody');
+        let sortAscending = false; // false for High to Low, true for Low to High
+
+        function sortTableByMemberCount() {
+            if (!tableBody) return;
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+
+            const sortedRows = rows.sort((a, b) => {
+                const memberCountA = parseInt(a.cells[2].querySelector('span.badge').textContent) || 0;
+                const memberCountB = parseInt(b.cells[2].querySelector('span.badge').textContent) || 0;
+                return sortAscending ? memberCountA - memberCountB : memberCountB - memberCountA;
+            });
+
+            // Clear existing rows
+            while (tableBody.firstChild) {
+                tableBody.removeChild(tableBody.firstChild);
+            }
+
+            // Append sorted rows
+            sortedRows.forEach(row => tableBody.appendChild(row));
+            updateSortButtonText();
+        }
+
+        function updateSortButtonText() {
+            if (sortOrderToggleButton) {
+                sortOrderToggleButton.textContent = sortAscending ? 'Sort: Low to High' : 'Sort: High to Low';
+            }
+        }
+
+        if (sortOrderToggleButton) {
+            sortOrderToggleButton.addEventListener('click', function () {
+                sortAscending = !sortAscending;
+                sortTableByMemberCount();
+            });
+        }
+
+        // Initial button text setup
+        updateSortButtonText();
+    });
+</script>
 {% endblock %}

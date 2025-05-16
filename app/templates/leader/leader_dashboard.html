@@ -34,6 +34,7 @@
                         }}</span>
                     <i class="fas fa-chevron-down"></i>
                     <div class="dropdown-menu">
+                        <a href="{{ url_for('auth.change_password') }}"><i class="fas fa-key"></i> Change Password</a>
                         <a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
                     </div>
                 </div>
@@ -52,6 +53,8 @@
                 </ul>
                 <p class="nav-category">Account</p>
                 <ul>
+                    <li><a href="{{ url_for('auth.change_password') }}"><i class="fas fa-key"></i> Change Password</a>
+                    </li>
                     <li><a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 </ul>
             </nav>
