@@ -1,9 +1,9 @@
-{% extends "new_base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Member Registration{% endblock %}
 
 
-{% block page_content %}
+{% block content %}
 <div class="row justify-content-center mt-4">
     <div class="col-11 col-sm-9 col-md-7 col-lg-6 col-xl-5">
         <div class="card shadow-lg">
@@ -16,42 +16,42 @@
 
                     <div class="mb-3">
                         <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control form-control-lg" id="username" name="username"
-                            placeholder="Choose a username" required value="{{ username or '' }}">
+                        <input type="text" class="form-control form-control-lg" id="username" name="username" required
+                            value="{{ username or '' }}">
                     </div>
 
                     <div class="mb-3">
                         <label for="email" class="form-label">Email Address</label>
-                        <input type="email" class="form-control form-control-lg" id="email" name="email"
-                            placeholder="Enter your email" required value="{{ email or '' }}">
+                        <input type="email" class="form-control form-control-lg" id="email" name="email" required
+                            value="{{ email or '' }}">
                     </div>
 
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
                         <input type="password" class="form-control form-control-lg" id="password" name="password"
-                            placeholder="Create a password" required>
+                            required>
                     </div>
 
                     <div class="mb-3">
                         <label for="confirm_password" class="form-label">Confirm Password</label>
                         <input type="password" class="form-control form-control-lg" id="confirm_password"
-                            name="confirm_password" placeholder="Confirm your password" required>
+                            name="confirm_password" required>
                     </div>
 
                     <div class="mb-4">
                         <label for="referral_code" class="form-label">Referral Code</label>
                         <input type="text" class="form-control form-control-lg" id="referral_code" name="referral_code"
-                            placeholder="Enter referral code" required value="{{ referral_code or '' }}">
+                            required value="{{ referral_code or '' }}">
                     </div>
 
                     <div class="d-grid mb-3">
-                        <button type="submit" class="btn btn-theme-orange btn-lg">Register</button>
+                        <button type="submit" class="btn btn-lg" style="background-color: var(--primary-color); color: var(--white-color);">Register</button>
                     </div>
                 </form>
                 <hr class="my-4">
                 <div class="text-center">
                     <p class="mb-0">Already have an account?
-                        <a href="{{ url_for('auth.login') }}">Login Here</a>
+                        <a href="{{ url_for('auth.login') }}" style="color: var(--primary-color);">Login Here</a>
                     </p>
                 </div>
             </div>

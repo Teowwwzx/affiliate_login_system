@@ -22,7 +22,7 @@
     {% if current_user.is_authenticated %}
     <nav class="new-admin-sidebar" id="sidebar">
         <div class="logo-section">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Apple_logo_grey.svg/758px-Apple_logo_grey.svg.png"
+            <img src="{{ url_for('static', filename='images/logo.png') }}"
                 alt="Company Logo">
         </div>
         <ul class="nav flex-column">
@@ -74,7 +74,7 @@
                     <a class="nav-link dropdown-toggle" href="#" id="userProfileDropdown" role="button"
                         data-bs-toggle="dropdown" aria-expanded="false">
                         <img class="img-profile rounded-circle me-2"
-                            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3Fjc74ZCdeNRx1R-Yy_ixzSL2rjDjh8rEabTup0AnNDJL73WLOlnbkLR5zlwxu2WWqTg&usqp=CAU"
+                            src="{{ url_for('static', filename='images/logo.png') }}"
                             alt="User Profile" style="width: 30px; height: 30px;">
                         <span class="d-none d-lg-inline text-gray-600 small">{{ current_user.username }}</span>
                     </a>
@@ -105,7 +105,7 @@
             {% endif %}
         </header>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
+        <!-- {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         <div class="container-fluid mt-3">
             {% for category, message in messages %}
@@ -116,7 +116,7 @@
             {% endfor %}
         </div>
         {% endif %}
-        {% endwith %}
+        {% endwith %} -->
 
         <!-- Page Specific Content -->
         {% block page_content %}{% endblock %}

@@ -49,77 +49,11 @@
         </div>
     </nav>
 
-    <div class="d-flex flex-grow-1 overflow-hidden">
-        <!-- {% if not ((request.endpoint == 'general.index' and not current_user.is_authenticated) or request.endpoint ==
-        'auth.login') %}
-        <nav id="sidebar" class="offcanvas-lg offcanvas-start bg-light p-0 border-end d-flex flex-column" tabindex="-1"
-            aria-label="Admin sidebar" style="width: 250px;">
-            <div class="offcanvas-header d-lg-none border-bottom">
-                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebar"
-                    aria-label="Close"></button>
-            </div>
-            <div class="offcanvas-body d-flex flex-column flex-grow-1">
-                {% if current_user.is_authenticated %}
-                <ul class="nav flex-column">
-                    {% if current_user.role == 'admin' %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'admin.admin_dashboard' %}active{% endif %}"
-                            href="{{ url_for('admin.admin_dashboard') }}">
-                            <i class="fas fa-tachometer-alt me-2"></i> Admin Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'admin.list_users' %}active{% endif %}"
-                            href="{{ url_for('admin.list_users') }}">
-                            <i class="fas fa-users me-2"></i> Manage Users
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'admin.manage_funds' %}active{% endif %}"
-                            href="{{ url_for('admin.manage_funds') }}">
-                            <i class="fas fa-funnel-dollar me-2"></i> Manage Funds
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'admin.list_all_leaders' %}active{% endif %}"
-                            href="{{ url_for('admin.list_all_leaders') }}">
-                            <i class="fas fa-sitemap me-2"></i> Full Leaderboard
-                        </a>
-                    </li>
-                    {% elif current_user.role == 'leader' %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'leader.leader_dashboard' %}active{% endif %}"
-                            href="{{ url_for('leader.leader_dashboard') }}">
-                            <i class="fas fa-user-tie me-2"></i> Leader Dashboard
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'leader.create_member' %}active{% endif %}"
-                            href="{{ url_for('leader.create_member') }}">
-                            <i class="fas fa-user-plus me-2"></i> Add New Member
-                        </a>
-                    </li>
-
-                    {% elif current_user.role == 'member' %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'member.member_dashboard' %}active{% endif %}"
-                            href="{{ url_for('member.member_dashboard') }}">
-                            <i class="fas fa-tachometer-alt me-2"></i> My Dashboard
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
-                {% else %}
-                {% endif %}
-            </div>
-        </nav>
-        {% endif %} -->
-
+    <div class="d-flex flex-grow-1">
         <main role="main"
             class="flex-grow-1 p-5 overflow-hidden bg-body-secondary {% if (request.endpoint == 'general.index' and not current_user.is_authenticated) or request.endpoint == 'auth.login' %}w-100{% endif %}">
             {# Flash Messages #}
-            {% with messages = get_flashed_messages(with_categories=true) %}
+            <!-- {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
             {% for category, message in messages %}
             <div class="alert alert-{{ category if category in ['success', 'danger', 'warning', 'info'] else 'secondary' }} alert-dismissible fade show"
@@ -129,28 +63,23 @@
             </div>
             {% endfor %}
             {% endif %}
-            {% endwith %}
+            {% endwith %} -->
 
             {# Main Content Block #}
             {% block content %}{% endblock %}
         </main>
     </div>
 
-    {% if request.endpoint == 'general.index' or request.endpoint == 'auth.login' or not current_user.is_authenticated
+    {% if request.endpoint == 'general.index' or request.endpoint == 'auth.login' or request.endpoint ==
+    'auth.register_member' or not current_user.is_authenticated
     %}
     <footer class="footer mt-auto py-3 bg-light border-top text-center">
         <div
-            class="{% if (request.endpoint == 'general.index' and not current_user.is_authenticated) or request.endpoint == 'auth.login' %}container-fluid{% else %}container{% endif %}">
+            class="{% if (request.endpoint == 'general.index' and not current_user.is_authenticated) or request.endpoint == 'auth.login' or request.endpoint == 'auth.register_member' %}container-fluid{% else %}container{% endif %}">
             <span class="text-muted">Affiliate System &copy; <span id="currentYear"></span>. All rights reserved.</span>
         </div>
     </footer>
     {% endif %}
-
-    <style>
-        main {
-            color: grey;
-        }
-    </style>
 
     <!-- JavaScript -->
     {% block page_scripts %}
