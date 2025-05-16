@@ -23,7 +23,8 @@ admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 FUND_TYPES = {
     "dynamic_prize_pool": "Dynamic Prize Pool",
     "static_prize_pool": "Static Prize Pool",
-    "general": "General/Operational",
+    "insurance_bucket_sale": "Insurance Bucket Sale",
+    "robot_ai_bucket_sale": "Robot Ai Bucket Sale",
 }
 
 
