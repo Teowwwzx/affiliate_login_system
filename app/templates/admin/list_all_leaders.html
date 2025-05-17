@@ -9,10 +9,10 @@
 
 {% block page_content %}
 <div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse"
-            data-bs-target="#filtersCollapse" aria-expanded="false" aria-controls="filtersCollapse">
-            <i class="fas fa-filter me-1"></i> Sort: High to Low (Coming Soon)
+    <div class="d-flex mb-3">
+        <button id="sortOrderToggle" class="btn btn-outline-primary" type="button" title="Click to toggle sort order">
+            <i class="bi bi-sort-down me-2"></i>
+            <span>Sort by performance</span>
         </button>
     </div>
 
@@ -24,24 +24,28 @@
                     <th>Username</th>
                     <th>Email</th>
                     <th>Member Count</th>
+                    <th>Performance Sale</th>
                     <th>Status</th>
                     <th>Registered At</th>
-                    <th>Actions</th>
+                    <th>Actions</th>    
                 </tr>
             </thead>
             <tbody>
                 {% for leader_item in leaders_list %}
                 <tr>
-                    <td>
-                        <a href="{{ url_for('admin.edit_user', user_id=leader_item.id) }}"
-                            title="Edit {{ leader_item.username }}">
-                            {{ leader_item.username }}
-                        </a>
-                    </td>
+                    <td>{{ leader_item.username }}</td>
                     <td>{{ leader_item.email }}</td>
-                    <td><span class="badge" style="background-color: var(--secondary-color);">{{
-                            leader_item.member_count
-                            }}</span></td>
+                    <td>
+                        <span class="badge" style="background-color: var(--secondary-color);">
+                            {{ leader_item.member_count }}
+                        </span>
+                    </td>
+                    <td>
+                        {% set value_per_member = current_value_price | default(0) %}
+                        <span class="badge" style="background-color: var(--info-color);">
+                            ${{ "%.2f"|format((leader_item.member_count * value_per_member) or 0) }}
+                        </span>
+                    </td>
                     <td>
                         {% if leader_item.status %}
                         <span class="badge" style="background-color: var(--success-color);">Active</span>
@@ -52,7 +56,7 @@
                     <td>{{ leader_item.created_at | datetime_custom if leader_item.created_at else 'N/A' }}</td>
                     <td>
                         <a href="{{ url_for('admin.list_users', leader_id_filter=leader_item.id) }}" class="btn"
-                        style="background-color: var(--primary-color); color: white;"
+                            style="background-color: var(--primary-color); color: white;"
                             title="View {{ leader_item.username }}'s Members">
                             View Members
                         </a>
@@ -69,24 +73,26 @@
 {% endblock %}
 
 {% block page_scripts %}
-{# Only call super if the parent template has this block #}
-{% if 'page_scripts' in self._TemplateReference__context.parent %}
 {{ super() }}
-{% endif %}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const sortOrderToggleButton = document.getElementById('sortOrderToggle');
+        const sortButton = document.getElementById('sortOrderToggle');
         const tableBody = document.querySelector('#leaderTable tbody');
         let sortAscending = false; // false for High to Low, true for Low to High
+        const valuePerMember = {{ current_value_price | default(0) }};
 
-        function sortTableByMemberCount() {
+        function parseCurrencyValue(currencyString) {
+            return parseFloat(currencyString.replace(/[^0-9.-]+/g, '')) || 0;
+        }
+
+        function sortTable() {
             if (!tableBody) return;
             const rows = Array.from(tableBody.querySelectorAll('tr'));
 
             const sortedRows = rows.sort((a, b) => {
-                const memberCountA = parseInt(a.cells[2].querySelector('span.badge').textContent) || 0;
-                const memberCountB = parseInt(b.cells[2].querySelector('span.badge').textContent) || 0;
-                return sortAscending ? memberCountA - memberCountB : memberCountB - memberCountA;
+                const valueA = parseCurrencyValue(a.cells[3].querySelector('span.badge').textContent);
+                const valueB = parseCurrencyValue(b.cells[3].querySelector('span.badge').textContent);
+                return sortAscending ? valueA - valueB : valueB - valueA;
             });
 
             // Clear existing rows
@@ -96,24 +102,31 @@
 
             // Append sorted rows
             sortedRows.forEach(row => tableBody.appendChild(row));
-            updateSortButtonText();
+            updateSortButtonIcon();
         }
 
-        function updateSortButtonText() {
-            if (sortOrderToggleButton) {
-                sortOrderToggleButton.textContent = sortAscending ? 'Sort: Low to High' : 'Sort: High to Low';
+        function updateSortButtonIcon() {
+            if (sortButton) {
+                const icon = sortButton.querySelector('.bi');
+                if (icon) {
+                    // Remove both classes first to avoid conflicts
+                    icon.classList.remove('bi-sort-up', 'bi-sort-down');
+                    // Add the appropriate class based on sort direction
+                    icon.classList.add(sortAscending ? 'bi-sort-down' : 'bi-sort-up');
+                }
             }
         }
 
-        if (sortOrderToggleButton) {
-            sortOrderToggleButton.addEventListener('click', function () {
+        if (sortButton) {
+            sortButton.addEventListener('click', function(event) {
+                event.preventDefault();
                 sortAscending = !sortAscending;
-                sortTableByMemberCount();
+                sortTable();
             });
-        }
 
-        // Initial button text setup
-        updateSortButtonText();
+            // Initial sort
+            sortTable();
+        }
     });
 </script>
 {% endblock %}

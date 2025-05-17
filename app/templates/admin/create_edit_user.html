@@ -2,9 +2,28 @@
 
 {% block title %}{{ title if title else "Manage User" }}{% endblock %}
 
+{% block page_header %}
+<h1>{{ title }}</h1>
+<p>Welcome, Admin! Here's an overview of your users.</p>
+{% endblock %}
+
 {% block page_content %}
 <div class="container-fluid mt-4">
-    <h1>{{ title }}</h1>
+
+    <!-- Flash Messages -->
+    <div class="mb-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+
 
     {% set form_action = action_url if action_url else url_for('admin.create_user') %}
     {% set is_edit_mode = True if user else False %}
@@ -21,9 +40,45 @@
 
         <div class="mb-3">
             <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-            <input type="email" class="form-control" id="email" name="email"
-                value="{{ user_data.email if user_data else (user.email if is_edit_mode else '') }}" required {% if
-                is_edit_mode and user.role=='admin' %}disabled{% endif %}>
+            <div class="input-group">
+                <input type="text" class="form-control" id="email_username" name="email_username"
+                    value="{{ user_data.email.split('@')[0] if user_data and '@' in user_data.email else (user.email.split('@')[0] if is_edit_mode and user.email and '@' in user_data.email else '') }}"
+                    {% if is_edit_mode and user.role=='admin' %}disabled{% endif %}>
+                <span class="input-group-text">@</span>
+                <select class="form-select" id="email_domain" name="email_domain" style="max-width: 150px;" {% if
+                    is_edit_mode and user.role=='admin' %}disabled{% endif %}>
+                    <option value="gmail.com" {% if (user_data and '@' in user_data.email and
+                        user_data.email.split('@')[1]=='gmail.com' ) or (is_edit_mode and user.email and '@' in
+                        user.email and user.email.split('@')[1]=='gmail.com' ) %}selected{% endif %}>gmail.com</option>
+                    <option value="yahoo.com" {% if (user_data and '@' in user_data.email and
+                        user_data.email.split('@')[1]=='yahoo.com' ) or (is_edit_mode and user.email and '@' in
+                        user.email and user.email.split('@')[1]=='yahoo.com' ) %}selected{% endif %}>yahoo.com</option>
+                    <option value="outlook.com" {% if (user_data and '@' in user_data.email and
+                        user_data.email.split('@')[1]=='outlook.com' ) or (is_edit_mode and user.email and '@' in
+                        user.email and user.email.split('@')[1]=='outlook.com' ) %}selected{% endif %}>outlook.com
+                    </option>
+                    <option value="hotmail.com" {% if (user_data and '@' in user_data.email and
+                        user_data.email.split('@')[1]=='hotmail.com' ) or (is_edit_mode and user.email and '@' in
+                        user.email and user.email.split('@')[1]=='hotmail.com' ) %}selected{% endif %}>hotmail.com
+                    </option>
+                    <option value="">Custom domain...</option>
+                </select>
+                <input type="text" class="form-control" id="custom_domain" name="custom_domain" style="display: none;"
+                    placeholder="Enter domain"
+                    value="{{ user_data.email.split('@')[1] if user_data and '@' in user_data.email and user_data.email.split('@')[1] not in ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com'] else (user.email.split('@')[1] if is_edit_mode and user.email and '@' in user.email and user.email.split('@')[1] not in ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com'] else '') }}"
+                    {% if is_edit_mode and user.role=='admin' %}disabled{% endif %}>
+                <input type="hidden" id="email" name="email"
+                    value="{{ user_data.email if user_data else (user.email if is_edit_mode else '') }}" required>
+            </div>
+            <div id="email-preview" class="form-text text-muted">
+                {% if user_data and user_data.email %}
+                {{ user_data.email }}
+                {% elif is_edit_mode and user.email %}
+                {{ user.email }}
+                {% else %}
+                Enter username and select domain
+                {% endif %}
+            </div>
         </div>
 
         {% if not is_edit_mode %} {# Only show password for new user creation #}
@@ -98,40 +153,144 @@
         const roleSelect = document.getElementById('role');
         const leaderSelectionDiv = document.getElementById('leaderSelection');
         const leaderRequiredAsterisk = document.getElementById('leaderRequiredAsterisk');
-        const isEditMode = {{ is_edit_mode|tojson }}; // Pass boolean to JS
-        const currentUserRole = "{{ user.role if user else '' }}";
-        const emailInput = document.getElementById('email');
+        const isEditMode = {{ is_edit_mode| tojson
+    }}; // Pass boolean to JS
+    const currentUserRole = "{{ user.role if user else '' }}";
+    const emailUsername = document.getElementById('email_username');
+    const emailDomain = document.getElementById('email_domain');
+    const customDomain = document.getElementById('custom_domain');
+    const emailHidden = document.getElementById('email');
+    const emailPreview = document.getElementById('email-preview');
 
-        // Function to toggle leader selection visibility
-        function toggleLeaderSelection() {
-            if (roleSelect.value === 'member' && !(isEditMode && currentUserRole === 'admin')) {
-                leaderSelectionDiv.style.display = 'block';
-                leaderRequiredAsterisk.style.display = 'inline';
+    // Function to toggle leader selection visibility
+    function toggleLeaderSelection() {
+        if (roleSelect.value === 'member' && !(isEditMode && currentUserRole === 'admin')) {
+            leaderSelectionDiv.style.display = 'block';
+            leaderRequiredAsterisk.style.display = 'inline';
+        } else {
+            leaderSelectionDiv.style.display = 'none';
+            leaderRequiredAsterisk.style.display = 'none';
+            if (!(isEditMode && currentUserRole === 'admin')) { // Don't clear if admin edit
+                document.getElementById('leader_id').value = '';
+            }
+        }
+    }
+
+    if (roleSelect) { // Check if roleSelect exists (it won't if form is disabled for admin edit)
+        roleSelect.addEventListener('change', toggleLeaderSelection);
+        toggleLeaderSelection();
+    } else if (currentUserRole === 'member') { // Handle case where role select is disabled but is member
+        leaderSelectionDiv.style.display = 'block';
+        leaderRequiredAsterisk.style.display = 'inline';
+    }
+
+    // Toggle custom domain input
+    function toggleCustomDomain() {
+        if (emailDomain.value === '') {
+            customDomain.style.display = 'block';
+            customDomain.required = true;
+            if (customDomain.value === '') {
+                customDomain.focus();
+            }
+        } else {
+            customDomain.style.display = 'none';
+            customDomain.required = false;
+            updateEmail();
+        }
+    }
+
+    // Update email preview and hidden field
+    function updateEmail() {
+        const username = emailUsername.value.trim();
+        const domain = emailDomain.value === '' ? customDomain.value.trim() : emailDomain.value;
+
+        let fullEmail = '';
+        let isValid = true;
+        let errorMessage = '';
+
+        if (username && domain) {
+            // Validate domain has a dot when using custom domain
+            if (emailDomain.value === '' && !domain.includes('.')) {
+                isValid = false;
+                errorMessage = 'Please enter a valid domain (e.g., example.com)';
             } else {
-                leaderSelectionDiv.style.display = 'none';
-                leaderRequiredAsterisk.style.display = 'none';
-                if (!(isEditMode && currentUserRole === 'admin')) { // Don't clear if admin edit
-                    document.getElementById('leader_id').value = '';
-                }
+                fullEmail = `${username}@${domain}`;
+            }
+            emailPreview.textContent = fullEmail || 'Enter valid email';
+        } else if (username) {
+            emailPreview.textContent = 'Enter domain';
+        } else if (domain) {
+            emailPreview.textContent = 'Enter username';
+        } else {
+            emailPreview.textContent = 'Enter username and select domain';
+        }
+
+        // Update error message and styling
+        if (errorMessage) {
+            if (!customDomain.nextElementSibling || !customDomain.nextElementSibling.classList.contains('invalid-feedback')) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'invalid-feedback d-block';
+                errorDiv.textContent = errorMessage;
+                customDomain.parentNode.insertBefore(errorDiv, customDomain.nextSibling);
+                customDomain.classList.add('is-invalid');
+            }
+        } else {
+            const errorDiv = customDomain.nextElementSibling;
+            if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+                errorDiv.remove();
+                customDomain.classList.remove('is-invalid');
             }
         }
 
-        if (roleSelect) { // Check if roleSelect exists (it won't if form is disabled for admin edit)
-            roleSelect.addEventListener('change', toggleLeaderSelection);
-            toggleLeaderSelection();
-        } else if (currentUserRole === 'member') { // Handle case where role select is disabled but is member
-            leaderSelectionDiv.style.display = 'block';
-            leaderRequiredAsterisk.style.display = 'inline';
+        // Update the hidden email field only if valid
+        emailHidden.value = isValid ? fullEmail : '';
+        
+        // Toggle form submission based on validity
+        const submitButton = document.querySelector('button[type="submit"]');
+        if (submitButton) {
+            submitButton.disabled = !isValid || !username || !domain;
         }
+    }
 
-        if (emailInput && !emailInput.disabled) { // Only add listener if email input exists and is not disabled
-            emailInput.addEventListener('blur', function() {
-                let emailValue = this.value.trim();
-                if (emailValue && !emailValue.includes('@')) {
-                    this.value = emailValue + '@gmail.com';
-                }
-            });
+    // Event listeners
+    emailDomain.addEventListener('change', function() {
+        if (this.value === '') {
+            customDomain.style.display = 'block';
+            customDomain.required = true;
+            if (customDomain.value === '') {
+                customDomain.focus();
+            }
+        } else {
+            customDomain.style.display = 'none';
+            customDomain.required = false;
+            updateEmail();
         }
+    });
+
+    emailUsername.addEventListener('input', updateEmail);
+    customDomain.addEventListener('input', updateEmail);
+
+    // Initialize
+    if (emailDomain.value === '' && customDomain.value) {
+        customDomain.style.display = 'block';
+    }
+    updateEmail();
+
+    // Add validation on form submission
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const username = emailUsername.value.trim();
+            const domain = emailDomain.value === '' ? customDomain.value.trim() : emailDomain.value;
+            
+            if (emailDomain.value === '' && domain && !domain.includes('.')) {
+                e.preventDefault();
+                updateEmail(); // Show error message
+                return false;
+            }
+            return true;
+        });
+    }
     });
 </script>
 {% endblock %}

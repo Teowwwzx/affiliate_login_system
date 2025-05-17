@@ -1,5 +1,5 @@
 /* Futuristic Dashboard Styles */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@200..800&display=swap');
 
 :root {
     --primary-bg: #0D1B2A; /* Dark blue-black */
@@ -9,8 +9,8 @@
     --accent-color: #4ECDC4; /* Teal/Cyan accent */
     --text-primary: #E0E1DD; /* Light grey/off-white */
     --text-secondary: #A9BCD0; /* Softer grey */
-    --font-body: 'Roboto', sans-serif;
-    --font-display: 'Orbitron', sans-serif; /* Futuristic display font */
+    --font-body: 'Oxanium', sans-serif;
+    --font-display: 'Oxanium', sans-serif; /* Futuristic display font */
     --sidebar-width: 260px;
     --top-nav-height: 60px;
 }

@@ -60,9 +60,15 @@
                                 Members</option>
                         </select>
                     </div>
-                    <div class="col-md-3 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary btn-sm me-2 w-50">Filter</button>
-                        <a href="{{ url_for('admin.list_users') }}" class="btn btn-secondary btn-sm w-50">Clear</a>
+                    <div class="col-12 col-md-3 mt-3 mt-md-0">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+                                <i class="fas fa-filter me-1"></i> Filter
+                            </button>
+                            <a href="{{ url_for('admin.list_users') }}" class="btn btn-outline-secondary btn-sm flex-grow-1">
+                                <i class="fas fa-times me-1"></i> Clear
+                            </a>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -88,8 +94,21 @@
                 <tr>
                     <td>{{ user.username }}</td>
                     <td>{{ user.email }}</td>
-                    <td><span class="badge" style="background-color: var(--secondary-color); color: white;">{{
-                            user.role|capitalize }}</span></td>
+                    <td>
+                        {% if user.role == 'admin' %}
+                        <span class="badge" style="background-color: var(--primary-color); color: white;">
+                            {{ user.role|capitalize }}
+                        </span>
+                        {% elif user.role == 'leader' %}
+                        <span class="badge" style="background-color: var(--info-color); color: white;">
+                            {{ user.role|capitalize }}
+                        </span>
+                        {% else %}
+                        <span class="badge" style="background-color: var(--secondary-color); color: white;">
+                            {{ user.role|capitalize }}
+                        </span>
+                        {% endif %}
+                    </td>
                     <td>
                         {% if user.status %}
                         <span class="badge" style="background-color: var(--success-color); color: white;">Active</span>

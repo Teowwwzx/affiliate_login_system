@@ -17,9 +17,9 @@
             <div class="menu-toggle">
                 <i class="fas fa-bars"></i>
             </div>
-            <a href="{{ url_for('leader.leader_dashboard') }}" class="logo">
-                <span class="hud-h">[</span>CW<span class="hud-h">]</span> LEADER DASHBOARD
-            </a>
+            <!-- <a href="{{ url_for('leader.leader_dashboard') }}" class="logo">
+                <span class="hud-h">[</span><span class="hud-h">]</span> R&I Affiliate
+            </a> -->
             <form method="GET" action="{{ url_for('leader.my_downlines') }}" class="search-bar-form">
                 <div class="search-bar">
                     <i class="fas fa-search"></i>
@@ -28,8 +28,8 @@
             </form>
             <div class="nav-icons">
                 <div class="user-profile">
-                    <img src="https://via.placeholder.com/30/0D1B2A/E0E1DD?text={{ current_user.username[0]|upper if current_user and current_user.is_authenticated else 'L' }}"
-                        alt="User">
+                    <!-- <img src="https://via.placeholder.com/30/0D1B2A/E0E1DD?text={{ current_user.username[0]|upper if current_user and current_user.is_authenticated else 'L' }}"
+                        alt="User"> -->
                     <span>{{ current_user.username if current_user and current_user.is_authenticated else 'Leader'
                         }}</span>
                     <i class="fas fa-chevron-down"></i>
@@ -44,7 +44,11 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <nav>
-                <p class="nav-category">Navigation</p>
+                <nav class="new-admin-sidebar" id="sidebar">
+                    <div class="logo-section"><a href="{{ url_for('admin.admin_dashboard') }}">
+                        <img src="{{ url_for('static', filename='images/logo.png') }}"
+                            alt="Company Logo" style="width: 100px; height: 100px;">
+                    </a></div>                <p class="nav-category">Navigation</p>
                 <ul>
                     <li class="active"><a href="{{ url_for('leader.leader_dashboard') }}"><i
                                 class="fas fa-tachometer-alt"></i> Dashboard</a></li>
@@ -62,7 +66,7 @@
 
         <!-- Main Content Area -->
         <main class="main-content">
-            <div class="widget" style="margin-bottom: 20px;">
+            <div class="widget" style="margin-bottom: 30px; margin-top: 20px;">
                 <h1>Welcome, {{ current_user.username if current_user and current_user.is_authenticated else 'Leader'
                     }}!</h1>
                 <p>Today is {{ days_since_joined }} days since you joined company!</p>
@@ -70,7 +74,7 @@
 
             <div class="widget-grid">
                 <!-- Leader Widget 1: Prize Pool -->
-                <div class="widget">
+                <div class="widget" style="margin-bottom: 30px;">
                     <div class="widget-header">
                         <span>PRIZE POOL</span>
                         <span class="widget-menu-icon"></span>
@@ -90,7 +94,7 @@
                 </div>
 
                 <!-- Leader Widget 2: Downlines -->
-                <div class="widget">
+                <div class="widget" style="margin-bottom: 30px;">
                     <div class="widget-header">
                         <span>DOWNLINES</span>
                         <span class="widget-menu-icon"></span>
@@ -104,7 +108,7 @@
                 </div>
 
                 <!-- Leader Widget 3: Quick Actions -->
-                <div class="widget">
+                <div class="widget" style="margin-bottom: 30px;">
                     <div class="widget-header">
                         <span>QUICK ACTIONS</span>
                         <span class="widget-menu-icon"></span>

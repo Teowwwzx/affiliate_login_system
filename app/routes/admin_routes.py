@@ -30,7 +30,9 @@ FUND_TYPES = {
 @login_required
 @role_required("admin")
 def admin_dashboard():
-    username = session.get('username', 'Admin') # Default to 'Admin' if username not in session
+    username = session.get(
+        "username", "Admin"
+    )  # Default to 'Admin' if username not in session
     total_users = User.query.count()
     active_users = User.query.filter_by(status=True).count()
 
@@ -45,10 +47,14 @@ def admin_dashboard():
     count_members_under_leader = User.query.filter(User.leader_id.isnot(None)).count()
 
     # New: Count total personal referral codes generated
-    total_referral_codes_generated = User.query.filter(User.personal_referral_code.isnot(None)).count()
+    total_referral_codes_generated = User.query.filter(
+        User.personal_referral_code.isnot(None)
+    ).count()
 
     # New: Count users who joined using a referral code
-    users_joined_via_referral = User.query.filter(User.signup_referral_code_used.isnot(None)).count()
+    users_joined_via_referral = User.query.filter(
+        User.signup_referral_code_used.isnot(None)
+    ).count()
 
     # Calculate totals for each fund type
     insurance_bucket_sale_total_query = (
@@ -57,7 +63,9 @@ def admin_dashboard():
         .scalar()
     )
     insurance_bucket_sale_total = (
-        insurance_bucket_sale_total_query if insurance_bucket_sale_total_query is not None else 0.0
+        insurance_bucket_sale_total_query
+        if insurance_bucket_sale_total_query is not None
+        else 0.0
     )
 
     robot_ai_bucket_sale_total_query = (
@@ -66,7 +74,9 @@ def admin_dashboard():
         .scalar()
     )
     robot_ai_bucket_sale_total = (
-        robot_ai_bucket_sale_total_query if robot_ai_bucket_sale_total_query is not None else 0.0
+        robot_ai_bucket_sale_total_query
+        if robot_ai_bucket_sale_total_query is not None
+        else 0.0
     )
 
     general_operational_total_query = (
@@ -75,7 +85,9 @@ def admin_dashboard():
         .scalar()
     )
     general_operational_total = (
-        general_operational_total_query if general_operational_total_query is not None else 0.0
+        general_operational_total_query
+        if general_operational_total_query is not None
+        else 0.0
     )
 
     leaders_with_member_count = []
@@ -96,9 +108,17 @@ def admin_dashboard():
     )
 
     # Fetch all users with a personal referral code for the admin dashboard
-    all_referral_codes_users = User.query.filter(User.personal_referral_code.isnot(None)).order_by(User.created_at.desc()).all()
+    all_referral_codes_users = (
+        User.query.filter(User.personal_referral_code.isnot(None))
+        .order_by(User.created_at.desc())
+        .all()
+    )
 
-    total_available_funds = insurance_bucket_sale_total + robot_ai_bucket_sale_total + general_operational_total
+    total_available_funds = (
+        insurance_bucket_sale_total
+        + robot_ai_bucket_sale_total
+        + general_operational_total
+    )
 
     stats = {
         "total_users": total_users,
@@ -118,10 +138,10 @@ def admin_dashboard():
         "users_joined_via_referral": users_joined_via_referral,
     }
     return render_template(
-        "admin/new_admin_dashboard.html", 
-        title="Admin Dashboard", 
+        "admin/new_admin_dashboard.html",
+        title="Admin Dashboard",
         stats=stats,
-        referral_codes_users=all_referral_codes_users  # Pass the users with codes
+        referral_codes_users=all_referral_codes_users,  # Pass the users with codes
     )
 
 
@@ -554,7 +574,7 @@ def edit_fund(fund_id):
     # Prepare fund types for the form, ensuring the current fund's type is included
     display_fund_types = FUND_TYPES.copy()
     if fund.fund_type not in display_fund_types:
-        display_fund_types[fund.fund_type] = fund.fund_type.replace('_', ' ').title()
+        display_fund_types[fund.fund_type] = fund.fund_type.replace("_", " ").title()
 
     if request.method == "POST":
         try:
@@ -567,21 +587,23 @@ def edit_fund(fund_id):
                 return render_template(
                     "admin/create_edit_fund.html",
                     title="Edit Fund Entry",
-                    fund_data=request.form, # Pass current form data back
+                    fund_data=request.form,  # Pass current form data back
                     fund=fund,
                     action_url=url_for("admin.edit_fund", fund_id=fund_id),
-                    fund_types=display_fund_types, # Use the modified list
+                    fund_types=display_fund_types,  # Use the modified list
                 )
 
-            if not fund_type or (fund_type not in FUND_TYPES and fund_type != fund.fund_type):
+            if not fund_type or (
+                fund_type not in FUND_TYPES and fund_type != fund.fund_type
+            ):
                 flash("Valid Fund Type is required.", "danger")
                 return render_template(
                     "admin/create_edit_fund.html",
                     title="Edit Fund Entry",
-                    fund_data=request.form, # Pass current form data back
+                    fund_data=request.form,  # Pass current form data back
                     fund=fund,
                     action_url=url_for("admin.edit_fund", fund_id=fund_id),
-                    fund_types=display_fund_types, # Use the modified list
+                    fund_types=display_fund_types,  # Use the modified list
                 )
 
             try:
@@ -593,10 +615,10 @@ def edit_fund(fund_id):
                 return render_template(
                     "admin/create_edit_fund.html",
                     title="Edit Fund Entry",
-                    fund_data=request.form, # Pass current form data back
+                    fund_data=request.form,  # Pass current form data back
                     fund=fund,
                     action_url=url_for("admin.edit_fund", fund_id=fund_id),
-                    fund_types=display_fund_types, # Use the modified list
+                    fund_types=display_fund_types,  # Use the modified list
                 )
 
             fund.amount = amount
@@ -613,10 +635,10 @@ def edit_fund(fund_id):
             return render_template(
                 "admin/create_edit_fund.html",
                 title="Edit Fund Entry",
-                fund_data=request.form, # Pass current form data back
+                fund_data=request.form,  # Pass current form data back
                 fund=fund,
                 action_url=url_for("admin.edit_fund", fund_id=fund_id),
-                fund_types=display_fund_types, # Use the modified list
+                fund_types=display_fund_types,  # Use the modified list
             )
 
     # For GET request
@@ -625,7 +647,7 @@ def edit_fund(fund_id):
         title="Edit Fund Entry",
         fund=fund,
         action_url=url_for("admin.edit_fund", fund_id=fund_id),
-        fund_types=display_fund_types, # Use the modified list for initial form display
+        fund_types=display_fund_types,  # Use the modified list for initial form display
     )
 
 
@@ -653,33 +675,58 @@ def delete_fund(fund_id):
 @login_required
 @role_required("admin")
 def list_all_leaders():
+    page = request.args.get('page', 1, type=int)
+    per_page = 10  # Number of items per page
+    
+    # Get sorting parameters
+    sort_by = request.args.get('sort_by', 'member_count')
+    sort_order = request.args.get('sort_order', 'desc')
+    
+    # Base query for leaders
+    leaders_query = User.query.filter_by(role="leader")
+    
+    # Get total count for pagination
+    total_leaders = leaders_query.count()
+    
+    # Apply sorting
+    if sort_by == 'username':
+        if sort_order == 'asc':
+            leaders_query = leaders_query.order_by(User.username.asc())
+        else:
+            leaders_query = leaders_query.order_by(User.username.desc())
+    else:  # Default sort by member_count
+        # For member_count, we need to sort in Python after getting the counts
+        pass
+    
+    # Apply pagination
+    leaders_pagination = leaders_query.paginate(page=page, per_page=per_page, error_out=False)
+    
+    # Get member counts and prepare data for template
     leaders_with_member_count = []
-    all_users_who_are_leaders = (
-        User.query.filter_by(role="leader").order_by(User.username).all()
-    )
-
-    for leader_user in all_users_who_are_leaders:
-        member_count = User.query.filter_by(
-            leader_id=leader_user.id
-        ).count()  # More direct count
-        leaders_with_member_count.append(
-            {
-                "username": leader_user.username,
-                "email": leader_user.email,
-                "member_count": member_count,
-                "id": leader_user.id,
-                "status": leader_user.status,
-                "created_at": leader_user.created_at,
-            }
+    for leader_user in leaders_pagination.items:
+        member_count = User.query.filter_by(leader_id=leader_user.id).count()
+        leaders_with_member_count.append({
+            "username": leader_user.username,
+            "email": leader_user.email,
+            "member_count": member_count,
+            "id": leader_user.id,
+            "status": leader_user.status,
+            "created_at": leader_user.created_at,
+        })
+    
+    # Sort by member_count if needed
+    if sort_by == 'member_count':
+        leaders_with_member_count.sort(
+            key=lambda x: x['member_count'], 
+            reverse=(sort_order == 'desc')
         )
-
-    # Optionally, sort this list as well if needed, e.g., by member count or username
-    sorted_full_leaders_list = sorted(
-        leaders_with_member_count, key=lambda x: x["member_count"], reverse=True
-    )
-
+    
     return render_template(
         "admin/list_all_leaders.html",
         title="Full Leaderboard",
-        leaders_list=sorted_full_leaders_list,
+        leaders_list=leaders_with_member_count,
+        pagination=leaders_pagination,
+        current_value_price=5000,  # Match the value used in admin dashboard
+        sort_by=sort_by,
+        sort_order=sort_order
     )

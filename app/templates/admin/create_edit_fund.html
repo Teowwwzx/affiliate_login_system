@@ -2,16 +2,36 @@
 
 {% block title %}{{ title }}{% endblock %}
 
-{% block page_content %}
+{% block page_header %}
 <h1>{{ title }}</h1>
+<p>Welcome, Admin! Here's an overview of your funds.</p>
+{% endblock %}
+
+{% block page_content %}
+
 <div class="container-fluid mt-4">
+
+    <!-- Flash Messages -->
+    <div class="mb-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+
     <form method="POST" action="{{ action_url }}" class="mt-5">
         {{ csrf_token_form_field() if 'csrf_token_form_field' in globals else '' }}
         <div class="mb-3">
-            <label for="amount">Amount</label>
+            <label for="amount" class="form-label">Amount</label>
             <input type="number"
-                class="form-control {% if form_errors and 'amount' in form_errors %}is-invalid{% endif %}"
-                id="amount" name="amount" step="0.01" min="0.01" required
+                class="form-control {% if form_errors and 'amount' in form_errors %}is-invalid{% endif %}" id="amount"
+                name="amount" step="0.01" min="0.01" required
                 value="{{ fund.amount if fund and fund.amount is not none else fund_data.amount if fund_data and fund_data.amount is not none else '' }}">
             {% if form_errors and 'amount' in form_errors %}
             <div class="invalid-feedback">{{ form_errors['amount'] }}</div>
@@ -19,32 +39,33 @@
         </div>
 
         <div class="mb-3">
-            <label for="fund_type">Fund Type</label>
-            <select class="form-select {% if form_errors and 'fund_type' in form_errors %}is-invalid{% endif %}" id="fund_type" name="fund_type" required>
-                <option value="" disabled {% if not (fund and fund.fund_type) and not (fund_data and fund_data.fund_type) %}selected{% endif %}>Select a type...</option>
+            <label for="fund_type" class="form-label">Fund Type</label>
+            <select class="form-select {% if form_errors and 'fund_type' in form_errors %}is-invalid{% endif %}"
+                id="fund_type" name="fund_type" required>
+                <option value="" disabled {% if not (fund and fund.fund_type) and not (fund_data and
+                    fund_data.fund_type) %}selected{% endif %}>Select a type...</option>
                 {% for type_key, type_name in fund_types.items() %}
-                    <option value="{{ type_key }}" 
-                            {% if fund and fund.fund_type == type_key %}selected
-                            {% elif fund_data and fund_data.fund_type == type_key and not fund %}selected
-                            {% endif %}>
-                        {{ type_name }}
-                    </option>
+                <option value="{{ type_key }}" {% if fund and fund.fund_type==type_key %}selected {% elif fund_data and
+                    fund_data.fund_type==type_key and not fund %}selected {% endif %}>
+                    {{ type_name }}
+                </option>
                 {% endfor %}
             </select>
             {% if form_errors and 'fund_type' in form_errors %}
-                <div class="invalid-feedback">{{ form_errors['fund_type'] }}</div>
+            <div class="invalid-feedback">{{ form_errors['fund_type'] }}</div>
             {% endif %}
         </div>
 
         <div class="mb-3">
-            <label for="remarks">Remarks (Optional)</label>
+            <label for="remarks" class="form-label">Remarks (Optional)</label>
             <textarea class="form-control" id="remarks" name="remarks"
                 rows="3">{{ fund.remarks if fund and fund.remarks is not none else fund_data.remarks if fund_data and fund_data.remarks is not none else '' }}</textarea>
         </div>
 
         <div class="mt-4">
             <button type="submit" class="btn btn-primary">{{ 'Update' if fund else 'Create' }} Fund</button>
-            <a href="{{ url_for('admin.manage_funds') }}" class="btn btn-secondary">Cancel</a>        </div>
+            <a href="{{ url_for('admin.manage_funds') }}" class="btn btn-secondary">Cancel</a>
+        </div>
     </form>
 </div>
 {% endblock %}

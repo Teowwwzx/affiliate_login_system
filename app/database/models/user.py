@@ -32,13 +32,18 @@ class User(db.Model, UserMixin):
             self.personal_referral_code = self._generate_unique_personal_code() 
 
     @staticmethod
-    def _generate_unique_personal_code(length_alpha=3, length_num=5):
+    def _generate_unique_personal_code(length_alpha=2, length_num=4):
+        """
+        Generate a unique referral code in the format AA9999 (2 letters + 4 digits).
+        """
         while True:
+            # Generate 2 random uppercase letters
             letters = ''.join(secrets.choice(string.ascii_uppercase) for _ in range(length_alpha))
+            # Generate 4 random digits
             numbers = ''.join(secrets.choice(string.digits) for _ in range(length_num))
             code = letters + numbers
-            # Ensure this field name matches your column
-            if not User.query.filter_by(personal_referral_code=code).first(): 
+            # Ensure the code is unique
+            if not User.query.filter_by(personal_referral_code=code).first():
                 return code
 
     def set_password(self, password: str) -> None:

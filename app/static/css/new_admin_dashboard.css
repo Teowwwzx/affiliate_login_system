@@ -16,9 +16,9 @@
     --chart-color-3: #b8d935; /* Bootstrap Warning - Yellow */
     --chart-color-4: #20c997; /* Bootstrap Teal */
 
-    --rank-color-1: linear-gradient(90deg,  #d245ff, #770093, #9197f2); /* Legend: Shades of Purple */
-    --rank-color-2: linear-gradient(90deg, #193f88, #5e2bd2, #7ae4ff); /* Platinium: Shades of Blue/Cyan */
-    --rank-color-3: linear-gradient(90deg, #ae7e3b, #fff289, #ae7e3b); /* Gold: Shades of Gold/Yellow */
+    --rank-color-1: linear-gradient(90deg,  #a012d0, #d367ec, #9197f2); /* Legend: Shades of Purple */
+    --rank-color-2: linear-gradient(90deg, #7e5cd0, #4879d3,  #66d3ef); /* Platinium: Shades of Blue/Cyan */
+    --rank-color-3: linear-gradient(90deg, #e29426, #fff289, #e29426); /* Gold: Shades of Gold/Yellow */
     --rank-color-4: linear-gradient(90deg, #adb5bd, #e9ecef, #bbcbe4); /* Silver: Shades of Silver/Light Grey */
     --rank-color-5: linear-gradient(90deg, #cd7f32, #d29052, #e0ac79); /* Bronze: Shades of Bronze */
 }   
@@ -31,6 +31,11 @@ body {
     display: flex;
     min-height: 100vh;
     overflow-x: hidden;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
 }
 
 .container-fluid {
@@ -499,12 +504,19 @@ body {
     flex-direction: column;
 }
 
+/* Gradient Text Effect */
+.gradient-text {
+    background: var(--rank-color-2);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    display: inline-block;
+}
+
 /* Responsive adjustments */
 @media (max-width: 991.98px) {
     .new-admin-sidebar {
         transform: translateX(-100%);
-        /* Basic setup for a toggleable sidebar - more JS needed for actual toggle */
-        /* For now, let's just make content full width */
     }
 
     .new-admin-main-content {
@@ -513,7 +525,24 @@ body {
 
     .new-admin-top-bar .dashboard-header {
         display: none;
-        /* Hide dashboard title on small screens if top bar becomes too crowded */
+    }
+
+    /* Ensure top bar elements stay in one line */
+    .new-admin-top-bar {
+        flex-wrap: nowrap;
+        align-items: center;
+        padding: 0.5rem 1rem;
+    }
+
+    .new-admin-top-bar .top-bar-left {
+        display: flex;
+        align-items: center;
+        flex: 1;
+    }
+
+    .new-admin-top-bar .top-bar-actions {
+        margin-top: 0;
+        flex-shrink: 0;
     }
 }
 
@@ -523,19 +552,19 @@ body {
     }
 
     .new-admin-top-bar {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-direction: row;
+        align-items: center;
+        padding: 0.5rem;
     }
 
     .new-admin-top-bar .search-form {
-        width: 100%;
-        margin-bottom: 10px;
+        display: none; /* Hide search on mobile if needed */
     }
 
     .new-admin-top-bar .top-bar-actions {
-        width: 100%;
+        width: auto;
         justify-content: flex-end;
-        margin-top: 10px;
+        margin-top: 0;
     }
 
     .earnings-card .amount {
