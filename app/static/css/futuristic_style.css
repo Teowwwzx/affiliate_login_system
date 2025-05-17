@@ -15,6 +15,9 @@
     --font-display: 'Oxanium', sans-serif; /* Futuristic display font */
     --sidebar-width: 260px;
     --top-nav-height: 60px;
+
+    --rank-color-2: linear-gradient(90deg, #7e5cd0, #4879d3,  #66d3ef); /* Platinium: Shades of Blue/Cyan */
+
 }
 
 * {
@@ -39,6 +42,14 @@ a {
 a:hover {
     text-decoration: underline;
     color: var(--secondary-color); /* Use secondary color for link hover */
+}
+
+.gradient-text {
+    background: var(--rank-color-2);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    display: inline-block;
 }
 
 .dashboard-container {
