@@ -5,6 +5,7 @@ from app.database.models import User
 from app import db
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_login import current_user, login_required
+from datetime import datetime
 
 member_bp = Blueprint("member", __name__, url_prefix="/member")
 
@@ -30,17 +31,32 @@ def member_required(f):
 @member_required
 @login_required
 def member_dashboard():
-    member = current_user
+    # Query the member by ID to ensure we have the latest data
+    member = User.query.get(current_user.id)
+    if not member:
+        flash("Member not found. Please log in again.", "danger")
+        return redirect(url_for("auth.login"))
 
     leader = None
     if member.leader_id:
         leader = User.query.get(member.leader_id)
+
+    # Calculate days since joined (minimum 1 day)
+    days_since_joined = 1
+    if member.created_at:
+        days_difference = (datetime.utcnow() - member.created_at).days
+        days_since_joined = max(1, days_difference)
+
+    # Get referral code or 'NA' if not available
+    referral_code = member.personal_referral_code or 'NA'
 
     return render_template(
         "member/member_dashboard.html",
         title="Member Dashboard",
         member=member,
         leader=leader,
+        days_since_joined=days_since_joined,
+        referral_code=referral_code,
     )
 
 

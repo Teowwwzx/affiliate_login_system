@@ -38,6 +38,9 @@ def leader_dashboard():
         flash("Leader information not found. Please log in again.", "danger")
         return redirect(url_for("auth.login"))
 
+    # Get referral code or 'NA' if not available
+    leader_referral_code = leader.personal_referral_code or 'NA'
+
     members = User.query.filter_by(leader_id=leader.id).order_by(User.username).all()
 
     # Calculate prize pools for all fund types
@@ -59,9 +62,6 @@ def leader_dashboard():
 
     # Get downline count
     downline_count = len(members)
-
-    # Get a specific referral code for display (e.g., the latest one)
-    leader_referral_code = leader.personal_referral_code
 
     return render_template(
         "leader/leader_dashboard.html",
