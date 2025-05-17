@@ -9,7 +9,19 @@
     --danger-color: #f35d81;
     --black-color: #1e2129;
     --white-color: #ffffff;
-}
+
+    /* Generic Chart Colors - Add as many as you might need */
+    --chart-color-1: #f06445; /* Purple */
+    --chart-color-2: #4fc9da; /* Light Cyan/Aqua */
+    --chart-color-3: #b8d935; /* Bootstrap Warning - Yellow */
+    --chart-color-4: #20c997; /* Bootstrap Teal */
+
+    --rank-color-1: linear-gradient(90deg,  #d245ff, #770093, #9197f2); /* Legend: Shades of Purple */
+    --rank-color-2: linear-gradient(90deg, #193f88, #5e2bd2, #7ae4ff); /* Platinium: Shades of Blue/Cyan */
+    --rank-color-3: linear-gradient(90deg, #ae7e3b, #fff289, #ae7e3b); /* Gold: Shades of Gold/Yellow */
+    --rank-color-4: linear-gradient(90deg, #adb5bd, #e9ecef, #bbcbe4); /* Silver: Shades of Silver/Light Grey */
+    --rank-color-5: linear-gradient(90deg, #cd7f32, #d29052, #e0ac79); /* Bronze: Shades of Bronze */
+}   
 
 body {
     font-family: 'Inter', sans-serif;

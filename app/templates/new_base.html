@@ -23,7 +23,7 @@
     <nav class="new-admin-sidebar" id="sidebar">
         <div class="logo-section">
             <img src="{{ url_for('static', filename='images/logo.png') }}"
-                alt="Company Logo">
+                alt="Company Logo" style="width: 100px; height: 100px;">
         </div>
         <ul class="nav flex-column">
             <li class="nav-category">Dashboards</li>
@@ -73,10 +73,10 @@
                 <div class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="userProfileDropdown" role="button"
                         data-bs-toggle="dropdown" aria-expanded="false">
-                        <img class="img-profile rounded-circle me-2"
+                        <!-- <img class="img-profile rounded-circle me-2"
                             src="{{ url_for('static', filename='images/logo.png') }}"
-                            alt="User Profile" style="width: 30px; height: 30px;">
-                        <span class="d-none d-lg-inline text-gray-600 small">{{ current_user.username }}</span>
+                            alt="User Profile" style="width: 40px; height: 40px;"> -->
+                        <span class="d-none d-lg-inline text-gray-600">{{ current_user.username }}</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userProfileDropdown">
                         <li><a class="dropdown-item" href="{{ url_for('auth.change_password') }}"><i

@@ -21,8 +21,6 @@ from flask_login import current_user
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
 FUND_TYPES = {
-    "dynamic_prize_pool": "Dynamic Prize Pool",
-    "static_prize_pool": "Static Prize Pool",
     "insurance_bucket_sale": "Insurance Bucket Sale",
     "robot_ai_bucket_sale": "Robot Ai Bucket Sale",
 }
@@ -52,23 +50,23 @@ def admin_dashboard():
     # New: Count users who joined using a referral code
     users_joined_via_referral = User.query.filter(User.signup_referral_code_used.isnot(None)).count()
 
-    # Calculate sum of fund amounts. If no entries, default to 0.0
-    dynamic_pool_total_query = (
+    # Calculate totals for each fund type
+    insurance_bucket_sale_total_query = (
         db.session.query(func.sum(Fund.amount))
-        .filter(Fund.fund_type == "dynamic_prize_pool")
+        .filter(Fund.fund_type == "insurance_bucket_sale")
         .scalar()
     )
-    dynamic_prize_pool_total = (
-        dynamic_pool_total_query if dynamic_pool_total_query is not None else 0.0
+    insurance_bucket_sale_total = (
+        insurance_bucket_sale_total_query if insurance_bucket_sale_total_query is not None else 0.0
     )
 
-    static_pool_total_query = (
+    robot_ai_bucket_sale_total_query = (
         db.session.query(func.sum(Fund.amount))
-        .filter(Fund.fund_type == "static_prize_pool")
+        .filter(Fund.fund_type == "robot_ai_bucket_sale")
         .scalar()
     )
-    static_prize_pool_total = (
-        static_pool_total_query if static_pool_total_query is not None else 0.0
+    robot_ai_bucket_sale_total = (
+        robot_ai_bucket_sale_total_query if robot_ai_bucket_sale_total_query is not None else 0.0
     )
 
     general_operational_total_query = (
@@ -100,15 +98,15 @@ def admin_dashboard():
     # Fetch all users with a personal referral code for the admin dashboard
     all_referral_codes_users = User.query.filter(User.personal_referral_code.isnot(None)).order_by(User.created_at.desc()).all()
 
-    total_available_funds = dynamic_prize_pool_total + static_prize_pool_total + general_operational_total
+    total_available_funds = insurance_bucket_sale_total + robot_ai_bucket_sale_total + general_operational_total
 
     stats = {
         "total_users": total_users,
         "active_users": active_users,
         "count_leaders": count_leaders,
         "count_members_under_leader": count_members_under_leader,
-        "dynamic_prize_pool_total": dynamic_prize_pool_total,
-        "static_prize_pool_total": static_prize_pool_total,
+        "insurance_bucket_sale_total": insurance_bucket_sale_total,
+        "robot_ai_bucket_sale_total": robot_ai_bucket_sale_total,
         "general_operational_total": general_operational_total,
         "total_available_funds": total_available_funds,  # Sum of all fund types
         "leaders_for_sales_calc": sorted_leaders_by_member_count[:5],  # Limit to top 5
@@ -553,6 +551,10 @@ def create_fund():
 @role_required("admin")
 def edit_fund(fund_id):
     fund = Fund.query.get_or_404(fund_id)
+    # Prepare fund types for the form, ensuring the current fund's type is included
+    display_fund_types = FUND_TYPES.copy()
+    if fund.fund_type not in display_fund_types:
+        display_fund_types[fund.fund_type] = fund.fund_type.replace('_', ' ').title()
 
     if request.method == "POST":
         try:
@@ -565,21 +567,21 @@ def edit_fund(fund_id):
                 return render_template(
                     "admin/create_edit_fund.html",
                     title="Edit Fund Entry",
-                    fund_data=request.form,
+                    fund_data=request.form, # Pass current form data back
                     fund=fund,
                     action_url=url_for("admin.edit_fund", fund_id=fund_id),
-                    fund_types=FUND_TYPES,
+                    fund_types=display_fund_types, # Use the modified list
                 )
 
-            if not fund_type or fund_type not in FUND_TYPES:
+            if not fund_type or (fund_type not in FUND_TYPES and fund_type != fund.fund_type):
                 flash("Valid Fund Type is required.", "danger")
                 return render_template(
                     "admin/create_edit_fund.html",
                     title="Edit Fund Entry",
-                    fund_data=request.form,
+                    fund_data=request.form, # Pass current form data back
                     fund=fund,
                     action_url=url_for("admin.edit_fund", fund_id=fund_id),
-                    fund_types=FUND_TYPES,
+                    fund_types=display_fund_types, # Use the modified list
                 )
 
             try:
@@ -591,10 +593,10 @@ def edit_fund(fund_id):
                 return render_template(
                     "admin/create_edit_fund.html",
                     title="Edit Fund Entry",
-                    fund_data=request.form,
+                    fund_data=request.form, # Pass current form data back
                     fund=fund,
                     action_url=url_for("admin.edit_fund", fund_id=fund_id),
-                    fund_types=FUND_TYPES,
+                    fund_types=display_fund_types, # Use the modified list
                 )
 
             fund.amount = amount
@@ -611,18 +613,19 @@ def edit_fund(fund_id):
             return render_template(
                 "admin/create_edit_fund.html",
                 title="Edit Fund Entry",
-                fund_data=request.form,
+                fund_data=request.form, # Pass current form data back
                 fund=fund,
                 action_url=url_for("admin.edit_fund", fund_id=fund_id),
-                fund_types=FUND_TYPES,
+                fund_types=display_fund_types, # Use the modified list
             )
 
+    # For GET request
     return render_template(
         "admin/create_edit_fund.html",
         title="Edit Fund Entry",
         fund=fund,
         action_url=url_for("admin.edit_fund", fund_id=fund_id),
-        fund_types=FUND_TYPES,
+        fund_types=display_fund_types, # Use the modified list for initial form display
     )
 
 

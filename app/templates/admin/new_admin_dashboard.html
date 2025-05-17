@@ -29,26 +29,6 @@
                         <h3 class="fw-bold fs-1">{{ stats.count_members_under_leader if stats else 'N/A' }}</h3>
                     </div>
                 </div>
-                <!-- <div class="row">
-                    <div class="col-md-3 col-6 mb-4">
-                        <div class="stat-item text-center p-3 h-100" style="background-color: #fefcf7;">
-                            <h5 class="stat-value display-6 fw-bold mb-0">{{ stats.count_members_under_leader if stats and stats.count_members_under_leader is not none else 'N/A' }}</h5>
-                            <p class="stat-label text-muted mb-0">Members (under Leaders)</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6 mb-4">
-                        <div class="stat-item text-center p-3 h-100" style="background-color: #fefcf7;">
-                            <h5 class="stat-value display-6 fw-bold mb-0">{{ stats.total_referral_codes_generated if stats and stats.total_referral_codes_generated is not none else 'N/A' }}</h5>
-                            <p class="stat-label text-muted mb-0">Total Referral Codes</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6 mb-4">
-                        <div class="stat-item text-center p-3 h-100" style="background-color: #fefcf7;">
-                            <h5 class="stat-value display-6 fw-bold mb-0">{{ stats.users_joined_via_referral if stats and stats.users_joined_via_referral is not none else 'N/A' }}</h5>
-                            <p class="stat-label text-muted mb-0">Users via Referral</p>
-                        </div>
-                    </div>
-                </div> -->
             </div>
         </div>
     </div>
@@ -66,7 +46,7 @@
                 </div>
                 <h6 class="text-muted mb-3">Total Available Funds</h6>
                 <div class="row align-items-center">
-                    <div class="col-md-5">
+                    <div class="col-md-5 p-0">
                         <div class="mb-3 mx-auto" style="height: 180px; width: 180px; position: relative;">
                             <canvas id="prizePoolChart"></canvas>
                         </div>
@@ -75,29 +55,19 @@
                         <div class="legend">
                             <div class="legend-item d-flex justify-content-between align-items-center mb-2">
                                 <span><span class="legend-color-box me-2"
-                                        ></span>Dynamic Pool</span>
-                                <span class="fw-semibold">${{ "%.2f"|format(stats.dynamic_prize_pool_total) if stats and
-                                    stats.dynamic_prize_pool_total is not none else 'N/A' }}</span>
+                                        ></span>Insurance Bucket Sale</span>
+                                <span class="fw-semibold">${{ "%.2f"|format(stats.insurance_bucket_sale_total) if stats and
+                                    stats.insurance_bucket_sale_total is not none else 'N/A' }}</span>
                             </div>
                             <div class="legend-item d-flex justify-content-between align-items-center mb-2">
                                 <span><span class="legend-color-box me-2"
-                                        ></span>Static Pool</span>
-                                <span class="fw-semibold">${{ "%.2f"|format(stats.static_prize_pool_total) if stats and
-                                    stats.static_prize_pool_total is not none else 'N/A' }}</span>
-                            </div>
-                            <div class="legend-item d-flex justify-content-between align-items-center mb-2">
-                                <span><span class="legend-color-box me-2"
-                                        ></span>General/Operational</span>
-                                <span class="fw-semibold">${{ "%.2f"|format(stats.general_operational_total) if stats
-                                    and stats.general_operational_total is not none else 'N/A' }}</span>
+                                        ></span>Robot Ai Bucket Sale</span>
+                                <span class="fw-semibold">${{ "%.2f"|format(stats.robot_ai_bucket_sale_total) if stats and
+                                    stats.robot_ai_bucket_sale_total is not none else 'N/A' }}</span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <!-- <div class="text-center mt-3">
-                    <a href="{{ url_for('admin.manage_funds') }}" class="btn btn-sm btn-outline-main-custom">Manage
-                        Funds</a>
-                </div> -->
             </div>
         </div>
     </div>
@@ -156,10 +126,6 @@
                     {% endif %}
                 </ul>
             </div>
-                        <!-- <div class="card-footer text-center mt-auto">
-                <a href="{{ url_for('admin.list_all_leaders') }}" class="btn btn-main-custom w-100">View Full
-                    Leaderboard</a>
-            </div> -->
         </div>
     </div>
 </div>
@@ -195,11 +161,11 @@
             }
 
             const icons = [
-                '<i class="bi bi-trophy-fill text-warning me-3"></i>',   // 1st (Gold)
-                '<i class="bi bi-trophy-fill text-secondary me-3"></i>', // 2nd (Silver)
-                '<i class="bi bi-trophy-fill me-3" style="color: #cd7f32;"></i>', // 3rd (Bronze) - added me-2
-                '<i class="bi bi-award-fill text-muted me-3"></i>',      // 4th
-                '<i class="bi bi-award-fill text-muted me-3"></i>'       // 5th
+                '<i class="bi bi-trophy-fill me-3" style="background-image: var(--rank-color-1); -webkit-background-clip: text; background-clip: text; color: transparent;"></i>',
+                '<i class="bi bi-trophy-fill me-3" style="background-image: var(--rank-color-2); -webkit-background-clip: text; background-clip: text; color: transparent;"></i>',
+                '<i class="bi bi-trophy-fill me-3" style="background-image: var(--rank-color-3); -webkit-background-clip: text; background-clip: text; color: transparent;"></i>',
+                '<i class="bi bi-award-fill me-3" style="background-image: var(--rank-color-4); -webkit-background-clip: text; background-clip: text; color: transparent;"></i>',
+                '<i class="bi bi-award-fill me-3" style="background-image: var(--rank-color-5); -webkit-background-clip: text; background-clip: text; color: transparent;"></i>'
             ];
 
             sortedLeaders.forEach((leader, index) => {
@@ -249,9 +215,8 @@
         // Prize Pool Chart
         const prizePoolCtx = document.getElementById('prizePoolChart');
         if (prizePoolCtx) {
-            const dynamicPoolTotal = {{ stats.dynamic_prize_pool_total if stats and stats.dynamic_prize_pool_total is not none else 0 }};
-            const staticPoolTotal = {{ stats.static_prize_pool_total if stats and stats.static_prize_pool_total is not none else 0 }};
-            const generalOperationalTotal = {{ stats.general_operational_total if stats and stats.general_operational_total is not none else 0 }};
+            const insuranceBucketSaleTotal = {{ stats.insurance_bucket_sale_total or 0 }};
+            const robotAiBucketSaleTotal = {{ stats.robot_ai_bucket_sale_total or 0 }};
 
             // Ensure legend color boxes have styles if not done in CSS
             document.querySelectorAll('.legend-color-box').forEach((box, index) => {
@@ -264,21 +229,14 @@
             new Chart(prizePoolCtx, {
                 type: 'doughnut', // or 'pie'
                 data: {
-                    labels: ['Dynamic Pool', 'Static Pool', 'General/Operational'],
+                    labels: ['Insurance Bucket Sale', 'Robot Ai Bucket Sale'],
                     datasets: [{
                         label: 'Prize Pool Distribution',
-                        data: [dynamicPoolTotal, staticPoolTotal, generalOperationalTotal],
+                        data: [insuranceBucketSaleTotal, robotAiBucketSaleTotal],
                         backgroundColor: [
-                            '#f06445', // Blue for Dynamic
-                            '#4fc9da', // Yellow for Static
-                            '#e4e6ef'  // Green for General/Operational
+                            getComputedStyle(document.documentElement).getPropertyValue('--chart-color-1').trim(),
+                            getComputedStyle(document.documentElement).getPropertyValue('--chart-color-2').trim(),
                         ],
-                        borderColor: [ // Optional: if you want borders
-                            '#FFFFFF',
-                            '#FFFFFF',
-                            '#FFFFFF'
-                        ],
-                        borderWidth: 2 // Optional: border width
                     }]
                 },
                 options: {
