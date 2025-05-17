@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/futuristic_style.css') }}">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -45,88 +47,162 @@
         <aside class="sidebar">
             <nav>
                 <nav class="new-admin-sidebar" id="sidebar">
-                    <div class="logo-section"><a href="{{ url_for('admin.admin_dashboard') }}">
-                        <img src="{{ url_for('static', filename='images/logo.png') }}"
-                            alt="Company Logo" style="width: 100px; height: 100px;">
-                    </a></div>                <p class="nav-category">Navigation</p>
-                <ul>
-                    <li class="active"><a href="{{ url_for('leader.leader_dashboard') }}"><i
-                                class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="{{ url_for('leader.my_downlines') }}"><i class="fas fa-sitemap"></i> My Downlines</a>
-                    </li>
-                </ul>
-                <p class="nav-category">Account</p>
-                <ul>
-                    <li><a href="{{ url_for('auth.change_password') }}"><i class="fas fa-key"></i> Change Password</a>
-                    </li>
-                    <li><a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                </ul>
-            </nav>
+                    <div class="logo-section"><a href="{{ url_for('leader.leader_dashboard') }}">
+                            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo"
+                                style="width: 100px; height: 100px;">
+                        </a></div>
+                    <p class="nav-category">Navigation</p>
+                    <ul>
+                        <li class="active"><a href="{{ url_for('leader.leader_dashboard') }}"><i
+                                    class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                        <li><a href="{{ url_for('leader.my_downlines') }}"><i class="fas fa-sitemap"></i> My
+                                Downlines</a>
+                        </li>
+                    </ul>
+                    <p class="nav-category">Account</p>
+                    <ul>
+                        <li><a href="{{ url_for('auth.change_password') }}"><i class="fas fa-key"></i> Change
+                                Password</a>
+                        </li>
+                        <li><a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                    </ul>
+                </nav>
         </aside>
 
         <!-- Main Content Area -->
         <main class="main-content">
-            <div class="widget" style="margin-bottom: 30px; margin-top: 20px;">
-                <h1>Welcome, {{ current_user.username if current_user and current_user.is_authenticated else 'Leader'
+            <div class="widget" style="margin-bottom: 30px; margin-top: 30px;">
+                <h1 style="margin-bottom: 6px;">Welcome, {{ current_user.username if current_user and current_user.is_authenticated else 'Leader'
                     }}!</h1>
                 <p>Today is {{ days_since_joined }} days since you joined company!</p>
             </div>
 
             <div class="widget-grid">
                 <!-- Leader Widget 1: Prize Pool -->
-                <div class="widget" style="margin-bottom: 30px;">
-                    <div class="widget-header">
+                <div class="widget">
+                    <div class="widget-header" style="padding-bottom: 20px;">
                         <span>PRIZE POOL</span>
                         <span class="widget-menu-icon"></span>
                     </div>
-                    <div class="widget-content">
-                        <div class="stat-prominent">${{ "{:.2f}".format(dynamic_prize_pool_total) if
-                            dynamic_prize_pool_total else '0.00' }}</div>
-                        <div class="stat-details">
-                            <p><i class="fas fa-accessible-icon"></i>Dynamic</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div class="widget-content">
+                                {% for fund_type, display_name in fund_types.items() %}
+                                {% if fund_data[fund_type] is defined %}
+                                    <div class="stat-prominent" style="padding-top: 10px;">${{ "%.2f"|format(fund_data[fund_type]) }}</div>
+                                    <div class="stat-details" style="padding-bottom: 8px;">
+                                        <p>
+                                            <i class="{{ 'fa-solid fa-shield-alt' if fund_type == 'insurance_bucket_sale' else 'fa-solid fa-robot' }}" 
+                                            style="color: {{ 'var(--primary-color)' if fund_type == 'insurance_bucket_sale' else 'var(--secondary-color)' }};">
+                                         </i>
+                                            {{ display_name }}
+                                        </p>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+
                         </div>
-                        <div class="stat-prominent">${{ "{:.2f}".format(static_prize_pool_total) if
-                            static_prize_pool_total else '0.00' }}</div>
-                        <div class="stat-details">
-                            <p><i class="fas fa-accessible-icon"></i>Static</p>
+                        <div style="height: 140px;">
+                            <canvas id="fundDistributionChart"></canvas>
                         </div>
                     </div>
+
                 </div>
 
                 <!-- Leader Widget 2: Downlines -->
-                <div class="widget" style="margin-bottom: 30px;">
-                    <div class="widget-header">
+                <div class="widget">
+                    <div class="widget-header" style="padding-bottom: 20px;">
                         <span>DOWNLINES</span>
                         <span class="widget-menu-icon"></span>
                     </div>
                     <div class="widget-content">
-                        <div class="stat-prominent">{{ downline_count }} <small>Downlines</small></div>
+                        <div class="stat-prominent" style="padding-top: 10px;">{{ downline_count }} <small>Downlines</small></div>
                         <div class="stat-details">
-                            <p><i class="fas fa-link"></i> Your Code: {{ leader_referral_code_display }}</p>
+                            <p><i class="fas fa-link"></i> Your Code: {{ leader_referral_code or 'N/A' }}</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Leader Widget 3: Quick Actions -->
-                <div class="widget" style="margin-bottom: 30px;">
-                    <div class="widget-header">
+                <!-- Leader Widget 4: Quick Actions -->
+                <div class="widget">
+                    <div class="widget-header" style="padding-bottom: 20px;">
                         <span>QUICK ACTIONS</span>
                         <span class="widget-menu-icon"></span>
                     </div>
                     <div class="widget-content">
-                        <div class="stat-details">
-                            <p><a href="{{ url_for('leader.my_downlines') }}"><i class="fas fa-user-plus"></i>My
-                                    Downlines</a></p>
-                            <p><a href="#"><i class="fas fa-bullhorn"></i>Others</a></p>
+                        <div class="stat-details" style="padding-top: 10px;">
+                            <p style="padding-bottom: 14px;"><a href="{{ url_for('leader.my_downlines') }}"><i class="fas fa-user-plus"></i>My Downlines</a></p>
+                            <!-- <p><a href="#"><i class="fas fa-bullhorn"></i>Others</a></p> -->
                         </div>
                     </div>
                 </div>
-
             </div>
         </main>
     </div>
+
+    <style>
+        .new-admin-sidebar .logo-section {
+            padding: 10px 0 20px 5px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            text-align: center;
+        }
+        #fundDistributionChart {
+            width: 100% !important;
+            height: 100% !important;
+            max-height: 200px;
+        }
+    </style>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Initialize the pie chart
+            const ctx = document.getElementById('fundDistributionChart').getContext('2d');
+            const fundData = {
+                datasets: [{
+                    data: [
+                        {% for fund_type in fund_types %}
+                            {{ fund_data.get(fund_type, 0) }}{% if not loop.last %},{% endif %}
+                        {% endfor %}
+                    ],
+                    backgroundColor: [
+                        'rgba(240, 100, 69, 0.7)',
+                        'rgba(79, 201, 218, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(240, 100, 69, 1)',
+                        'rgba(79, 201, 218, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+
+            const fundChart = new Chart(ctx, {
+                type: 'pie',
+                data: fundData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                    return `${value.toFixed(2)} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
             // Sidebar Toggle
             const menuToggle = document.querySelector('.menu-toggle');
             const dashboardContainer = document.querySelector('.dashboard-container');
@@ -136,7 +212,6 @@
                     e.preventDefault();
                     e.stopPropagation();
                     dashboardContainer.classList.toggle('sidebar-toggled');
-                    console.log('Toggled sidebar'); // Debug line
                 });
             }
 

@@ -87,10 +87,10 @@
             <input type="password" class="form-control" id="password" name="password" required>
         </div>
         {% else %}
-        <div class="mb-3">
+        <!-- <div class="mb-3">
             <p class="form-text text-muted">Password can be reset via a separate "Reset Password" action (to be
                 implemented).</p>
-        </div>
+        </div> -->
         {% endif %}
 
         <div class="mb-3">
@@ -134,10 +134,8 @@
         </div>
 
         <div class="mb-3 form-check">
-            {% set current_status = user_data.status if user_data and 'status' in user_data else (user.status if
-            is_edit_mode else True) %}
-            <input type="checkbox" class="form-check-input" id="status" name="status" value="true" {% if current_status
-                %}checked{% endif %} {% if is_edit_mode and user.role=='admin' %}disabled{% endif %}>
+            <input type="checkbox" class="form-check-input" id="status" name="status" value="true" {% if user_data and user_data.status or (is_edit_mode and user.status) %}
+                checked{% endif %} {% if is_edit_mode and user.role=='admin' %}disabled{% endif %}>
             <label class="form-check-label" for="status">Active</label>
         </div>
 

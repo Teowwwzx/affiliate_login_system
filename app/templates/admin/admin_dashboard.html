@@ -1,16 +1,7 @@
-
 {% block title %}{{ title if title else "Admin Dashboard" }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- <div
-        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">{{ title if title else "Admin Dashboard" }}</h1>
-        {# Add any top-right controls here, like a date range picker if needed in future #}
-    </div> -->
-
-    <!-- <p>Welcome back, {{ session.username }}!</p> -->
-
     {# Statistics Row #}
     <div class="row mb-5 mt-3">
         <div class="col-lg-3 col-md-6 mb-4">
@@ -34,7 +25,6 @@
                 <div class="card-body">
                     <h5 class="card-title"><strong>Active Users</strong></h5>
                     <p class="card-text h1"><strong>{{ stats.active_users if stats else 'N/A' }}</strong></p>
-                    <!-- You could also add active leaders/members here if desired -->
                 </div>
                 <div class="card-footer text-muted">
                     <a href="{{ url_for('admin.list_users', status='active') }}" class="text-decoration-none">
@@ -49,7 +39,7 @@
                 <div class="card-body">
                     <h5 class="card-title"><strong>Dynamic Prize Pool</strong></h5>
                     <p class="card-text h1"><strong>${{ "%.2f"|format(stats.dynamic_prize_pool_total) if stats and
-                        stats.dynamic_prize_pool_total is not none else 'N/A' }}</strong></p>
+                            stats.dynamic_prize_pool_total is not none else 'N/A' }}</strong></p>
                 </div>
                 <div class="card-footer text-muted">
                     <a href="{{ url_for('admin.manage_funds', fund_type='dynamic_prize_pool') }}"
@@ -65,7 +55,7 @@
                 <div class="card-body">
                     <h5 class="card-title"><strong>Static Prize Pool</strong></h5>
                     <p class="card-text h1"><strong>${{ "%.2f"|format(stats.static_prize_pool_total) if stats and
-                        stats.static_prize_pool_total is not none else 'N/A' }}</strong></p>
+                            stats.static_prize_pool_total is not none else 'N/A' }}</strong></p>
                 </div>
                 <div class="card-footer text-muted">
                     <a href="{{ url_for('admin.manage_funds', fund_type='static_prize_pool') }}"
@@ -88,7 +78,7 @@
                         <small class="text-muted fs-6 ms-2">(Value Price per Member: ${{
                             stats.current_value_price}})</small>
                     </h4>
-                    <button id="sortOrderToggle" class="btn btn-sm btn-outline-secondary">Sort: Low to High</button>
+                    <!-- <button id="sortOrderToggle" class="btn btn-sm btn-outline-secondary">Sort: Low to High</button> -->
                 </div>
                 <div class="card-body" id="salesLeaderboardTop3">
                     <!-- Top 3 leaders will be dynamically inserted here by JavaScript -->
@@ -104,56 +94,54 @@
 
 </div>
 
-<!-- <style> block removed as styles are now in static/style.css -->
-
-<!-- At the end of admin_dashboard.html, or in a scripts block -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const leadersData = {{ stats.leaders_for_sales_calc | tojson }};
-        const currentValuePrice = parseFloat("{{ stats.current_value_price }}") || 0; // Get fixed value price
+        const leadersData = {{ stats.leaders_for_sales_calc | tojson
+    }};
+    const currentValuePrice = parseFloat("{{ stats.current_value_price }}") || 0; // Get fixed value price
 
-        const top3Div = document.getElementById('salesLeaderboardTop3');
-        const sortOrderToggleButton = document.getElementById('sortOrderToggle');
+    const top3Div = document.getElementById('salesLeaderboardTop3');
+    const sortOrderToggleButton = document.getElementById('sortOrderToggle');
 
-        let sortAscending = false; // false = High to Low, true = Low to High
+    let sortAscending = false; // false = High to Low, true = Low to High
 
-        function calculateAndRenderLeaderboard() {
-            if (!leadersData || leadersData.length === 0) {
-                top3Div.innerHTML = '<p class="text-muted text-center">No leader data available.</p>';
-                return;
-            }
-
-            const calculatedSales = leadersData.map(leader => ({
-                ...leader,
-                total_sales: leader.member_count * currentValuePrice // Use fixed value price
-            }));
-
-            // Sort based on sortAscending flag
-            calculatedSales.sort((a, b) => {
-                if (sortAscending) {
-                    return a.total_sales - b.total_sales; // Low to High
-                } else {
-                    return b.total_sales - a.total_sales; // High to Low
-                }
-            });
-
-            renderLeaderboard(calculatedSales);
-            updateSortButtonText();
+    function calculateAndRenderLeaderboard() {
+        if (!leadersData || leadersData.length === 0) {
+            top3Div.innerHTML = '<p class="text-muted text-center">No leader data available.</p>';
+            return;
         }
 
-        function renderLeaderboard(sortedLeaders) {
-            top3Div.innerHTML = ''; // Clear previous entries
+        const calculatedSales = leadersData.map(leader => ({
+            ...leader,
+            total_sales: leader.member_count * currentValuePrice // Use fixed value price
+        }));
 
-            const top3 = sortedLeaders.slice(0, 3); // Show only top 3
+        // Sort based on sortAscending flag
+        calculatedSales.sort((a, b) => {
+            if (sortAscending) {
+                return a.total_sales - b.total_sales; // Low to High
+            } else {
+                return b.total_sales - a.total_sales; // High to Low
+            }
+        });
 
-            // Render Top 3 with special styling
-            top3.forEach((leader, index) => {
-                const medalIcon = index === 0 ? 'fas fa-medal text-warning me-2' :
-                    index === 1 ? 'fas fa-medal text-silver me-2' :
-                        index === 2 ? 'fas fa-medal text-bronze me-2' : '';
+        renderLeaderboard(calculatedSales);
+        updateSortButtonText();
+    }
 
-                // Ensure icon is outside the main text flow for sales number alignment
-                const leaderCard = `
+    function renderLeaderboard(sortedLeaders) {
+        top3Div.innerHTML = ''; // Clear previous entries
+
+        const top3 = sortedLeaders.slice(0, 3); // Show only top 3
+
+        // Render Top 3 with special styling
+        top3.forEach((leader, index) => {
+            const medalIcon = index === 0 ? 'fas fa-medal text-warning me-2' :
+                index === 1 ? 'fas fa-medal text-silver me-2' :
+                    index === 2 ? 'fas fa-medal text-bronze me-2' : '';
+
+            // Ensure icon is outside the main text flow for sales number alignment
+            const leaderCard = `
                     <div class="card mb-2 shadow-sm leader-card-top3">
                         <div class="card-body d-flex justify-content-between align-items-center">
                             <div>
@@ -166,25 +154,25 @@
                             <span class="h5 mb-0 text-success">$${leader.total_sales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
                     </div>`;
-                top3Div.innerHTML += leaderCard;
-            });
-        }
-
-        function updateSortButtonText() {
-            if (sortAscending) {
-                sortOrderToggleButton.textContent = 'Sort: High to Low';
-            } else {
-                sortOrderToggleButton.textContent = 'Sort: Low to High';
-            }
-        }
-
-        sortOrderToggleButton.addEventListener('click', function () {
-            sortAscending = !sortAscending;
-            calculateAndRenderLeaderboard();
+            top3Div.innerHTML += leaderCard;
         });
+    }
 
-        // Initial calculation and render
+    function updateSortButtonText() {
+        if (sortAscending) {
+            sortOrderToggleButton.textContent = 'Sort: High to Low';
+        } else {
+            sortOrderToggleButton.textContent = 'Sort: Low to High';
+        }
+    }
+
+    sortOrderToggleButton.addEventListener('click', function () {
+        sortAscending = !sortAscending;
         calculateAndRenderLeaderboard();
+    });
+
+    // Initial calculation and render
+    calculateAndRenderLeaderboard();
     });
 </script>
 

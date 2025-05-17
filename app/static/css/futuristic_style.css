@@ -2,6 +2,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@200..800&display=swap');
 
 :root {
+    --primary-color: #f06445;
+    --secondary-color: #4fc9da;
     --primary-bg: #0D1B2A; /* Dark blue-black */
     --secondary-bg: #1B263B; /* Slightly lighter dark blue */
     --widget-bg: #141E2F; /* Widget background */
@@ -25,12 +27,12 @@ body {
     font-family: var(--font-body);
     background-color: var(--primary-bg);
     color: var(--text-primary);
-    font-size: 14px;
+    font-size: 16px;
     overflow-x: hidden;
 }
 
 a {
-    color: var(--primary-color); /* Use primary color for links */
+    color: white; /* Use primary color for links */
     text-decoration: none;
 }
 
@@ -278,7 +280,7 @@ a:hover {
 .widget-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
+    gap: 30px;
 }
 
 .widget {
@@ -649,7 +651,7 @@ a:hover {
     
     .widget-grid {
         grid-template-columns: 1fr; /* Stack widgets vertically */
-        gap: 15px; /* Reduce gap between widgets */
+        gap: 30px; /* Reduce gap between widgets */
     }
 
     .widget {

@@ -132,7 +132,7 @@ def admin_dashboard():
         "leaders_for_sales_calc": sorted_leaders_by_member_count[:5],  # Limit to top 5
         "total_leader_count_for_view_all": len(
             sorted_leaders_by_member_count
-        ),  # For 'View All' link logic
+        ),
         "current_value_price": 5000,
         "total_referral_codes_generated": total_referral_codes_generated,
         "users_joined_via_referral": users_joined_via_referral,
@@ -337,37 +337,41 @@ def edit_user(user_id):
                 user=user,
                 leaders=leaders,
                 action_url=url_for("admin.edit_user", user_id=user_id),
+                user_data=user,
+                is_edit_mode=True,
             )
 
         # Check for username uniqueness (if changed)
-        if (
-            user.username != original_username
-            and User.query.filter_by(username=user.username).first()
-        ):
-            flash("Username already exists.", "danger")
-            user.username = original_username  # Revert to original
-            return render_template(
-                "admin/create_edit_user.html",
-                title="Edit User",
-                user=user,
-                leaders=leaders,
-                action_url=url_for("admin.edit_user", user_id=user_id),
-            )
+        if user.username != original_username:
+            existing_user = User.query.filter(User.username == user.username, User.id != user.id).first()
+            if existing_user:
+                flash("Username already exists.", "danger")
+                user.username = original_username  # Revert to original
+                return render_template(
+                    "admin/create_edit_user.html",
+                    title="Edit User",
+                    user=user,
+                    leaders=leaders,
+                    action_url=url_for("admin.edit_user", user_id=user_id),
+                    user_data=user,
+                    is_edit_mode=True,
+                )
 
         # Check for email uniqueness (if changed)
-        if (
-            user.email != original_email
-            and User.query.filter_by(email=user.email).first()
-        ):
-            flash("Email already registered.", "danger")
-            user.email = original_email  # Revert to original
-            return render_template(
-                "admin/create_edit_user.html",
-                title="Edit User",
-                user=user,
-                leaders=leaders,
-                action_url=url_for("admin.edit_user", user_id=user_id),
-            )
+        if user.email != original_email:
+            existing_email = User.query.filter(User.email == user.email, User.id != user.id).first()
+            if existing_email:
+                flash("Email already registered.", "danger")
+                user.email = original_email  # Revert to original
+                return render_template(
+                    "admin/create_edit_user.html",
+                    title="Edit User",
+                    user=user,
+                    leaders=leaders,
+                    action_url=url_for("admin.edit_user", user_id=user_id),
+                    user_data=user,
+                    is_edit_mode=True,
+                )
 
         if new_password:
             user.set_password(new_password)
@@ -382,6 +386,8 @@ def edit_user(user_id):
                     user=user,
                     leaders=leaders,
                     action_url=url_for("admin.edit_user", user_id=user_id),
+                    user_data=user,
+                    is_edit_mode=True,
                 )
         elif user.role == "member" and not leader_id_str:
             flash("A leader must be selected for a member.", "danger")
@@ -391,6 +397,8 @@ def edit_user(user_id):
                 user=user,
                 leaders=leaders,
                 action_url=url_for("admin.edit_user", user_id=user_id),
+                user_data=user,
+                is_edit_mode=True,
             )
         elif user.role != "member":
             user.leader_id = None  # Ensure non-members don't have a leader_id
@@ -411,6 +419,8 @@ def edit_user(user_id):
         user=user,
         leaders=leaders,
         action_url=url_for("admin.edit_user", user_id=user_id),
+        user_data=user,
+        is_edit_mode=True,
     )
 
 
@@ -675,52 +685,55 @@ def delete_fund(fund_id):
 @login_required
 @role_required("admin")
 def list_all_leaders():
-    page = request.args.get('page', 1, type=int)
+    page = request.args.get("page", 1, type=int)
     per_page = 10  # Number of items per page
-    
+
     # Get sorting parameters
-    sort_by = request.args.get('sort_by', 'member_count')
-    sort_order = request.args.get('sort_order', 'desc')
-    
+    sort_by = request.args.get("sort_by", "member_count")
+    sort_order = request.args.get("sort_order", "desc")
+
     # Base query for leaders
     leaders_query = User.query.filter_by(role="leader")
-    
+
     # Get total count for pagination
     total_leaders = leaders_query.count()
-    
+
     # Apply sorting
-    if sort_by == 'username':
-        if sort_order == 'asc':
+    if sort_by == "username":
+        if sort_order == "asc":
             leaders_query = leaders_query.order_by(User.username.asc())
         else:
             leaders_query = leaders_query.order_by(User.username.desc())
     else:  # Default sort by member_count
         # For member_count, we need to sort in Python after getting the counts
         pass
-    
+
     # Apply pagination
-    leaders_pagination = leaders_query.paginate(page=page, per_page=per_page, error_out=False)
-    
+    leaders_pagination = leaders_query.paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+
     # Get member counts and prepare data for template
     leaders_with_member_count = []
     for leader_user in leaders_pagination.items:
         member_count = User.query.filter_by(leader_id=leader_user.id).count()
-        leaders_with_member_count.append({
-            "username": leader_user.username,
-            "email": leader_user.email,
-            "member_count": member_count,
-            "id": leader_user.id,
-            "status": leader_user.status,
-            "created_at": leader_user.created_at,
-        })
-    
-    # Sort by member_count if needed
-    if sort_by == 'member_count':
-        leaders_with_member_count.sort(
-            key=lambda x: x['member_count'], 
-            reverse=(sort_order == 'desc')
+        leaders_with_member_count.append(
+            {
+                "username": leader_user.username,
+                "email": leader_user.email,
+                "member_count": member_count,
+                "id": leader_user.id,
+                "status": leader_user.status,
+                "created_at": leader_user.created_at,
+            }
         )
-    
+
+    # Sort by member_count if needed
+    if sort_by == "member_count":
+        leaders_with_member_count.sort(
+            key=lambda x: x["member_count"], reverse=(sort_order == "desc")
+        )
+
     return render_template(
         "admin/list_all_leaders.html",
         title="Full Leaderboard",
@@ -728,5 +741,5 @@ def list_all_leaders():
         pagination=leaders_pagination,
         current_value_price=5000,  # Match the value used in admin dashboard
         sort_by=sort_by,
-        sort_order=sort_order
+        sort_order=sort_order,
     )
