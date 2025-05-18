@@ -125,11 +125,12 @@
                             Edit
                         </a>
                         {% if user.id != current_user.id %}
-                        <a href="{{ url_for('admin.delete_user', user_id=user.id) }}" class="btn"
-                            style="background-color: var(--danger-color); color: white;" title="Delete"
-                            onclick="return confirm('Are you sure you want to delete this user \'' + '{{ user.username }}' + '\'? If this user is a leader, their members will become unassigned.');">
+                        <button type="button" class="btn" 
+                            style="background-color: var(--danger-color); color: white;" 
+                            title="Delete"
+                            onclick="confirmDelete('{{ user.id }}', '{{ user.username }}', '{{ user.role }}')">
                             Delete
-                        </a>
+                        </button>
                         {% endif %}
                         {% else %}
                         <span class="text-muted">N/A (Admin)</span>
@@ -176,4 +177,46 @@
     <div class="alert alert-info">No users found.</div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Store the base URL for delete action
+const deleteBaseUrl = "{{ url_for('admin.delete_user', user_id=0) }}";
+
+function confirmDelete(userId, username, role) {
+    console.log('confirmDelete called with:', { userId, username, role });
+    
+    // Check if window.Modal is available
+    if (!window.Modal) {
+        console.error('window.Modal is not defined');
+        // Fallback to default confirm
+        if (confirm(`Are you sure you want to delete user '${username}'?`)) {
+            window.location.href = deleteBaseUrl.replace('/0', `/${userId}`);
+        }
+        return;
+    }
+
+    const message = role === 'leader' 
+        ? `Are you sure you want to delete user '${username}'? This user is a leader. All their members will become unassigned.`
+        : `Are you sure you want to delete user '${username}'?`;
+
+    console.log('Calling window.Modal.show with message:', message);
+    
+    window.Modal.show({
+        title: 'Confirm Deletion',
+        message: message,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        onConfirm: () => {
+            console.log('Delete confirmed, redirecting...');
+            // Redirect to delete endpoint with the correct user ID
+            window.location.href = deleteBaseUrl.replace('/0', `/${userId}`);
+        },
+        onCancel: () => {
+            console.log('Delete cancelled by user');
+        }
+    });
+}
+</script>
 {% endblock %}

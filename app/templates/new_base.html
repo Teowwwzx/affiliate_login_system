@@ -152,26 +152,12 @@
     {% endblock %}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            console.log('DOM fully loaded and parsed.'); // 1. Check if script runs
 
             const sidebar = document.getElementById('sidebar');
             const sidebarToggle = document.getElementById('sidebarToggle');
             const body = document.body;
 
-            if (!sidebar) {
-                console.error('Sidebar element with id="sidebar" NOT FOUND!'); // 2. Check if sidebar element exists
-            } else {
-                console.log('Sidebar element found:', sidebar);
-            }
-
-            if (!sidebarToggle) {
-                console.error('Sidebar toggle button with id="sidebarToggle" NOT FOUND!'); // 3. Check if button element exists
-            } else {
-                console.log('Sidebar toggle button found:', sidebarToggle);
-            }
-
             if (sidebarToggle && sidebar && body) {
-                console.log('Attaching click listener to sidebar toggle button.');
                 sidebarToggle.addEventListener('click', function () {
                     sidebar.classList.toggle('active');
                     body.classList.toggle('sidebar-mobile-active');
@@ -191,11 +177,16 @@
                     if (body) { // Check if body exists
                         body.classList.remove('sidebar-mobile-active');
                     }
-                    console.log('Clicked outside. Sidebar closed.');
                 }
             });
         });
     </script>
+    <!-- Include Modal Component -->
+    {% include '_modal.html' %}
+    <!-- Include Modal JavaScript -->
+    <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+    <!-- Page-specific JavaScript -->
+    {% block extra_js %}{% endblock %}
 </body>
 
 </html>

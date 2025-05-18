@@ -134,8 +134,11 @@
         </div>
 
         <div class="mb-3 form-check">
-            <input type="checkbox" class="form-check-input" id="status" name="status" value="true" {% if user_data and user_data.status or (is_edit_mode and user.status) %}
-                checked{% endif %} {% if is_edit_mode and user.role=='admin' %}disabled{% endif %}>
+            <input type="checkbox" class="form-check-input" id="status" name="status" value="true" 
+                {% if (user_data and user_data.status) or (is_edit_mode and user.status) or (not is_edit_mode and not user_data) %}
+                    checked
+                {% endif %} 
+                {% if is_edit_mode and user.role=='admin' %}disabled{% endif %}>
             <label class="form-check-label" for="status">Active</label>
         </div>
 

@@ -497,9 +497,92 @@ a:hover {
     background: var(--accent-color);
 }
 
-/* futuristic_style.css */
-/* ... existing styles ... */
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
 
+.modal.show {
+    display: flex;
+    opacity: 1;
+}
+
+.modal-content {
+    background-color: var(--widget-bg);
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    transform: translateY(-50px);
+    transition: transform 0.3s ease-in-out;
+}
+
+.modal.show .modal-content {
+    transform: translateY(0);
+}
+
+.modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--text-color);
+}
+
+.modal-close {
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: color 0.2s;
+}
+
+.modal-close:hover {
+    color: var(--text-color);
+}
+
+.modal-body {
+    padding: 20px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .modal-content {
+        width: 95%;
+    }
+    
+    .modal-body {
+        max-height: 50vh;
+    }
+}
+
+/* Futuristic Table Styles */
 .futuristic-table {
     width: 100%;
     border-collapse: collapse; /* Or use 'separate' with border-spacing */
@@ -606,7 +689,7 @@ a:hover {
         grid-area: main;
         margin-left: 0;
         width: 100%; /* Ensure it takes full viewport width */
-        padding: 20px; /* Adjust padding as needed */
+        padding: 30px 20px 20px 20px; /* Adjust padding as needed */
         /* overflow-x: hidden; /* Prevent horizontal scroll if content accidentally overflows */
     }
 
@@ -631,45 +714,17 @@ a:hover {
 }
 
 @media (max-width: 768px) { /* For mobile phones */
+
+    .gradient-text {
+        font-size: 1em !important;  /* Make text smaller on small screens */
+    }
+    
     .top-nav {
         padding: 10px 15px; /* Consistent padding */
     }
     
-    /* Hide the bracket elements in the logo */
-    .hud-h {
-        display: none;
-    }
-    
-    .top-nav .logo {
-        font-size: clamp(0.8rem, 3.5vw, 1rem); /* Responsive font size */
-        margin-left: 5px; /* Further adjust for smaller screens */
-    }
-    
     .top-nav .nav-icons .user-profile span {
         display: none; /* Hide username text, show only icon */
-    }
-    
-    /* Modified search bar to only show icon on mobile */
-    .search-bar-form {
-        max-width: 180px; /* Wider for better input on standard mobile */
-        /* margin: 0 5px; */
-        flex-grow: 1; /* Allow it to take space */
-    }
-    
-    .search-bar-form input[type="text"] {
-        width: 100%; /* Ensure input takes full width of the form */
-        padding: 6px 4px; /* Adjust padding */
-        font-size: 0.8rem;
-    }
-
-    .search-bar-form .search-bar {
-        width: 100%;
-        padding: 4px 5px;
-        justify-content: flex-start; /* Align icon to start */
-    }
-
-    .top-nav .nav-icons .user-profile img {
-        width: 28px;
     }
     
     .widget-grid {
@@ -693,29 +748,10 @@ a:hover {
 }
 
 @media (max-width: 576px) { 
-    .top-nav .logo {
-        font-size: clamp(0.7rem, 3vw, 0.9rem);
-    }
-
-    /* Make search bar usable, not icon-only */
-    .search-bar-form {
-        max-width: 120px; /* Smallest usable width */
-        margin: 0 3px;
-    }
-    
-    .search-bar-form input[type="text"] {
-        width: 100%; /* Ensure input takes full width of the form */
-        padding: 8px 5px; /* Adjust padding */
-        font-size: 0.8rem;
-    }
-
-    .search-bar-form .search-bar {
-        width: 100%;
-        padding: 4px 5px;
-        justify-content: flex-start; /* Align icon to start */
+    .top-nav {
+        justify-content: space-between;
     }
 }
-/* END OF RESPONSIVE ADJUSTMENTS */
 
 .member-icon {
     margin-right: 10px;

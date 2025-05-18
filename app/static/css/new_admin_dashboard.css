@@ -607,6 +607,14 @@ a {
         overflow-y: hidden;
     }
 
+    .new-admin-top-bar {
+        position: sticky;
+        top: 0;
+        z-index: 1001;
+        background-color: #ffffff;
+        border-radius: 12px;
+    }
+
     /* The hamburger toggle button is handled by d-lg-none for visibility. */
     /* Styles for the hamburger button icon if needed, though .btn-icon should cover general styling. */
     /* We added an inline style for font-size, which is fine for now. */
