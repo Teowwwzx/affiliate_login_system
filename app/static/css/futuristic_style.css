@@ -28,10 +28,15 @@
 
 body {
     font-family: var(--font-body);
+    margin: 0;
+    padding: 0;
     background-color: var(--primary-bg);
     color: var(--text-primary);
     font-size: 16px;
     overflow-x: hidden;
+    height: 100vh;
+    width: 100%;
+    max-width: 100vw;
 }
 
 a {
@@ -52,6 +57,12 @@ a:hover {
     display: inline-block;
 }
 
+.logo-section {
+    padding: 10px 0 20px 5px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
 .dashboard-container {
     display: grid;
     grid-template-columns: var(--sidebar-width) 1fr;
@@ -59,8 +70,6 @@ a:hover {
     grid-template-areas:
         "sidebar top-nav"
         "sidebar main-content";
-    height: 100vh;
-    width: 100vw;
 }
 
 /* Top Navigation */
@@ -96,7 +105,6 @@ a:hover {
     align-items: center;
     max-width: 250px; /* Increased default max-width for desktop */
     flex-grow: 1; /* Allow it to take available space up to max-width */
-    margin: 0 15px;
 }
 
 .top-nav .search-bar-form .search-bar {
@@ -112,7 +120,7 @@ a:hover {
     background: transparent;
     border: none;
     color: var(--text-color, #E0E1DD);
-    margin-left: 8px;
+    /* margin-left: 8px; */
     font-size: 0.9rem; /* Smaller font */
     width: 100%;
     outline: none;
@@ -286,6 +294,8 @@ a:hover {
     overflow-y: auto;
     background-color: var(--primary-bg);
     padding-top: var(--top-nav-height); /* Ensure content below fixed top-nav */
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .widget-grid {
@@ -301,6 +311,8 @@ a:hover {
     padding: 20px;
     position: relative;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2), 0 0 5px rgba(78, 205, 196, 0.1);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .widget.full-width {
@@ -613,7 +625,7 @@ a:hover {
     }
 
     .top-nav .search-bar-form {
-        margin-left: 15px; /* Adjust spacing due to menu toggle */
+        /* margin-left: 15px; Adjust spacing due to menu toggle */
         flex-grow: 1; /* Allow search to take available space */
     }
 }
@@ -640,7 +652,7 @@ a:hover {
     /* Modified search bar to only show icon on mobile */
     .search-bar-form {
         max-width: 180px; /* Wider for better input on standard mobile */
-        margin: 0 5px;
+        /* margin: 0 5px; */
         flex-grow: 1; /* Allow it to take space */
     }
     
@@ -708,4 +720,3 @@ a:hover {
 .member-icon {
     margin-right: 10px;
 }
-

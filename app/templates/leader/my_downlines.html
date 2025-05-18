@@ -16,54 +16,59 @@
             <div class="menu-toggle">
                 <i class="fas fa-bars"></i>
             </div>
-            <a href="{{ url_for('leader.leader_dashboard') }}" class="logo">
-                <span class="hud-h">[</span>CW<span class="hud-h">]</span> LEADER DASHBOARD
+            <a href="{{ url_for('leader.leader_dashboard') }}">
+                <span class="h5 mb-0 px-0 fw-bold gradient-text" style="font-size: 1.2em;"><strong>R&I
+                        Affiliate</strong></span>
             </a>
             <form method="GET" action="{{ url_for('leader.my_downlines') }}" class="search-bar-form">
                 <div class="search-bar">
                     <i class="fas fa-search"></i>
-                    <input type="text" name="q" placeholder="Search downlines..."
-                        value="{{ search_query if search_query }}">
-                    <!-- Optional: Add a clear button or submit button if desired -->
-                    <!-- <button type="submit" style="display:none;"></button> hidden submit to allow enter -->
+                    <input type="text" name="q" placeholder="Search downlines...">
                 </div>
             </form>
             <div class="nav-icons">
                 <div class="user-profile">
-                    <img src="https://via.placeholder.com/30/0D1B2A/E0E1DD?text={{ current_user.username[0]|upper if current_user and current_user.is_authenticated else 'L' }}"
-                        alt="User">
                     <span>{{ current_user.username if current_user and current_user.is_authenticated else 'Leader'
                         }}</span>
                     <i class="fas fa-chevron-down"></i>
                     <div class="dropdown-menu">
+                        <a href="{{ url_for('auth.change_password') }}"><i class="fas fa-key"></i> Change Password</a>
                         <a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
                     </div>
                 </div>
             </div>
         </header>
-
         <!-- Sidebar -->
         <aside class="sidebar">
             <nav>
-                <p class="nav-category">Navigation</p>
-                <ul>
-                    <li class="active"><a href="{{ url_for('leader.leader_dashboard') }}"><i
-                                class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="{{ url_for('leader.my_downlines') }}"><i class="fas fa-sitemap"></i> My Downlines</a>
-                    </li>
-                </ul>
-                <p class="nav-category">Account</p>
-                <ul>
-                    <li><a href="{{ url_for('auth.change_password') }}"><i class="fas fa-key"></i> Change Password</a>
-                    </li>
-                    <li><a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                </ul>
-            </nav>
+                <nav class="new-admin-sidebar" id="sidebar">
+                    <div class="logo-section" style="text-align: center;"><a
+                            href="{{ url_for('leader.leader_dashboard') }}">
+                            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo"
+                                style="width: 100px; height: 100px;">
+                        </a></div>
+                    <p class="nav-category">Navigation</p>
+                    <ul>
+                        <li><a href="{{ url_for('leader.leader_dashboard') }}"><i class="fas fa-tachometer-alt"></i>
+                                Dashboard</a></li>
+                        <li class="active"><a href="{{ url_for('leader.my_downlines') }}"><i class="fas fa-sitemap"></i>
+                                My
+                                Downlines</a>
+                        </li>
+                    </ul>
+                    <p class="nav-category">Account</p>
+                    <ul>
+                        <li><a href="{{ url_for('auth.change_password') }}"><i class="fas fa-key"></i> Change
+                                Password</a>
+                        </li>
+                        <li><a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                    </ul>
+                </nav>
         </aside>
 
         <!-- Main Content Area -->
         <main class="main-content">
-            <div class="widget full-width">
+            <div class="widget">
                 <div class="widget-header">
                     <span>MY DOWNLINE MEMBERS</span>
                     <span class="widget-menu-icon"></span> <!-- Optional: if you want the L L icon -->
@@ -85,7 +90,8 @@
                                 <tr>
                                     <td>{{ member.username }}</td>
                                     <td>{{ member.email }}</td>
-                                    <td>{{ member.created_at.strftime('%Y-%m-%d %H:%M') if member.created_at else 'N/A' }}</td>
+                                    <td>{{ member.created_at.strftime('%Y-%m-%d %H:%M') if member.created_at else 'N/A'
+                                        }}</td>
                                     <td>
                                         {% if member.status %}
                                         <span class="status-active">Active</span>
@@ -115,7 +121,7 @@
             const dashboardContainer = document.querySelector('.dashboard-container');
 
             if (menuToggle && dashboardContainer) {
-                menuToggle.addEventListener('click', function(e) {
+                menuToggle.addEventListener('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
                     dashboardContainer.classList.toggle('sidebar-toggled');
@@ -128,13 +134,13 @@
             const dropdownMenu = userProfile ? userProfile.querySelector('.dropdown-menu') : null;
 
             if (userProfile && dropdownMenu) {
-                userProfile.addEventListener('click', function(event) {
+                userProfile.addEventListener('click', function (event) {
                     event.stopPropagation(); // Prevent click from bubbling to document
                     dropdownMenu.classList.toggle('show');
                 });
 
                 // Close dropdown if clicked outside
-                document.addEventListener('click', function(event) {
+                document.addEventListener('click', function (event) {
                     if (!userProfile.contains(event.target) && dropdownMenu.classList.contains('show')) {
                         dropdownMenu.classList.remove('show');
                     }

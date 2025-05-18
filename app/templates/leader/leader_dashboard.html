@@ -19,9 +19,10 @@
             <div class="menu-toggle">
                 <i class="fas fa-bars"></i>
             </div>
-            <!-- <a href="{{ url_for('leader.leader_dashboard') }}" class="logo">
-                <span class="hud-h">[</span><span class="hud-h">]</span> R&I Affiliate
-            </a> -->
+            <a href="{{ url_for('leader.leader_dashboard') }}">
+                <span class="h5 mb-0 px-0 fw-bold gradient-text" style="font-size: 1.2em;"><strong>R&I
+                        Affiliate</strong></span>
+            </a>
             <form method="GET" action="{{ url_for('leader.my_downlines') }}" class="search-bar-form">
                 <div class="search-bar">
                     <i class="fas fa-search"></i>
@@ -47,7 +48,8 @@
         <aside class="sidebar">
             <nav>
                 <nav class="new-admin-sidebar" id="sidebar">
-                    <div class="logo-section"><a href="{{ url_for('leader.leader_dashboard') }}">
+                    <div class="logo-section" style="text-align: center;"><a
+                            href="{{ url_for('leader.leader_dashboard') }}">
                             <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo"
                                 style="width: 100px; height: 100px;">
                         </a></div>
@@ -71,8 +73,9 @@
 
         <!-- Main Content Area -->
         <main class="main-content">
-            <div class="widget" style="margin-bottom: 30px; margin-top: 30px;">
-                <h1 style="margin-bottom: 6px;">Welcome, {{ current_user.username if current_user and current_user.is_authenticated else 'Leader'
+            <div class="widget" style="margin-bottom: 30px;">
+                <h1 style="margin-bottom: 6px;">Welcome, {{ current_user.username if current_user and
+                    current_user.is_authenticated else 'Leader'
                     }}!</h1>
                 <p>Today is {{ days_since_joined }} days since you joined company!</p>
             </div>
@@ -85,26 +88,24 @@
                         <span class="widget-menu-icon"></span>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div class="widget-content">
-                                {% for fund_type, display_name in fund_types.items() %}
-                                {% if fund_data[fund_type] is defined %}
-                                    <div class="stat-prominent" style="padding-top: 10px;">${{ "%.2f"|format(fund_data[fund_type]) }}</div>
-                                    <div class="stat-details" style="padding-bottom: 8px;">
-                                        <p>
-                                            <i class="{{ 'fa-solid fa-shield-alt' if fund_type == 'insurance_bucket_sale' else 'fa-solid fa-robot' }}" 
-                                            style="color: {{ 'var(--primary-color)' if fund_type == 'insurance_bucket_sale' else 'var(--secondary-color)' }};">
-                                         </i>
-                                            {{ display_name }}
-                                        </p>
-                                    </div>
-                                    {% endif %}
-                                {% endfor %}
+                        <div class="widget-content">
+                            {% for fund_type, display_name in fund_types.items() %}
+                            {% if fund_data[fund_type] is defined %}
+                            <div class="stat-prominent" style="padding-top: 10px;">${{
+                                "%.2f"|format(fund_data[fund_type]) }}</div>
+                            <div class="stat-details" style="padding-bottom: 8px;">
+                                <p>
+                                    <i class="{{ 'fa-solid fa-shield-alt' if fund_type == 'insurance_bucket_sale' else 'fa-solid fa-robot' }}"
+                                        style="color: {{ 'var(--primary-color)' if fund_type == 'insurance_bucket_sale' else 'var(--secondary-color)' }};">
+                                    </i>
+                                    {{ display_name }}
+                                </p>
                             </div>
-
+                            {% endif %}
+                            {% endfor %}
                         </div>
                         <div style="height: 140px;">
-                            <canvas id="fundDistributionChart"></canvas>
+                            <canvas id="fundDistributionChart" style="width: 100%; height: 100%;"></canvas>
                         </div>
                     </div>
 
@@ -117,7 +118,9 @@
                         <span class="widget-menu-icon"></span>
                     </div>
                     <div class="widget-content">
-                        <div class="stat-prominent" style="padding-top: 10px;">{{ downline_count }} <small>Downlines</small></div>
+                        <div class="stat-prominent" style="padding-top: 10px;">{{ downline_count }}
+                            <small>Downlines</small>
+                        </div>
                         <div class="stat-details">
                             <p><i class="fas fa-link"></i> Your Code: {{ leader_referral_code or 'N/A' }}</p>
                         </div>
@@ -132,7 +135,8 @@
                     </div>
                     <div class="widget-content">
                         <div class="stat-details" style="padding-top: 10px;">
-                            <p style="padding-bottom: 14px;"><a href="{{ url_for('leader.my_downlines') }}"><i class="fas fa-user-plus"></i>My Downlines</a></p>
+                            <p style="padding-bottom: 14px;"><a href="{{ url_for('leader.my_downlines') }}"><i
+                                        class="fas fa-user-plus"></i>My Downlines</a></p>
                             <!-- <p><a href="#"><i class="fas fa-bullhorn"></i>Others</a></p> -->
                         </div>
                     </div>
@@ -141,19 +145,8 @@
         </main>
     </div>
 
-    <style>
-        .new-admin-sidebar .logo-section {
-            padding: 10px 0 20px 5px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #f0f0f0;
-            text-align: center;
-        }
-        #fundDistributionChart {
-            width: 100% !important;
-            height: 100% !important;
-            max-height: 200px;
-        }
-    </style>
+
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -163,75 +156,75 @@
                 datasets: [{
                     data: [
                         {% for fund_type in fund_types %}
-                            {{ fund_data.get(fund_type, 0) }}{% if not loop.last %},{% endif %}
-                        {% endfor %}
+                            {{ fund_data.get(fund_type, 0) }}{% if not loop.last %}, {% endif %}
+            {% endfor %}
                     ],
-                    backgroundColor: [
-                        'rgba(240, 100, 69, 0.7)',
-                        'rgba(79, 201, 218, 0.7)'
-                    ],
-                    borderColor: [
-                        'rgba(240, 100, 69, 1)',
-                        'rgba(79, 201, 218, 1)'
-                    ],
-                    borderWidth: 1
+            backgroundColor: [
+            'rgba(240, 100, 69, 0.7)',
+            'rgba(79, 201, 218, 0.7)'
+        ],
+            borderColor: [
+            'rgba(240, 100, 69, 1)',
+            'rgba(79, 201, 218, 1)'
+        ],
+            borderWidth: 1
                 }]
             };
 
-            const fundChart = new Chart(ctx, {
-                type: 'pie',
-                data: fundData,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const value = context.raw || 0;
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
-                                    return `${value.toFixed(2)} (${percentage}%)`;
-                                }
+        const fundChart = new Chart(ctx, {
+            type: 'pie',
+            data: fundData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                return `${value.toFixed(2)} (${percentage}%)`;
                             }
                         }
                     }
                 }
+            }
+        });
+
+        // Sidebar Toggle
+        const menuToggle = document.querySelector('.menu-toggle');
+        const dashboardContainer = document.querySelector('.dashboard-container');
+
+        if (menuToggle && dashboardContainer) {
+            menuToggle.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dashboardContainer.classList.toggle('sidebar-toggled');
+            });
+        }
+
+        // User Profile Dropdown Toggle
+        const userProfile = document.querySelector('.top-nav .user-profile');
+        const dropdownMenu = userProfile ? userProfile.querySelector('.dropdown-menu') : null;
+
+        if (userProfile && dropdownMenu) {
+            userProfile.addEventListener('click', function (event) {
+                event.stopPropagation(); // Prevent click from bubbling to document
+                dropdownMenu.classList.toggle('show');
             });
 
-            // Sidebar Toggle
-            const menuToggle = document.querySelector('.menu-toggle');
-            const dashboardContainer = document.querySelector('.dashboard-container');
-
-            if (menuToggle && dashboardContainer) {
-                menuToggle.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    dashboardContainer.classList.toggle('sidebar-toggled');
-                });
-            }
-
-            // User Profile Dropdown Toggle
-            const userProfile = document.querySelector('.top-nav .user-profile');
-            const dropdownMenu = userProfile ? userProfile.querySelector('.dropdown-menu') : null;
-
-            if (userProfile && dropdownMenu) {
-                userProfile.addEventListener('click', function (event) {
-                    event.stopPropagation(); // Prevent click from bubbling to document
-                    dropdownMenu.classList.toggle('show');
-                });
-
-                // Close dropdown if clicked outside
-                document.addEventListener('click', function (event) {
-                    if (!userProfile.contains(event.target) && dropdownMenu.classList.contains('show')) {
-                        dropdownMenu.classList.remove('show');
-                    }
-                });
-            }
+            // Close dropdown if clicked outside
+            document.addEventListener('click', function (event) {
+                if (!userProfile.contains(event.target) && dropdownMenu.classList.contains('show')) {
+                    dropdownMenu.classList.remove('show');
+                }
+            });
+        }
         });
     </script>
     <!-- Optional: Font Awesome JS, if not loaded globally or via a base template -->
