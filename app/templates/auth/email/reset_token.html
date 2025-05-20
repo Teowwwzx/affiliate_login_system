@@ -7,12 +7,12 @@
     <div class="col-11 col-sm-9 col-md-7 col-lg-5 col-xl-4">
         <div class="card shadow-lg">
             <div class="card-body p-4 p-md-5">
-                <h2 class="card-title text-center mb-4">Set New Password</h2>
+                <h2 class="card-title mb-4 fw-semibold">Set New Password</h2>
                 
                 {% include '_flash_messages.html' %}
                 
                 <form method="POST" action="">
-                    {{ form.hidden_tag() }}
+                    {{ form.hidden_tag() }} 
                     {{ csrf_token if csrf_token }}
                     
                     <div class="mb-3">
@@ -23,7 +23,7 @@
                                 {{ form.password.errors[0] }}
                             </div>
                         {% else %}
-                            <div class="form-text">Must be at least 8 characters long.</div>
+                            <div class="form-text">Must be at least 4 characters long.</div>
                         {% endif %}
                     </div>
                     
@@ -47,8 +47,8 @@
                 
                 <hr class="my-4">
                 <div class="text-center">
-                    <p class="mb-0">
-                        <a href="{{ url_for('auth.login') }}" style="color: var(--primary-color);">Back to Sign In</a>
+                    <p class="mb-0">Already have an account? <br>
+                        <a href="{{ url_for('auth.login') }}" style="color: var(--primary-color);">Login Here</a>
                     </p>
                 </div>
             </div>

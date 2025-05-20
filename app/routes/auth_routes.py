@@ -102,6 +102,12 @@ def register_member():
             return render_template(
                 "auth/register_member.html", title="Register Member", **form_data
             )
+            
+        if len(password) < 4:
+            flash("Password must be at least 4 characters long.", "danger")
+            return render_template(
+                "auth/register_member.html", title="Register Member", **form_data
+            )
 
         # Server-side validation for referral code
         if not form_data["referral_code"]:
@@ -191,8 +197,8 @@ def change_password():
             flash("New password and confirmation do not match.", "warning")
             return redirect(url_for("auth.change_password"))
 
-        if len(new_password) < 6:
-            flash("Password must be at least 6 characters long.", "warning")
+        if len(new_password) < 4:
+            flash("Password must be at least 4 characters long.", "warning")
             return redirect(url_for("auth.change_password"))
 
         # Verify current password
@@ -227,8 +233,6 @@ def change_password():
 
 
 # --- Password Reset Routes ---
-
-
 @auth_bp.route("/reset_password", methods=["GET", "POST"])
 def request_reset_token():
     if current_user.is_authenticated:
@@ -258,15 +262,11 @@ def request_reset_token():
                     "info",
                 )
             except Exception as e:
-                # Log the exception e for debugging
-                # from flask import current_app
-                # current_app.logger.error(f"Failed to send password reset email to {user.email}: {e}")
                 flash(
                     "There was an issue sending the password reset email. Please try again later.",
                     "danger",
                 )
         else:
-            # Generic message even if user not found, for security.
             flash(
                 "If an account with that email exists, an email has been sent with instructions to reset your password.",
                 "info",
@@ -306,9 +306,6 @@ def reset_token(token):
             return redirect(url_for("auth.login"))
         except Exception as e:
             db.session.rollback()
-            # Log the exception e for debugging
-            # from flask import current_app
-            # current_app.logger.error(f"Failed to update password for user {user.username} after reset: {e}")
             flash(
                 "There was an issue updating your password. Please try again.", "danger"
             )

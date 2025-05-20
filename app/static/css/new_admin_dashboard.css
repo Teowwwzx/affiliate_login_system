@@ -47,11 +47,6 @@ a {
     color: inherit;
 }
 
-.container-fluid {
-    margin: 0;
-    padding: 0;
-}
-
 /* Sidebar Styles */
 .new-admin-sidebar {
     width: 260px;
