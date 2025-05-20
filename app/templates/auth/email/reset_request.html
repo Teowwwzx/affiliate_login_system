@@ -7,7 +7,7 @@
     <div class="col-11 col-sm-9 col-md-7 col-lg-5 col-xl-4">
         <div class="card shadow-lg">
             <div class="card-body p-4 p-md-5">
-                <h2 class="card-title text-center mb-4">Reset Password</h2>
+                <h2 class="card-title mb-4 fw-semibold">Reset Password</h2>
 
                 {% include '_flash_messages.html' %}
 
@@ -24,7 +24,7 @@
                             {{ form.email.errors[0] }}
                         </div>
                         {% endif %}
-                        <div class="form-text">Enter the email address associated with your account.</div>
+                        <div class="form-text mt-2">Enter the email address associated with your account.</div>
                     </div>
 
                     <div class="d-grid">

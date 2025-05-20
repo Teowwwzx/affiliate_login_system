@@ -70,16 +70,13 @@ a {
 .new-admin-sidebar .nav-link.active,
 .new-admin-sidebar .nav-link:hover {
     background-color: #e4e6ef;
-    /* Third color for hover/active background */
     color: #f06445;
-    /* Primary color for text on hover/active */
     border-radius: 8px;
 }
 
 .new-admin-sidebar .nav-link.active i,
 .new-admin-sidebar .nav-link:hover i {
     color: #f06445;
-    /* Primary color for icon on hover/active */
 }
 
 .new-admin-sidebar .btn-primary {
@@ -89,7 +86,6 @@ a {
 
 .new-admin-sidebar .btn-primary:hover {
     background-color: #d95436;
-    /* Darker shade of primary for hover */
     border-color: #d95436;
 }
 
@@ -97,12 +93,10 @@ a {
     padding: 10px 0 20px 5px;
     margin-bottom: 20px;
     text-align: center;
-    /* Center logo if it's an image */
 }
 
 .new-admin-sidebar .logo-section img {
     height: 35px;
-    /* max-width: 100%; Remove if logo is SVG or has fixed aspect */
 }
 
 .new-admin-sidebar .project-selector .form-select {
@@ -111,7 +105,6 @@ a {
 
 .new-admin-sidebar .nav-item .nav-link {
     color: #555;
-    /* Adjust link color for new bg */
     padding: 10px 15px;
     margin-bottom: 5px;
     border-radius: 6px;
@@ -124,19 +117,15 @@ a {
 .new-admin-sidebar .nav-item .nav-link i {
     margin-right: 12px;
     width: 20px;
-    /* Ensure icons align */
     text-align: center;
     font-size: 1.1rem;
     line-height: 1;
-    /* Better vertical alignment for icons */
 }
 
 .new-admin-sidebar .nav-item .nav-link:hover,
 .new-admin-sidebar .nav-item .nav-link.active {
     background-color: #e4e6ef;
-    /* Third color for hover/active background */
     color: #f06445;
-    /* Primary color for text on hover/active */
 }
 
 .new-admin-sidebar .nav-category {
@@ -159,24 +148,17 @@ a {
 
 .new-admin-sidebar .btn-primary:hover {
     background-color: #d95436;
-    /* Darker shade of primary for hover */
     border-color: #d95436;
 }
 
-/* Main Content Area Styles */
 .new-admin-main-content {
     flex-grow: 1;
     padding: 25px 30px;
     background-color: #ffffff;
-    /* Main content area background - could also be f4f7f6 or transparent */
     margin-left: 260px;
-    /* Offset by sidebar width */
     height: 100vh;
     overflow-y: auto;
-    /* Allow main content to scroll */
 }
-
-/* Top Bar Styles */
 .new-admin-top-bar {
     display: flex;
     justify-content: space-between;
@@ -207,7 +189,6 @@ a {
     border: 1px solid #dfe3e8;
     border-radius: 6px;
     padding-left: 35px;
-    /* Space for search icon */
     font-size: 0.9rem;
 }
 
@@ -218,18 +199,13 @@ a {
     transform: translateY(-50%);
     color: #9da5b1;
     pointer-events: none;
-    /* So it doesn't interfere with input click */
 }
 
 .new-admin-top-bar .top-bar-actions .btn-icon {
     color: #5a6372;
     font-size: 1.2rem;
-    /* Slightly smaller icons */
     margin-left: 10px;
-    /* Reduced margin */
     padding: 0.375rem 0.5rem;
-    /* Smaller padding */
-    background: transparent;
     border: none;
 }
 
@@ -242,19 +218,15 @@ a {
     height: 36px;
     border-radius: 50%;
     margin-left: 15px;
-    /* Reduced margin */
     border: 2px solid #e0e0e0;
 }
 
-/* Card Styles */
 .new-admin-card {
     border: none;
     border-radius: 12px;
     background-color: #fdfcfb;
-    /* USER REQUESTED CARD BACKGROUND */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     margin-bottom: 20px;
-    /* Added margin for consistent spacing */
     transition: all 0.3s ease;
 }
 
@@ -289,10 +261,8 @@ a {
     color: #868e96 !important;
 }
 
-/* Button Styles */
 .btn-main-custom {
     background-color: #f06445 !important;
-    /* Primary color */
     color: #fff !important;
     border-color: #f06445 !important;
     padding: 0.5rem 1rem;
@@ -303,15 +273,12 @@ a {
 
 .btn-main-custom:hover {
     background-color: #d95436 !important;
-    /* Darker primary on hover */
     border-color: #d95436 !important;
 }
 
 .btn-outline-main-custom {
     color: #f06445 !important;
-    /* Primary color for text */
     border-color: #f06445 !important;
-    /* Primary color for border */
     padding: 0.5rem 1rem;
     font-weight: 500;
     border-radius: 8px;
@@ -320,11 +287,9 @@ a {
 
 .btn-outline-main-custom:hover {
     background-color: #f06445 !important;
-    /* Primary color for background on hover */
     color: #fff !important;
 }
 
-/* Referral Code Table/List Specific Styles */
 .referral-codes-card .list-group-item {
     border-left: none;
     border-right: none;
@@ -355,44 +320,33 @@ a {
 
 .status-badge.status-active {
     background-color: #4fc9da;
-    /* Secondary color for Active */
 }
 
 .status-badge.status-inactive {
     background-color: #f06445;
-    /* Primary color for Inactive (as it's reddish, implies caution) */
 }
 
 .status-badge.status-pending {
     background-color: #adb5bd;
-    /* Muted/grey for Pending */
     color: #fff;
-    /* White text for better contrast on grey */
 }
-
-/* Top Leaders Card Specific Styles */
 .leader-link {
     color: #333;
-    /* Default link color, can be customized */
     font-weight: 500;
 }
 
 .leader-link:hover {
     color: #f06445;
-    /* Primary color on hover */
 }
 
 .sales-amount {
     font-weight: 600;
 }
 
-/* Make fs-7 available if not in Bootstrap 5.3 */
 .fs-7 {
     font-size: .875rem !important;
-    /* Adjust as needed, bs fs-6 is 1rem, fs-5 is 1.25rem. This is between text-muted and standard small */
 }
 
-/* Specific Card Content Styles */
 .earnings-card .amount {
     font-size: 2rem;
     font-weight: 700;
@@ -416,7 +370,6 @@ a {
 
 .earnings-card .chart-placeholder {
     height: 120px;
-    /* Adjusted height */
     background-color: #f8f9fa;
     display: flex;
     align-items: center;
@@ -444,23 +397,16 @@ a {
 .cta-card {
     color: #ffffff;
     position: relative;
-    /* For pseudo-element overlay if needed */
     background-color: #343a40;
-    /* Dark grey background */
-    /* background: url('...') no-repeat center center; /* Remove or replace if you were using an image */
-    /* background-size: cover; */
 }
 
 .cta-card .card-body {
     position: relative;
-    /* To ensure text is above background image/gradient */
     z-index: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* Center content */
     justify-content: center;
-    /* Center content */
 }
 
 .cta-card .card-title {
@@ -481,10 +427,8 @@ a {
     font-size: 0.9rem;
 }
 
-/* New Brand Action Button Style */
 .btn-brand-action {
     background-color: #ec6341;
-    /* Vibrant Orange-Red */
     color: #ffffff;
     border-color: #ec6341;
     font-weight: 600;
@@ -495,17 +439,13 @@ a {
 .btn-brand-action:hover,
 .btn-brand-action:focus {
     background-color: #d85331;
-    /* Darker shade for hover/focus */
     color: #ffffff;
     border-color: #d85331;
 }
-
-/* Utility classes */
 .fw-semibold {
     font-weight: 600 !important;
 }
 
-/* Make rows behave better with equal height cards */
 .row {
     display: flex;
     flex-wrap: wrap;
@@ -516,7 +456,6 @@ a {
     flex-direction: column;
 }
 
-/* Gradient Text Effect */
 .gradient-text {
     background: var(--rank-color-2);
     -webkit-background-clip: text;
