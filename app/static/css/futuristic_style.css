@@ -641,7 +641,6 @@ a:hover {
         grid-template-areas:
             "top-nav"
             "main";
-        /* padding-top: var(--top-nav-height, 60px); /* Add padding to body/container if top-nav is fixed and opaque */
     }
 
     .top-nav { /* Added for sticky behavior */
@@ -713,7 +712,7 @@ a:hover {
     }
 }
 
-@media (max-width: 768px) { /* For mobile phones */
+@media (max-width: 768px) {
 
     .gradient-text {
         font-size: 1em !important;  /* Make text smaller on small screens */
@@ -747,11 +746,11 @@ a:hover {
     }
 }
 
-@media (max-width: 576px) { 
+/* @media (max-width: 576px) { 
     .top-nav {
         justify-content: space-between;
     }
-}
+} */
 
 .member-icon {
     margin-right: 10px;

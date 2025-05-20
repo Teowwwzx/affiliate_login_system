@@ -11,17 +11,26 @@
     --white-color: #ffffff;
 
     /* Generic Chart Colors - Add as many as you might need */
-    --chart-color-1: #f06445; /* Purple */
-    --chart-color-2: #4fc9da; /* Light Cyan/Aqua */
-    --chart-color-3: #b8d935; /* Bootstrap Warning - Yellow */
-    --chart-color-4: #20c997; /* Bootstrap Teal */
+    --chart-color-1: #f06445;
+    /* Purple */
+    --chart-color-2: #4fc9da;
+    /* Light Cyan/Aqua */
+    --chart-color-3: #b8d935;
+    /* Bootstrap Warning - Yellow */
+    --chart-color-4: #20c997;
+    /* Bootstrap Teal */
 
-    --rank-color-1: linear-gradient(90deg,  #a012d0, #d367ec, #9197f2); /* Legend: Shades of Purple */
-    --rank-color-2: linear-gradient(90deg, #7e5cd0, #4879d3,  #66d3ef); /* Platinium: Shades of Blue/Cyan */
-    --rank-color-3: linear-gradient(90deg, #e29426, #fff289, #e29426); /* Gold: Shades of Gold/Yellow */
-    --rank-color-4: linear-gradient(90deg, #adb5bd, #e9ecef, #bbcbe4); /* Silver: Shades of Silver/Light Grey */
-    --rank-color-5: linear-gradient(90deg, #cd7f32, #d29052, #e0ac79); /* Bronze: Shades of Bronze */
-}   
+    --rank-color-1: linear-gradient(90deg, #a012d0, #d367ec, #9197f2);
+    /* Legend: Shades of Purple */
+    --rank-color-2: linear-gradient(90deg, #7e5cd0, #4879d3, #66d3ef);
+    /* Platinium: Shades of Blue/Cyan */
+    --rank-color-3: linear-gradient(90deg, #e29426, #fff289, #e29426);
+    /* Gold: Shades of Gold/Yellow */
+    --rank-color-4: linear-gradient(90deg, #adb5bd, #e9ecef, #bbcbe4);
+    /* Silver: Shades of Silver/Light Grey */
+    --rank-color-5: linear-gradient(90deg, #cd7f32, #d29052, #e0ac79);
+    /* Bronze: Shades of Bronze */
+}
 
 body {
     font-family: 'Inter', sans-serif;
@@ -60,14 +69,17 @@ a {
 
 .new-admin-sidebar .nav-link.active,
 .new-admin-sidebar .nav-link:hover {
-    background-color: #e4e6ef; /* Third color for hover/active background */
-    color: #f06445; /* Primary color for text on hover/active */
+    background-color: #e4e6ef;
+    /* Third color for hover/active background */
+    color: #f06445;
+    /* Primary color for text on hover/active */
     border-radius: 8px;
 }
 
 .new-admin-sidebar .nav-link.active i,
 .new-admin-sidebar .nav-link:hover i {
-    color: #f06445; /* Primary color for icon on hover/active */
+    color: #f06445;
+    /* Primary color for icon on hover/active */
 }
 
 .new-admin-sidebar .btn-primary {
@@ -76,7 +88,8 @@ a {
 }
 
 .new-admin-sidebar .btn-primary:hover {
-    background-color: #d95436; /* Darker shade of primary for hover */
+    background-color: #d95436;
+    /* Darker shade of primary for hover */
     border-color: #d95436;
 }
 
@@ -512,8 +525,7 @@ a {
     display: inline-block;
 }
 
-/* Responsive adjustments */
-@media (max-width: 991.98px) {
+/* @media (max-width: 991.98px) {
     .new-admin-sidebar {
         transform: translateX(-100%);
     }
@@ -526,7 +538,6 @@ a {
         display: none;
     }
 
-    /* Ensure top bar elements stay in one line */
     .new-admin-top-bar {
         flex-wrap: nowrap;
         align-items: center;
@@ -543,9 +554,9 @@ a {
         margin-top: 0;
         flex-shrink: 0;
     }
-}
+} */
 
-@media (max-width: 767.98px) {
+/* @media (max-width: 767.98px) {
     .new-admin-main-content {
         padding: 15px;
     }
@@ -557,8 +568,8 @@ a {
     }
 
     .new-admin-top-bar .search-form {
-        display: none; /* Hide search on mobile if needed */
-    }
+        display: none;
+     }
 
     .new-admin-top-bar .top-bar-actions {
         width: auto;
@@ -577,7 +588,7 @@ a {
     .cta-card p {
         max-width: 100%;
     }
-}
+} */
 
 .button-custom {
     font-weight: 600;
@@ -585,25 +596,22 @@ a {
     font-size: 0.8rem;
 }
 
-/* Responsive Sidebar Styles */
-@media (max-width: 991.98px) { /* Corresponds to Bootstrap's <lg breakpoint */
+@media (max-width: 991.98px) {
     .new-admin-sidebar {
-        transform: translateX(-100%); /* Hide off-screen by default on mobile */
+        transform: translateX(-100%);
         transition: transform 0.3s ease-in-out;
-        z-index: 1040; /* Ensure sidebar is above other content like the top bar if it were fixed */
+        z-index: 1040;
     }
 
     .new-admin-sidebar.active {
-        transform: translateX(0); /* Show sidebar */
+        transform: translateX(0);
     }
 
     .new-admin-main-content {
-        margin-left: 0; /* Main content takes full width as sidebar will overlay */
-        transition: margin-left 0.3s ease-in-out; /* Smooth transition if sidebar pushed content (not in this overlay case) */
+        margin-left: 0;
+        transition: margin-left 0.3s ease-in-out;
     }
-
-    /* When mobile sidebar is active, prevent body scroll */
-    body.new-admin-dashboard-body.sidebar-mobile-active { /* Target the specific body class if new-admin-dashboard-body is consistently used */
+    body.new-admin-dashboard-body.sidebar-mobile-active {
         overflow-y: hidden;
     }
 
@@ -619,11 +627,11 @@ a {
     /* Styles for the hamburger button icon if needed, though .btn-icon should cover general styling. */
     /* We added an inline style for font-size, which is fine for now. */
     /* #sidebarToggle { */
-        /* any specific positioning or z-index if necessary */
+    /* any specific positioning or z-index if necessary */
     /* } */
 }
 
 /* Optional: Style for the icon inside the toggle button if general .btn-icon i is not specific enough */
 /* #sidebarToggle i { */
-    /* color: #yourPreferedColor; */
+/* color: #yourPreferedColor; */
 /* } */

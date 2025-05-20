@@ -14,27 +14,31 @@
                 <form method="POST" action="{{ url_for('auth.login') }}">
                     {{ csrf_token if csrf_token }} {# Include if you set up CSRF protection #}
 
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label for="email" class="form-label">Email address</label>
                         <input type="email" class="form-control form-control-lg" id="email" name="email" required>
                     </div>
 
-                    <div class="mb-4">
+                    <div class="mb-2">
                         <label for="password" class="form-label">Password</label>
                         <input type="password" class="form-control form-control-lg" id="password" name="password"
                             required>
                     </div>
+                    <div class="mb-4 text-start">
+                        <a href="{{ url_for('auth.request_reset_token') }}" class="text-muted">Forgot Password?</a>
+                    </div>
 
                     <div class=" d-grid">
                         <button type="submit" class="btn btn-lg mt-1"
-                            style="background-color: var(--primary-color); color: var(--white-color);">Login</button>
+                            style="background-color: var(--primary-color); color: var(--white-color);">
+                            Login
+                        </button>
                     </div>
                 </form>
                 <hr class="my-4">
                 <div class="text-center">
-                    <p class="mb-0">Don't have an account?
-                        <a href="{{ url_for('auth.register_member') }}" style="color: var(--primary-color);">Sign Up
-                            Here</a>
+                    <p class="mb-0">Don't have an account? <br>
+                        <a href="{{ url_for('auth.register_member') }}" style="color: var(--primary-color);">Sign Up</a>
                     </p>
                 </div>
             </div>

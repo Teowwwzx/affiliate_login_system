@@ -59,17 +59,7 @@
         <main role="main"
             class="flex-grow-1 p-5 overflow-hidden bg-body-secondary {% if (request.endpoint == 'general.index' and not current_user.is_authenticated) or request.endpoint == 'auth.login' %}w-100{% endif %}">
             {# Flash Messages #}
-            <!-- {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category if category in ['success', 'danger', 'warning', 'info'] else 'secondary' }} alert-dismissible fade show"
-                role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            {% endfor %}
-            {% endif %}
-            {% endwith %} -->
+ 
 
             {# Main Content Block #}
             {% block content %}{% endblock %}

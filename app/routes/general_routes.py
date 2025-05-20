@@ -1,10 +1,9 @@
 from ..database import db
 from datetime import datetime
 from ..database.models import User, Fund
-from ..utils import login_required
+from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
-from flask_login import current_user
 from sqlalchemy import func
 
 general_bp = Blueprint('general', __name__)

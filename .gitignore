@@ -16,3 +16,4 @@ instance/
 *.pyc
 *~
 .DS_Store
+.env
