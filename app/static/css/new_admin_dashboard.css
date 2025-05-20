@@ -556,16 +556,4 @@ a {
         background-color: #ffffff;
         border-radius: 12px;
     }
-
-    /* The hamburger toggle button is handled by d-lg-none for visibility. */
-    /* Styles for the hamburger button icon if needed, though .btn-icon should cover general styling. */
-    /* We added an inline style for font-size, which is fine for now. */
-    /* #sidebarToggle { */
-    /* any specific positioning or z-index if necessary */
-    /* } */
 }
-
-/* Optional: Style for the icon inside the toggle button if general .btn-icon i is not specific enough */
-/* #sidebarToggle i { */
-/* color: #yourPreferedColor; */
-/* } */
