@@ -5,9 +5,10 @@ from app.database.models import User, Fund
 from app import db
 from sqlalchemy import func
 from datetime import datetime
-from .admin_routes import FUND_TYPES  # Import FUND_TYPES from admin_routes
+from .admin_routes import FUND_TYPES
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import current_user
+from flask_login import current_user, login_required
+import json
 
 leader_bp = Blueprint("leader", __name__, url_prefix="/leader")
 
@@ -38,79 +39,74 @@ def leader_dashboard():
         flash("Leader information not found. Please log in again.", "danger")
         return redirect(url_for("auth.login"))
 
-    # Get referral code or 'NA' if not available
-    leader_referral_code = leader.personal_referral_code or 'NA'
-
+    leader_referral_code = leader.personal_referral_code or "NA"
     members = User.query.filter_by(leader_id=leader.id).order_by(User.username).all()
+    downline_count = len(members)
 
-    # Calculate prize pools for all fund types
-    fund_data = {}
-    for fund_type in FUND_TYPES.keys():
-        total = (
-            db.session.query(func.sum(Fund.amount))
-            .filter(Fund.fund_type == fund_type)
-            .scalar()
-            or 0.0
-        )
-        fund_data[fund_type] = total
-
-    # Calculate days since joined
-    days_since_joined = 1  # Default to 1 day for first day
+    days_since_joined = 1
     if leader.created_at:
         days_difference = (datetime.utcnow() - leader.created_at).days
-        days_since_joined = max(1, days_difference)  # Ensure at least 1 day is shown
+        days_since_joined = max(1, days_difference)
 
-    # Get downline count
-    downline_count = len(members)
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    
+    # Query fund entries with pagination
+    funds_query = Fund.query.join(
+        User, Fund.created_by == User.id
+    ).add_columns(
+        Fund.id,
+        Fund.sales,
+        Fund.payout,
+        Fund.net_profit,
+        Fund.fund_type,
+        Fund.remarks,
+        Fund.created_at,
+        User.username.label('creator_username')
+    ).order_by(Fund.created_at.desc())
+
+    funds_pagination = funds_query.paginate(page=page, per_page=per_page, error_out=False)
 
     return render_template(
         "leader/leader_dashboard.html",
         title="Leader Dashboard",
         leader=leader,
         members=members,
-        fund_data=fund_data,  # Pass the fund data dictionary
-        fund_types=FUND_TYPES,  # Pass the FUND_TYPES dictionary
         days_since_joined=days_since_joined,
         downline_count=downline_count,
         leader_referral_code=leader_referral_code,
+        funds_pagination=funds_pagination,
+        fund_types=FUND_TYPES,
     )
 
 
-# Route for a leader to generate a new referral code
-@leader_bp.route("/referral-code/generate", methods=["POST"])
-@leader_required
-def generate_referral_code():
-    leader_id = current_user.id
+# @leader_bp.route("/funds")
+# @login_required
+# @leader_required
+# def list_leader_funds():
+#     page = request.args.get("page", 1, type=int)
+#     per_page = 10 # Or your preferred number of items per page
 
-    new_code = ReferralCode(leader_id=leader_id)
-    # The __init__ method of ReferralCode handles code generation and default status/expiry.
-    # By default, expires_at will be None (no expiry) as per recent model changes.
+#     # Query all funds, similar to admin's list_funds but without edit/delete capabilities
+#     funds_query = Fund.query.join(User, Fund.created_by == User.id).add_columns(
+#         Fund.id,
+#         Fund.sales,
+#         Fund.payout,
+#         Fund.net_profit,
+#         Fund.fund_type,
+#         Fund.remarks,
+#         Fund.created_at,
+#         User.username.label("creator_username")
+#     ).order_by(Fund.created_at.desc())
 
-    db.session.add(new_code)
-    db.session.commit()
+#     funds_pagination = funds_query.paginate(page=page, per_page=per_page, error_out=False)
 
-    flash(f"New referral code {new_code.code} generated successfully!", "success")
-    return redirect(url_for("leader.leader_dashboard"))
-
-
-# Example: Route for a leader to manage their team
-@leader_bp.route("/manage-team")
-@leader_required
-def manage_team():
-    flash("Team management page is under construction.", "info")
-    # Logic for managing team members
-    # return render_template('leader/manage_team.html', title="Manage Team")
-    return redirect(url_for("leader.leader_dashboard"))
-
-
-# Example: Route for a leader to view sales related to them
-@leader_bp.route("/my-sales")
-@leader_required
-def my_sales():
-    flash("Sales records page is under construction.", "info")
-    # Logic for viewing sales records
-    # return render_template('leader/my_sales.html', title="My Sales Records")
-    return redirect(url_for("leader.leader_dashboard"))
+#     return render_template(
+#         "leader/list_funds.html",
+#         title="View Funds",
+#         funds_pagination=funds_pagination,
+#         fund_types=FUND_TYPES
+#     )
 
 
 @leader_bp.route("/my-downlines")
@@ -134,196 +130,5 @@ def my_downlines():
         title="My Downlines",
         downline_members=downline_members,
         search_query=search_query,
-    )  # Pass search_query to template
-
-
-@leader_bp.route("/member/add", methods=["GET", "POST"])
-@leader_required
-def create_member():
-    # This route might be deprecated or changed if all member creation is via referral codes.
-    # For now, keeping it as is, but the UI trigger on leader_dashboard.html will change.
-    leader_id = current_user.id
-    if request.method == "POST":
-        username = request.form.get("username")
-        email = request.form.get("email")
-        password = request.form.get("password")
-
-        if not username or not email or not password:
-            flash("All fields (username, email, password) are required.", "danger")
-            return redirect(url_for("leader.create_member"))
-
-        existing_user = User.query.filter(
-            (User.username == username) | (User.email == email)
-        ).first()
-        if existing_user:
-            flash("Username or email already exists.", "danger")
-            return redirect(url_for("leader.create_member"))
-
-        new_member = User(
-            username=username,
-            email=email,
-            password_hash=generate_password_hash(password),
-            role="member",  # Automatically assign 'member' role
-            status=True,  # Default to 'active'
-            leader_id=leader_id,  # Assign to the current leader
-        )
-        db.session.add(new_member)
-        db.session.commit()
-        flash(f"Member {username} created successfully!", "success")
-        return redirect(url_for("leader.leader_dashboard"))
-
-    return render_template(
-        "leader/create_edit_member.html",
-        title="Add New Member",
-        form_action=url_for("leader.create_member"),
     )
 
-
-@leader_bp.route("/member/<int:user_id>/edit", methods=["GET", "POST"])
-@leader_required
-def edit_member(user_id):
-    member_to_edit = User.query.get_or_404(user_id)
-    # current_leader_id = session.get('user_id')
-    current_leader_id = current_user.id
-
-    # Ensure leader can only edit their own members and not other leaders or admins
-    if member_to_edit.leader_id != current_leader_id or member_to_edit.role != "member":
-        flash(
-            "You do not have permission to edit this user or this user is not your member.",
-            "danger",
-        )
-        return redirect(url_for("leader.leader_dashboard"))
-
-    if request.method == "POST":
-        new_username = request.form.get("username")
-        new_email = request.form.get("email")
-        new_status = (
-            request.form.get("status") == "true"
-        )  # Get status, default to active
-
-        # Check for username/email conflicts excluding the current user
-        username_conflict = User.query.filter(
-            User.username == new_username, User.id != user_id
-        ).first()
-        email_conflict = User.query.filter(
-            User.email == new_email, User.id != user_id
-        ).first()
-
-        if username_conflict:
-            flash("That username is already taken by another user.", "danger")
-        elif email_conflict:
-            flash("That email address is already taken by another user.", "danger")
-        else:
-            member_to_edit.username = new_username
-            member_to_edit.email = new_email
-            member_to_edit.status = new_status
-
-            db.session.commit()
-            flash(f"Member {member_to_edit.username} updated successfully!", "success")
-            return redirect(url_for("leader.leader_dashboard"))
-
-    # For GET request, pre-fill the form
-    return render_template(
-        "leader/create_edit_member.html",
-        title=f"Edit Member: {member_to_edit.username}",
-        user=member_to_edit,
-        form_action=url_for("leader.edit_member", user_id=user_id),
-    )
-
-
-@leader_bp.route("/member/<int:member_id>/reset-password", methods=["GET", "POST"])
-@leader_required
-def reset_member_password(member_id):
-    member_to_reset = User.query.get_or_404(member_id)
-
-    # Authorization: Check if the member is under the current leader and is a 'member'
-    if member_to_reset.leader_id != current_user.id or member_to_reset.role != "member":
-        flash(
-            "You do not have permission to reset the password for this user.", "danger"
-        )
-        return redirect(url_for("leader.my_downlines"))
-
-    if request.method == "POST":
-        new_password = request.form.get("new_password")
-        confirm_new_password = request.form.get("confirm_new_password")
-
-        if not new_password or not confirm_new_password:
-            flash("Both password fields are required.", "warning")
-            return render_template(
-                "leader/reset_member_password.html",
-                title="Reset Member Password",
-                member=member_to_reset,
-            )
-
-        if new_password != confirm_new_password:
-            flash("New passwords do not match.", "warning")
-            return render_template(
-                "leader/reset_member_password.html",
-                title="Reset Member Password",
-                member=member_to_reset,
-            )
-
-        # Basic password complexity (e.g., length) - can be enhanced
-        if len(new_password) < 6:
-            flash("Password must be at least 6 characters long.", "warning")
-            return render_template(
-                "leader/reset_member_password.html",
-                title="Reset Member Password",
-                member=member_to_reset,
-            )
-
-        member_to_reset.password_hash = generate_password_hash(new_password)
-        try:
-            db.session.commit()
-            flash(
-                f"Password for {member_to_reset.username} has been reset successfully.",
-                "success",
-            )
-            # Consider sending an email notification to the member here
-            return redirect(url_for("leader.my_downlines"))
-        except Exception as e:
-            db.session.rollback()
-            flash(
-                f"An error occurred while resetting the password. Please try again.",
-                "danger",
-            )
-            # It's good practice to log the actual error e for debugging
-            # current_app.logger.error(f"Error resetting password for member {member_id} by leader {current_user.id}: {e}")
-            return render_template(
-                "leader/reset_member_password.html",
-                title="Reset Member Password",
-                member=member_to_reset,
-            )
-
-    return render_template(
-        "leader/reset_member_password.html",
-        title="Reset Member Password",
-        member=member_to_reset,
-    )
-
-
-@leader_bp.route(
-    "/member/<int:user_id>/delete", methods=["POST"]
-)  # POST only for deletion
-@leader_required
-def delete_member(user_id):
-    member_to_delete = User.query.get_or_404(user_id)
-    # current_leader_id = session.get('user_id')
-    current_leader_id = current_user.id
-
-    if (
-        member_to_delete.leader_id != current_leader_id
-        or member_to_delete.role != "member"
-    ):
-        flash(
-            "You do not have permission to delete this user or this user is not your member.",
-            "danger",
-        )
-        return redirect(url_for("leader.leader_dashboard"))
-
-    # Option 2: Actual Delete (use with caution)
-    db.session.delete(member_to_delete)
-    flash(f"Member {member_to_delete.username} has been deleted.", "success")
-
-    db.session.commit()
-    return redirect(url_for("leader.leader_dashboard"))

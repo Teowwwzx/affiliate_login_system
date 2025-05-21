@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField
-from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, DecimalField, SelectField, TextAreaField
+from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError, NumberRange, Optional
 from .database.models.user import User  # Assuming User model is here
 
 
@@ -32,3 +32,27 @@ class ResetPasswordForm(FlaskForm):
         ],
     )
     submit = SubmitField("Reset Password")
+
+
+class FundForm(FlaskForm):
+    # Remove the amount field, it will be calculated
+    fund_type = SelectField('Fund Type', validators=[DataRequired()])
+    
+    sales = DecimalField('Sales', validators=[
+        DataRequired(message='Sales amount is required'),
+        NumberRange(min=0, message='Sales must be positive or zero')
+    ], default=0.0)
+    
+    payout = DecimalField('Payout', validators=[
+        DataRequired(message='Payout amount is required'),
+        NumberRange(min=0, message='Payout must be positive or zero')
+    ], default=0.0)
+    
+    remarks = TextAreaField('Remarks (Optional)', validators=[Optional()])
+    
+    submit = SubmitField('Save')
+
+    def __init__(self, *args, **kwargs):
+        from .routes.admin_routes import FUND_TYPES
+        super(FundForm, self).__init__(*args, **kwargs)
+        self.fund_type.choices = [(k, v) for k, v in FUND_TYPES.items()]

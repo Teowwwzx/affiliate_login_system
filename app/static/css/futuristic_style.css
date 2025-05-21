@@ -96,10 +96,6 @@ a:hover {
     color: var(--accent-color);
     font-weight: 700;
 }
-.top-nav .logo .hud-h {
-    color: var(--text-secondary);
-}
-
 .top-nav .search-bar-form {
     display: flex;
     align-items: center;
@@ -631,7 +627,7 @@ a:hover {
     font-size: 1.5rem;
     color: var(--text-color, #E0E1DD);
     cursor: pointer;
-    padding: 0 15px;
+    /* padding: 0 15px; */
 }
 
 @media (max-width: 992px) { /* For tablets and smaller */
@@ -657,9 +653,7 @@ a:hover {
         font-size: 1.5rem;
         color: var(--accent-color, #4ECDC4);
         cursor: pointer;
-        padding: 0 15px;
         flex-shrink: 0; /* Prevent shrinking */
-        width: 40px; /* Fixed width */
         height: 40px; /* Fixed height */
     }
 
@@ -698,7 +692,6 @@ a:hover {
         font-size: 1.5rem;
         color: var(--text-color, #E0E1DD);
         cursor: pointer;
-        padding: 0 15px;
     }
 
     .top-nav .logo {
@@ -719,7 +712,7 @@ a:hover {
     }
     
     .top-nav {
-        padding: 10px 15px; /* Consistent padding */
+        padding: 10px 20px; /* Consistent padding */
     }
     
     .top-nav .nav-icons .user-profile span {
@@ -732,6 +725,7 @@ a:hover {
     }
 
     .widget {
+        width: 100%;
         padding: 15px;
     }
     
@@ -745,12 +739,7 @@ a:hover {
         font-size: 0.9rem;
     }
 }
-
-/* @media (max-width: 576px) { 
-    .top-nav {
-        justify-content: space-between;
-    }
-} */
+ 
 
 .member-icon {
     margin-right: 10px;

@@ -38,11 +38,11 @@
             <div class="card border-left-info shadow h-100">
                 <div class="card-body">
                     <h5 class="card-title"><strong>Dynamic Prize Pool</strong></h5>
-                    <p class="card-text h1"><strong>${{ "%.2f"|format(stats.dynamic_prize_pool_total) if stats and
-                            stats.dynamic_prize_pool_total is not none else 'N/A' }}</strong></p>
+                    <p class="card-text h1"><strong>${{ "%.2f"|format(stats.total_net_profit) if stats and
+                            stats.total_net_profit is not none else 'N/A' }}</strong></p>
                 </div>
                 <div class="card-footer text-muted">
-                    <a href="{{ url_for('admin.manage_funds', fund_type='dynamic_prize_pool') }}"
+                    <a href="{{ url_for('admin.manage_funds', fund_type='') }}"
                         class="text-decoration-none">
                         View Details
                         <i class="fas fa-arrow-circle-right"></i></a>
@@ -54,11 +54,11 @@
             <div class="card border-left-success shadow h-100">
                 <div class="card-body">
                     <h5 class="card-title"><strong>Static Prize Pool</strong></h5>
-                    <p class="card-text h1"><strong>${{ "%.2f"|format(stats.static_prize_pool_total) if stats and
+                    <p class="card-text h1"><strong>${{ "%.2f"|format(stats.total_net_profit) if stats and
                             stats.static_prize_pool_total is not none else 'N/A' }}</strong></p>
                 </div>
                 <div class="card-footer text-muted">
-                    <a href="{{ url_for('admin.manage_funds', fund_type='static_prize_pool') }}"
+                    <a href="{{ url_for('admin.manage_funds', fund_type='') }}"
                         class="text-decoration-none">
                         View Details
                         <i class="fas fa-arrow-circle-right"></i></a>
@@ -78,7 +78,6 @@
                         <small class="text-muted fs-6 ms-2">(Value Price per Member: ${{
                             stats.current_value_price}})</small>
                     </h4>
-                    <!-- <button id="sortOrderToggle" class="btn btn-sm btn-outline-secondary">Sort: Low to High</button> -->
                 </div>
                 <div class="card-body" id="salesLeaderboardTop3">
                     <!-- Top 3 leaders will be dynamically inserted here by JavaScript -->
@@ -92,61 +91,79 @@
         </div>
     </div>
 
+    <!-- Company Winloss Card -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Company Winloss</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Type</th>
+                            <th class="text-end">Sales</th>
+                            <th class="text-end">Payout</th>
+                            <th class="text-end">Net Profit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fund_type, display_name in fund_types.items() %}
+                            {% set fund = funds|selectattr('fund_type', 'equalto', fund_type)|first %}
+                            <tr>
+                                <td>{{ display_name }}</td>
+                                <td class="text-end">${{ "%.2f"|format(fund.sales if fund and fund.sales is not none else 0.0) }}</td>
+                                <td class="text-end">${{ "%.2f"|format(fund.payout if fund and fund.payout is not none else 0.0) }}</td>
+                                <td class="text-end">${{ "%.2f"|format((fund.sales - fund.payout) if fund and fund.sales is not none and fund.payout is not none else 0.0) }}</td>
+                            </tr>
+                        {% endfor %}
+                        <!-- Total Row -->
+                        <tr class="table-active fw-bold">
+                            <td>Total</td>
+                            <td class="text-end">${{ "%.2f"|format(funds|sum(attribute='sales') or 0.0) }}</td>
+                            <td class="text-end">${{ "%.2f"|format(funds|sum(attribute='payout') or 0.0) }}</td>
+                            <td class="text-end">${{ "%.2f"|format((funds|sum(attribute='sales') - funds|sum(attribute='payout')) or 0.0) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const leadersData = {{ stats.leaders_for_sales_calc | tojson
-    }};
-    const currentValuePrice = parseFloat("{{ stats.current_value_price }}") || 0; // Get fixed value price
+        const leadersData = {{ stats.leaders_for_sales_calc | tojson }};
+        const currentValuePrice = parseFloat("{{ stats.current_value_price }}") || 0;
 
-    const top3Div = document.getElementById('salesLeaderboardTop3');
-    const sortOrderToggleButton = document.getElementById('sortOrderToggle');
+        const top3Div = document.getElementById('salesLeaderboardTop3');
 
-    let sortAscending = false; // false = High to Low, true = Low to High
-
-    function calculateAndRenderLeaderboard() {
-        if (!leadersData || leadersData.length === 0) {
-            top3Div.innerHTML = '<p class="text-muted text-center">No leader data available.</p>';
-            return;
-        }
-
-        const calculatedSales = leadersData.map(leader => ({
-            ...leader,
-            total_sales: leader.member_count * currentValuePrice // Use fixed value price
-        }));
-
-        // Sort based on sortAscending flag
-        calculatedSales.sort((a, b) => {
-            if (sortAscending) {
-                return a.total_sales - b.total_sales; // Low to High
-            } else {
-                return b.total_sales - a.total_sales; // High to Low
+        function renderLeaderboard() {
+            if (!leadersData || leadersData.length === 0) {
+                top3Div.innerHTML = '<p class="text-muted text-center">No leader data available.</p>';
+                return;
             }
-        });
 
-        renderLeaderboard(calculatedSales);
-        updateSortButtonText();
-    }
+            // Calculate sales and sort high to low
+            const calculatedSales = leadersData.map(leader => ({
+                ...leader,
+                total_sales: leader.member_count * currentValuePrice
+            })).sort((a, b) => b.total_sales - a.total_sales);
 
-    function renderLeaderboard(sortedLeaders) {
-        top3Div.innerHTML = ''; // Clear previous entries
+            // Render Top 3 with special styling
+            top3Div.innerHTML = '';
+            calculatedSales.slice(0, 3).forEach((leader, index) => {
+                const medalIcon = index === 0 ? 'fas fa-medal text-warning me-2' :
+                                index === 1 ? 'fas fa-medal text-silver me-2' :
+                                'fas fa-medal text-bronze me-2';
 
-        const top3 = sortedLeaders.slice(0, 3); // Show only top 3
-
-        // Render Top 3 with special styling
-        top3.forEach((leader, index) => {
-            const medalIcon = index === 0 ? 'fas fa-medal text-warning me-2' :
-                index === 1 ? 'fas fa-medal text-silver me-2' :
-                    index === 2 ? 'fas fa-medal text-bronze me-2' : '';
-
-            // Ensure icon is outside the main text flow for sales number alignment
-            const leaderCard = `
+                const leaderCard = `
                     <div class="card mb-2 shadow-sm leader-card-top3">
                         <div class="card-body d-flex justify-content-between align-items-center">
                             <div>
                                 <h5 class="card-title mb-0">
-                                    ${medalIcon ? `<i class="${medalIcon}"></i>` : ''}
+                                    <i class="${medalIcon}"></i>
                                     <a href="/admin/users/edit/${leader.id}" class="text-decoration-none">${leader.username}</a>
                                 </h5>
                                 <small class="text-muted">Members: ${leader.member_count}</small>
@@ -154,25 +171,12 @@
                             <span class="h5 mb-0 text-success">$${leader.total_sales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
                     </div>`;
-            top3Div.innerHTML += leaderCard;
-        });
-    }
-
-    function updateSortButtonText() {
-        if (sortAscending) {
-            sortOrderToggleButton.textContent = 'Sort: High to Low';
-        } else {
-            sortOrderToggleButton.textContent = 'Sort: Low to High';
+                top3Div.innerHTML += leaderCard;
+            });
         }
-    }
 
-    sortOrderToggleButton.addEventListener('click', function () {
-        sortAscending = !sortAscending;
-        calculateAndRenderLeaderboard();
-    });
-
-    // Initial calculation and render
-    calculateAndRenderLeaderboard();
+        // Initial render
+        renderLeaderboard();
     });
 </script>
 

@@ -84,6 +84,7 @@
                     <th>Email</th>
                     <th>Role</th>
                     <th>Status</th>
+                    <th>Referral Code</th>
                     <th>Leader</th>
                     <th>Created At</th>
                     <th>Actions</th>
@@ -114,6 +115,13 @@
                         <span class="badge" style="background-color: var(--success-color); color: white;">Active</span>
                         {% else %}
                         <span class="badge" style="background-color: var(--danger-color); color: white;">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.personal_referral_code %}
+                            <span class="badge bg-secondary">{{ user.personal_referral_code }}</span>
+                        {% else %}
+                            <span class="text-muted">N/A</span>
                         {% endif %}
                     </td>
                     <td>{{ user.leader.username if user.leader else 'N/A' }}</td>

@@ -41,10 +41,11 @@
             </div>
             <div class="card-body">
                 <div class="d-flex align-items-center mb-2">
-                    <span class="amount me-2 display-5 fw-bold">${{ "%.2f"|format(stats.total_available_funds) if stats
-                        and stats.total_available_funds is not none else '0.00' }}</span>
+                    <span class="amount me-2 display-5 fw-bold">
+                        ${{ "%.2f"|format(stats.total_net_profit) if stats and stats.total_net_profit is not none else '0.00' }}
+                    </span>
                 </div>
-                <h6 class="text-muted mb-3">Total Available Funds</h6>
+                <h6 class="text-muted mb-3">Total Net Profit</h6>
                 <div class="row align-items-center">
                     <div class="col-md-5 p-0">
                         <div class="mb-3 mx-auto" style="height: 180px; width: 180px; position: relative;">
@@ -53,18 +54,18 @@
                     </div>
                     <div class="col-md-7">
                         <div class="legend">
+                            {% for fund_type, fund_data in stats.funds_summary.items() %}
+
                             <div class="legend-item d-flex justify-content-between align-items-center mb-2">
-                                <span><span class="legend-color-box me-2"
-                                        ></span>Insurance Bucket Sale</span>
-                                <span class="fw-semibold">${{ "%.2f"|format(stats.insurance_bucket_sale_total) if stats and
-                                    stats.insurance_bucket_sale_total is not none else 'N/A' }}</span>
+                                <span>
+                                    <span class="legend-color-box me-2" style="background-color: {{ loop.cycle('#4e73df', '#1cc88a', '#36b9cc') }}"></span>
+                                    {{ fund_data.display_name }}
+                                </span>
+                                <span class="fw-semibold">
+                                    ${{ "%.2f"|format(fund_data.net_profit) if fund_data.net_profit is not none else '0.00' }}
+                                </span>
                             </div>
-                            <div class="legend-item d-flex justify-content-between align-items-center mb-2">
-                                <span><span class="legend-color-box me-2"
-                                        ></span>Robot Ai Bucket Sale</span>
-                                <span class="fw-semibold">${{ "%.2f"|format(stats.robot_ai_bucket_sale_total) if stats and
-                                    stats.robot_ai_bucket_sale_total is not none else 'N/A' }}</span>
-                            </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
@@ -102,11 +103,12 @@
             <div class="card-body p-0 flex-grow-1" style="overflow-y: auto; max-height: 340px;">
                 <ul class="list-group list-group-flush referral-code-list-dashboard" id="referralCodeList">
                     {% if referral_codes_users %}
-                    {% for user_code_entry_debug in referral_codes_users[:5] %}  {# Changed variable name for test #}
+                    {% for user_code_entry_debug in referral_codes_users[:5] %} {# Changed variable name for test #}
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <div>
                             <strong class="code">{{ user_code_entry_debug.personal_referral_code }}</strong>
-                            <small class="text-muted d-block">{{ user_code_entry_debug.username }} ({{ user_code_entry_debug.email
+                            <small class="text-muted d-block">{{ user_code_entry_debug.username }} ({{
+                                user_code_entry_debug.email
                                 if user_code_entry_debug.email else 'N/A' }})</small>
                         </div>
                         <div>
@@ -116,11 +118,12 @@
                             <span class="status-badge status-inactive">Inactive</span>
                             {% endif %}
                             <small class="text-muted d-block text-end">{{
-                                user_code_entry_debug.created_at.strftime('%Y-%m-%d') if user_code_entry_debug.created_at else 'N/A'
+                                user_code_entry_debug.created_at.strftime('%Y-%m-%d') if
+                                user_code_entry_debug.created_at else 'N/A'
                                 }}</small>
                         </div>
-                        </li>
-                        {% endfor %}
+                    </li>
+                    {% endfor %}
                     {% else %}
                     <li class="list-group-item text-center text-muted">No referral codes found.</li>
                     {% endif %}
@@ -134,8 +137,9 @@
 {% block page_scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // Leaderboard code remains the same
         const leadersData = {{ stats.leaders_for_sales_calc | tojson | safe if stats and stats.leaders_for_sales_calc else '[]' }};
-        let sortAscending = false; // false for High to Low, true for Low to High
+        let sortAscending = false;
         const valuePerMember = {{ stats.current_value_price if stats and stats.current_value_price is not none else 0 }};
         const sortOrderToggleButton = document.getElementById('sortOrderToggle');
 
@@ -146,14 +150,14 @@
             }).sort((a, b) => {
                 return sortAscending ? a.sales - b.sales : b.sales - a.sales;
             });
-            renderLeaderboard(sortedLeaders.slice(0, 5)); // Display top 5
+            renderLeaderboard(sortedLeaders.slice(0, 5));
             updateSortButtonText();
         }
 
         function renderLeaderboard(sortedLeaders) {
             const leaderboardList = document.getElementById('salesLeaderboardTop3');
             if (!leaderboardList) return;
-            leaderboardList.innerHTML = ''; // Clear existing items
+            leaderboardList.innerHTML = '';
 
             if (sortedLeaders.length === 0) {
                 leaderboardList.innerHTML = '<li class="list-group-item text-center text-muted">No leader data available.</li>';
@@ -172,15 +176,10 @@
                 const listItem = document.createElement('li');
                 listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
 
-                let iconHtml = '';
-                if (index < icons.length) { // Use icons from the array for top 5
-                    iconHtml = icons[index];
-                } else {
-                    // Fallback for ranks beyond what we have icons for (shouldn't be hit for top 5)
-                    iconHtml = `<span class="leader-rank me-2">${index + 1}</span>`;
-                }
+                const iconHtml = index < icons.length ? icons[index] : 
+                    `<span class="leader-rank me-2">${index + 1}</span>`;
 
-                const leaderInfoHtml = `
+                listItem.innerHTML = `
                     <div class="leader-info d-flex align-items-center">
                         ${iconHtml}
                         <div>
@@ -188,10 +187,8 @@
                             <small class="text-muted d-block">${leader.member_count} members</small>
                         </div>
                     </div>
+                    <span class="sales-amount fw-semibold text-success">$${(leader.sales || 0).toFixed(2)}</span>
                 `;
-                const salesAmountHtml = `<span class="sales-amount fw-semibold text-success">$${leader.sales.toFixed(2)}</span>`;
-
-                listItem.innerHTML = `${leaderInfoHtml}${salesAmountHtml}`;
                 leaderboardList.appendChild(listItem);
             });
         }
@@ -215,53 +212,72 @@
         // Prize Pool Chart
         const prizePoolCtx = document.getElementById('prizePoolChart');
         if (prizePoolCtx) {
-            const insuranceBucketSaleTotal = {{ stats.insurance_bucket_sale_total or 0 }};
-            const robotAiBucketSaleTotal = {{ stats.robot_ai_bucket_sale_total or 0 }};
+            // Get funds data from the template context
+            const fundsData = {{ stats.funds_summary | tojson | safe if stats and stats.funds_summary else '{}' }};
+            const chartData = {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    backgroundColor: [],
+                    borderWidth: 1
+                }]
+            };
 
-            // Ensure legend color boxes have styles if not done in CSS
-            document.querySelectorAll('.legend-color-box').forEach((box, index) => {
-                const colors = ['#007bff', '#ffc107', '#28a745']; // Blue, Yellow, Green
-                if (!box.style.backgroundColor) { // Apply if not already set by inline style in HTML
-                    box.style.backgroundColor = colors[index];
-                }
+            // Add each fund type to the chart data
+            Object.entries(fundsData).forEach(([fundType, data], index) => {
+                chartData.labels.push(data.display_name || fundType);
+                chartData.datasets[0].data.push(parseFloat(data.net_profit) || 0);
+                
+                // Use a color rotation for different fund types
+                const colors = [
+                    'rgba(78, 115, 223, 0.8)',
+                    'rgba(28, 200, 138, 0.8)',
+                    'rgba(54, 185, 204, 0.8)',
+                    'rgba(246, 194, 62, 0.8)',
+                    'rgba(231, 74, 59, 0.8)'
+                ];
+                chartData.datasets[0].backgroundColor.push(colors[index % colors.length]);
             });
 
-            new Chart(prizePoolCtx, {
-                type: 'doughnut', // or 'pie'
-                data: {
-                    labels: ['Insurance Bucket Sale', 'Robot Ai Bucket Sale'],
-                    datasets: [{
-                        label: 'Prize Pool Distribution',
-                        data: [insuranceBucketSaleTotal, robotAiBucketSaleTotal],
-                        backgroundColor: [
-                            getComputedStyle(document.documentElement).getPropertyValue('--chart-color-1').trim(),
-                            getComputedStyle(document.documentElement).getPropertyValue('--chart-color-2').trim(),
-                        ],
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false // Set to false since we have a custom HTML legend
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function (context) {
-                                    let label = context.label || '';
-                                    if (label) {
-                                        label += ': ';
+            // Only create chart if we have data
+            if (chartData.labels.length > 0) {
+                new Chart(prizePoolCtx, {
+                    type: 'doughnut',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '65%',
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.raw || 0;
+                                        return `${label}: $${value.toLocaleString('en-US', { 
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2 
+                                        })}`;
                                     }
-                                    if (context.parsed !== null) {
-                                        label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed);
-                                    }
-                                    return label;
                                 }
                             }
                         }
-                    },
-                    cutout: '60%' // For doughnut chart
+                    }
+                });
+            }
+
+            // Update legend colors
+            document.querySelectorAll('.legend-color-box').forEach((box, index) => {
+                if (!box.style.backgroundColor) {
+                    const colors = [
+                        'rgba(78, 115, 223, 1)',
+                        'rgba(28, 200, 138, 1)',
+                        'rgba(54, 185, 204, 1)'
+                    ];
+                    box.style.backgroundColor = colors[index % colors.length];
                 }
             });
         }

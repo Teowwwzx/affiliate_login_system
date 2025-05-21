@@ -27,16 +27,19 @@
 
     <form method="POST" action="{{ action_url }}" class="mt-5">
         {{ csrf_token_form_field() if 'csrf_token_form_field' in globals else '' }}
-        <div class="mb-3">
+        <!-- <div class="mb-3">
             <label for="amount" class="form-label">Amount</label>
-            <input type="number"
-                class="form-control {% if form_errors and 'amount' in form_errors %}is-invalid{% endif %}" id="amount"
-                name="amount" step="0.01" min="0.01" required
-                value="{{ fund.amount if fund and fund.amount is not none else fund_data.amount if fund_data and fund_data.amount is not none else '' }}">
+            <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number"
+                    class="form-control {% if form_errors and 'amount' in form_errors %}is-invalid{% endif %}" id="amount"
+                    name="amount" step="0.01" min="0.01" required
+                    value="{{ fund.amount if fund and fund.amount is not none else fund_data.amount if fund_data and fund_data.amount is not none else '' }}">
+            </div>
             {% if form_errors and 'amount' in form_errors %}
             <div class="invalid-feedback">{{ form_errors['amount'] }}</div>
             {% endif %}
-        </div>
+        </div> -->
 
         <div class="mb-3">
             <label for="fund_type" class="form-label">Fund Type</label>
@@ -53,6 +56,34 @@
             </select>
             {% if form_errors and 'fund_type' in form_errors %}
             <div class="invalid-feedback">{{ form_errors['fund_type'] }}</div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="sales" class="form-label">Sales</label>
+            <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number"
+                    class="form-control {% if form_errors and 'sales' in form_errors %}is-invalid{% endif %}" id="sales"
+                    name="sales" step="0.01" min="0" required
+                    value="{{ fund.sales if fund and fund.sales is not none else (fund_data.sales if fund_data and fund_data.sales is not none else '0.00') }}">
+            </div>
+            {% if form_errors and 'sales' in form_errors %}
+            <div class="invalid-feedback">{{ form_errors['sales'] }}</div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="payout" class="form-label">Payout</label>
+            <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number"
+                    class="form-control {% if form_errors and 'payout' in form_errors %}is-invalid{% endif %}"
+                    id="payout" name="payout" step="0.01" min="0" required
+                    value="{{ fund.payout if fund and fund.payout is not none else (fund_data.payout if fund_data and fund_data.payout is not none else '0.00') }}">
+            </div>
+            {% if form_errors and 'payout' in form_errors %}
+            <div class="invalid-feedback">{{ form_errors['payout'] }}</div>
             {% endif %}
         </div>
 

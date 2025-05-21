@@ -67,6 +67,3 @@ def change_password():
     # Redirect to the central change_password route in auth_routes.py
     # This maintains backward compatibility for any existing links
     return redirect(url_for("auth.change_password"))
-
-
-# Add other member-specific routes if any, e.g., viewing personal sales, profile details

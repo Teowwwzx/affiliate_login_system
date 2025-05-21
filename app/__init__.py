@@ -13,6 +13,7 @@ from .routes.leader_routes import leader_bp
 from .routes.member_routes import member_bp
 import click    
 from .database.models import User 
+from .utils import register_filters
 
 load_dotenv()  # Ensure this is called to load .env variables
 
@@ -134,6 +135,9 @@ def create_app(test_config=None):
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(leader_bp, url_prefix='/leader')
     app.register_blueprint(member_bp, url_prefix='/member')
+
+    # --- Register filters ---
+    register_filters(app)
 
     # --- Setup Logging ---
     logging.basicConfig(level=logging.DEBUG)

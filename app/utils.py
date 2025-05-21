@@ -45,6 +45,17 @@ def role_required(role_name):
 admin_required = role_required('admin')
 leader_required = role_required('leader')
 
+def format_currency(amount):
+    """Format a number as currency with 2 decimal places and thousand separators"""
+    try:
+        return "${:,.2f}".format(float(amount))
+    except (ValueError, TypeError):
+        return str(amount)  # Return as-is if not a valid number
+
+# This is the function that will be called by Flask to register filters
+def register_filters(app):
+    app.jinja_env.filters['format_currency'] = format_currency
+
 def send_email(to: str, subject: str, html_content: str):
     """
     Sends an email using the Resend API.
