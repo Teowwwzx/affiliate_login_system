@@ -14,11 +14,14 @@ from .routes.member_routes import member_bp
 import click    
 from .database.models import User 
 from .utils import register_filters
+from .utils.fund_utils import generate_summary_for_previous_month # Import the function
+from flask_apscheduler import APScheduler # Import APScheduler
 
 load_dotenv()  # Ensure this is called to load .env variables
 
 migrate = Migrate()
 login_manager = LoginManager()
+scheduler = APScheduler() # Initialize scheduler
 
 def create_app(test_config=None):
     """Create and configure an instance of the Flask application."""
@@ -149,6 +152,19 @@ def create_app(test_config=None):
     def shutdown_session(exception=None):
         db.session.remove()
 
+    # --- Initialize Scheduler --- 
+    if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true': # Avoid running scheduler twice in debug mode
+        scheduler.init_app(app)
+        scheduler.start()
+
+        # Ensure the job runs within the app context
+        @scheduler.task('cron', id='generate_monthly_summary_job', day='last', hour=23, minute=55) # Run on the last day of the month at 23:55
+        def scheduled_generate_summary():
+            with app.app_context():
+                app.logger.info("Scheduler: Running generate_summary_for_previous_month...")
+                generate_summary_for_previous_month()
+                app.logger.info("Scheduler: Finished generate_summary_for_previous_month.")
+
     # --- CLI commands ---
     @app.cli.command("init-db")
     @click.option(
@@ -164,5 +180,36 @@ def create_app(test_config=None):
                 from .database.seeders import seed_all
                 seed_all()
                 click.echo("Database seeded.")
+
+    @app.cli.command("generate-fund-summary")
+    @click.option("--year", type=int, help="Year for the summary (e.g., 2023).")
+    @click.option("--month", type=int, help="Month for the summary (1-12).")
+    @click.option("--previous-month", is_flag=True, help="Generate for the previous month.")
+    def generate_fund_summary_command(year, month, previous_month):
+        """Generates a monthly fund summary."""
+        from .utils.fund_utils import generate_monthly_fund_summary, generate_summary_for_previous_month
+        
+        with app.app_context(): # Ensure app context is available
+            if previous_month:
+                if year or month:
+                    click.echo("Error: Cannot use --year/--month with --previous-month.")
+                    return
+                click.echo("Generating fund summary for the previous month...")
+                success = generate_summary_for_previous_month()
+            elif year and month:
+                if not (1 <= month <= 12):
+                    click.echo("Error: Month must be between 1 and 12.")
+                    return
+                click.echo(f"Generating fund summary for {year}-{month:02d}...")
+                success = generate_monthly_fund_summary(year, month)
+            else:
+                click.echo("Usage: flask generate-fund-summary --year YYYY --month MM")
+                click.echo("   or: flask generate-fund-summary --previous-month")
+                return
+
+            if success:
+                click.echo("Fund summary generation completed successfully.")
+            else:
+                click.echo("Fund summary generation failed or summary already exists. Check logs.")
 
     return app

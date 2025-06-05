@@ -66,6 +66,24 @@ def leader_dashboard():
     ).order_by(Fund.created_at.desc())
 
     funds_pagination = funds_query.paginate(page=page, per_page=per_page, error_out=False)
+    
+    # Calculate totals for all funds (not just the current page)
+    total_result = db.session.query(
+        func.coalesce(func.sum(Fund.sales), 0).label('total_sales'),
+        func.coalesce(func.sum(Fund.payout), 0).label('total_payout')
+    ).first()
+    
+    total_sales = float(total_result[0]) if total_result[0] is not None else 0.0
+    total_payout = float(total_result[1]) if total_result[1] is not None else 0.0
+    total_sales_and_payout = total_sales + total_payout
+    total_net_profit = (total_sales_and_payout * 0.30) / 50  # Using the same formula as admin
+    
+    funds_stats = {
+        'total_sales': total_sales,
+        'total_payout': total_payout,
+        'total_sales_and_payout': total_sales_and_payout,
+        'total_net_profit': total_net_profit
+    }
 
     return render_template(
         "leader/leader_dashboard.html",
@@ -77,37 +95,8 @@ def leader_dashboard():
         leader_referral_code=leader_referral_code,
         funds_pagination=funds_pagination,
         fund_types=FUND_TYPES,
+        funds_stats=funds_stats,
     )
-
-
-# @leader_bp.route("/funds")
-# @login_required
-# @leader_required
-# def list_leader_funds():
-#     page = request.args.get("page", 1, type=int)
-#     per_page = 10 # Or your preferred number of items per page
-
-#     # Query all funds, similar to admin's list_funds but without edit/delete capabilities
-#     funds_query = Fund.query.join(User, Fund.created_by == User.id).add_columns(
-#         Fund.id,
-#         Fund.sales,
-#         Fund.payout,
-#         Fund.net_profit,
-#         Fund.fund_type,
-#         Fund.remarks,
-#         Fund.created_at,
-#         User.username.label("creator_username")
-#     ).order_by(Fund.created_at.desc())
-
-#     funds_pagination = funds_query.paginate(page=page, per_page=per_page, error_out=False)
-
-#     return render_template(
-#         "leader/list_funds.html",
-#         title="View Funds",
-#         funds_pagination=funds_pagination,
-#         fund_types=FUND_TYPES
-#     )
-
 
 @leader_bp.route("/my-downlines")
 @leader_required

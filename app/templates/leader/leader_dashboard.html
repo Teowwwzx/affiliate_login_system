@@ -131,6 +131,19 @@
                                             'N/A' }}</td>
                                     </tr>
                                     {% endfor %}
+                                    <!-- Totals Row -->
+                                    <tr class="table-active">
+                                        <td><small class="text-muted">Total</small><br><strong>Net Profit</strong></td>
+                                        <td class="text-end">{{ "%.2f"|format(funds_stats.total_sales if funds_stats else 0) }}</td>
+                                        <td class="text-end">{{ "%.2f"|format(funds_stats.total_payout if funds_stats else 0) }}</td>
+                                        <td class="text-end">
+                                            <div>{{ "%.2f"|format(funds_stats.total_sales_and_payout if funds_stats else 0) }}</div>
+                                            <div class="fw-bold {{ 'text-success' if (funds_stats.total_net_profit if funds_stats else 0) >= 0 else 'text-danger' }}">
+                                                {{ "%.2f"|format(funds_stats.total_net_profit if funds_stats else 0) }}
+                                            </div>
+                                        </td>
+                                        <td colspan="2"></td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>

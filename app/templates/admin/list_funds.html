@@ -23,7 +23,7 @@
                     <th>Fund Type</th>
                     <th class="text-end">Sales ($)</th>
                     <th class="text-end">Payout ($)</th>
-                    <th class="text-end">Net Profit ($)</th>
+                    <th class="text-end">Profit ($)</th>
                     <th>Remarks</th>
                     <th>Created By</th>
                     <th>Created At</th>
@@ -44,24 +44,26 @@
                     <td>{{ creator_username }}</td>
                     <td>{{ fund_entry.created_at | datetime_custom if fund_entry.created_at else 'N/A' }}</td>
                     <td class="d-flex gap-1">
-                        <a href="{{ url_for('admin.edit_fund', fund_id=fund_entry.id) }}"
-                            class="btn" style="background-color: var(--info-color); color: white;" title="Edit">Edit
+                        <a href="{{ url_for('admin.edit_fund', fund_id=fund_entry.id) }}" class="btn"
+                            style="background-color: var(--info-color); color: white;" title="Edit">Edit
                         </a>
-                        <a href="{{ url_for('admin.delete_fund', fund_id=fund_entry.id) }}"
-                            class="btn" style="background-color: var(--danger-color); color: white;" title="Delete"
+                        <a href="{{ url_for('admin.delete_fund', fund_id=fund_entry.id) }}" class="btn"
+                            style="background-color: var(--danger-color); color: white;" title="Delete"
                             onclick="return confirm('Are you sure you want to delete this fund entry?');">Delete
                         </a>
                     </td>
                 </tr>
                 {% endfor %}
                 <!-- Totals Row -->
-                <tr class="table-active fw-bold">
-                    <td>Total</td>
+                <tr class="table-active">
+                    <td><small class="text-muted">Total</small><br><strong>Net Profit</strong></td>
                     <td class="text-end">{{ "%.2f"|format(stats.total_sales if stats else 0) }}</td>
                     <td class="text-end">{{ "%.2f"|format(stats.total_payout if stats else 0) }}</td>
-                    <td
-                        class="text-end {{ 'text-success' if (stats.total_net_profit if stats else 0) >= 0 else 'text-danger' }}">
-                        {{ "%.2f"|format(stats.total_net_profit if stats else 0) }}
+                    <td class="text-end">
+                        <div>{{ "%.2f"|format(stats.total_sales_and_payout if stats else 0) }}</div>
+                        <div class="fw-bold {{ 'text-success' if (stats.total_net_profit if stats else 0) >= 0 else 'text-danger' }}">
+                            {{ "%.2f"|format(stats.total_net_profit if stats else 0) }}
+                        </div>
                     </td>
                     <td colspan="4"></td>
                 </tr>

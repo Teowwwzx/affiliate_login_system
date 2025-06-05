@@ -1,0 +1,84 @@
+{% extends "new_base.html" %}
+
+{% block title %}Fund History - {{ current_year }} {{ month_names[current_month] if current_month else '' }}{% endblock %}
+
+{% block page_header %}
+<h1>Fund History</h1>
+<p>Review monthly fund summaries. Use the filter to select a specific month and year.</p>
+{% endblock %}
+
+{% block page_content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <form method="GET" action="{{ url_for('admin.fund_history') }}" class="row g-3 align-items-end">
+                <div class="col-auto">
+                    <label for="year_filter" class="form-label">Year</label>
+                    <select name="year" id="year_filter" class="form-select">
+                        {% for date_info in available_dates|unique(attribute='year')|sort(attribute='year', reverse=true) %}
+                            <option value="{{ date_info.year }}" {% if date_info.year == current_year %}selected{% endif %}>{{ date_info.year }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <label for="month_filter" class="form-label">Month</label>
+                    <select name="month" id="month_filter" class="form-select">
+                        {% for i in range(1, 13) %}
+                            <option value="{{ i }}" {% if i == current_month %}selected{% endif %}>{{ month_names[i] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if fund_type_details and fund_type_details.items %}
+    <div class="table-responsive mt-5 mb-5">
+        <table class="table table-striped table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Fund Type</th>
+                    <th class="text-end">Sales ($)</th>
+                    <th class="text-end">Payout ($)</th>
+                    <th class="text-end">Profit ($)</th>
+                    <th>Month</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in fund_type_details.items %}
+                <tr>
+                    <td>{{ record.fund_type.replace('_', ' ')|title if record.fund_type else 'N/A' }}</td>
+                    <td class="text-end">{{ "%.2f"|format(record.sales if record.sales is not none else 0) }}</td>
+                    <td class="text-end">{{ "%.2f"|format(record.payout if record.payout is not none else 0) }}</td>
+                    <td class="text-end">{{ "%.2f"|format((monthly_summary.sales if monthly_summary and monthly_summary.sales is not none else 0) - (monthly_summary.payout if monthly_summary and monthly_summary.payout is not none else 0)) }}</td>
+                    <td>{{ record.snapshot_date.strftime('%B %Y') if record.snapshot_date else 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+                {% if monthly_summary %}
+                <tr class="table-active">
+                    <td><small class="text-muted">Totals</small><br><strong>Net Profit</strong></td>
+                    <td class="text-end">{{ "%.2f"|format(monthly_summary.sales if monthly_summary.sales is not none else 0) }}</td>
+                    <td class="text-end">{{ "%.2f"|format(monthly_summary.payout if monthly_summary.payout is not none else 0) }}</td>
+                    <td class="text-end">
+                        <div>{{ "%.2f"|format(monthly_summary.total_profit if monthly_summary.total_profit is not none else 0) }}</div>
+                        <div class="fw-bold {{ 'text-success' if (monthly_summary.total_net_profit if monthly_summary.total_net_profit is not none else 0) >= 0 else 'text-danger' }}">
+                            {{ "%.2f"|format(monthly_summary.total_net_profit if monthly_summary.total_net_profit is not none else 0) }}
+                        </div>
+                    </td>
+                    <td></td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    {% elif not fund_type_details.items and not monthly_summary %}
+    <div class="alert alert-info mt-5 mb-5">
+        <i class="fas fa-info-circle me-2"></i> No fund summary details found for {{ month_names[current_month] }} {{ current_year }}.
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

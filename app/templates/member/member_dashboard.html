@@ -61,24 +61,54 @@
                 <p>Today is {{ days_since_joined if days_since_joined is defined else '0' }} days since you joined company!</p>
             </div>
 
-            <div class="widget-grid">
-                <!-- Member Widget 1: My Profile -->
-                <div class="widget">
-                    <div class="widget-header" style="padding-bottom: 20px;">
-                        <span>MY PROFILE</span>
-                        <span class="widget-menu-icon"></span>
-                    </div>
+            <!-- Leader Widget 1: Prize Pool -->
+            <div class="widget" style="margin-bottom: 30px;">
+                <div class="widget-header" style="padding-bottom: 20px;">
+                    <span>PRIZE POOL</span>
+                    <span class="widget-menu-icon"></span>
+                </div>
+                <div>
                     <div class="widget-content">
-                        <div class="stat-details">
-                            <p><i class="fas fa-user"></i> {{ member.username }}</p>
-                            <p><i class="fas fa-envelope"></i> {{ member.email }}</p>
-                            <p><i class="fas fa-calendar-alt"></i> Joined: {{ member.created_at | datetime_custom }}</p>
-                            <p><i class="fas fa-tag"></i> Referral Code: <strong>{{ referral_code }}</strong></p>
+                        {% if funds_pagination and funds_pagination.items %}
+                        <div class="table-responsive mt-3 mb-3 new-admin-card p-3">
+                            <table class="table table-striped table-hover align-middle futuristic-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Fund Type</th>
+                                        <th class="text-end">Sales</th>
+                                        <th class="text-end">Payout</th>
+                                        <th class="text-end">Net Profit</th>
+                                        <th>Remarks</th>
+                                        <th>Created At</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for fund_entry in funds_pagination.items %}
+                                    <tr>
+                                        <td>{{ fund_types[fund_entry.fund_type] if fund_entry.fund_type in fund_types
+                                            else fund_entry.fund_type|capitalize }}</td>
+                                        <td class="text-end">{{ fund_entry.sales|format_currency }}</td>
+                                        <td class="text-end">{{ fund_entry.payout|format_currency }}</td>
+                                        <td
+                                            class="text-end fw-bold {{ 'text-success' if fund_entry.net_profit >= 0 else 'text-danger' }}">
+                                            {{ fund_entry.net_profit|format_currency }}
+                                        </td>
+                                        <td>{{ fund_entry.remarks if fund_entry.remarks else '-' }}</td>
+                                        <td>{{ fund_entry.created_at | datetime_custom if fund_entry.created_at else
+                                            'N/A' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
+                        {% endif %}
                     </div>
                 </div>
+            </div>
 
-                <!-- Member Widget 2: My Leader -->
+            <div class="widget-grid">
+                
+                <!-- Member Widget 2: My Leader --> 
                 <div class="widget">
                     <div class="widget-header" style="padding-bottom: 20px;">
                         <span>MY LEADER</span>
@@ -87,8 +117,8 @@
                     <div class="widget-content">
                         {% if leader %}
                         <div class="stat-details">
-                            <p><i class="fas fa-user-tie"></i> {{ leader.username }}</p>
-                            <p><i class="fas fa-envelope"></i> {{ leader.email }}</p>
+                            <p><i class="fas fa-user-tie"></i>Leader: {{ leader.username }}</p>
+                            <p><i class="fas fa-envelope"></i>Leader Email: {{ leader.email }}</p>
                         </div>
                         {% else %}
                         <div class="stat-details">
@@ -97,7 +127,23 @@
                         {% endif %}
                     </div>
                 </div>
-
+                
+                <!-- Member Widget 1: My Profile -->
+                <div class="widget">
+                    <div class="widget-header" style="padding-bottom: 20px;">
+                        <span>MY PROFILE</span>
+                        <span class="widget-menu-icon"></span>
+                    </div>
+                    <div class="widget-content">
+                        <div class="stat-details">
+                            <p class><i class="fas fa-user"></i>Username: {{ member.username }}</p>
+                            <p><i class="fas fa-envelope"></i>Email: {{ member.email }}</p>
+                            <p><i class="fas fa-calendar-alt"></i>Joined: {{ member.created_at | datetime_custom }}</p>
+                            <p><i class="fas fa-tag"></i>Referral Code: {{ referral_code }}</p>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Member Widget 3: Quick Actions -->
                 <div class="widget">
                     <div class="widget-header" style="padding-bottom: 20px;">

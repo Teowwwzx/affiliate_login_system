@@ -9,7 +9,7 @@ from flask import (
 )
 from flask_login import login_required, current_user
 from ..database import db
-from ..database.models import User, Fund
+from ..database.models import User, Fund, Sale, FundHistory
 from ..utils import role_required
 from werkzeug.security import (
     generate_password_hash,
@@ -107,7 +107,8 @@ def admin_dashboard():
         "funds_summary": funds_summary,
         "total_sales": sum(f["sales"] for f in funds_summary.values()),
         "total_payout": sum(f["payout"] for f in funds_summary.values()),
-        "total_net_profit": sum(f["net_profit"] for f in funds_summary.values()),
+        "total_sales_and_payout": sum(f["sales"] + f["payout"] for f in funds_summary.values()),
+        "total_net_profit": (sum(f["sales"] + f["payout"] for f in funds_summary.values()) * 0.30) / 50,
 
         # Leader Stats
         "leaders_for_sales_calc": sorted_leaders_by_member_count[:5],
@@ -482,10 +483,16 @@ def manage_funds():
     # Debug: Print the calculated totals
     print(f"Debug - Calculated totals: sales={result[0]}, payout={result[1]}, net_profit={result[2]}")
 
+    # Calculate the sum of sales and payout for the net profit formula
+    total_sales = float(result[0]) if result[0] is not None else 0.0
+    total_payout = float(result[1]) if result[1] is not None else 0.0
+    total_sales_and_payout = total_sales + total_payout
+    
     stats = {
-        'total_sales': float(result[0]) if result[0] is not None else 0.0,
-        'total_payout': float(result[1]) if result[1] is not None else 0.0,
-        'total_net_profit': float(result[2]) if result[2] is not None else 0.0
+        'total_sales': total_sales,
+        'total_payout': total_payout,
+        'total_sales_and_payout': total_sales_and_payout,
+        'total_net_profit': (total_sales_and_payout * 0.30) / 50  # Using the new formula
     }
     
     # Debug: Print the final stats being passed to template
@@ -724,3 +731,89 @@ def list_all_leaders():
         sort_by=sort_by,
         sort_order=sort_order,
     )
+
+from sqlalchemy import extract, desc
+from datetime import datetime # Ensure datetime is imported if not already
+
+@admin_bp.route("/fund_history")
+@login_required
+@role_required("admin")
+def fund_history():
+    page = request.args.get("page", 1, type=int)
+    per_page = 10 # Or a configurable value
+
+    selected_year = request.args.get('year', type=int)
+    selected_month = request.args.get('month', type=int)
+
+    # Get available year/month pairs for the filter dropdown
+    available_dates_query = db.session.query(
+        extract('year', FundHistory.snapshot_date).label('year'),
+        extract('month', FundHistory.snapshot_date).label('month')
+    ).distinct().order_by(
+        desc(extract('year', FundHistory.snapshot_date)),
+        desc(extract('month', FundHistory.snapshot_date))
+    )
+    available_raw_dates = available_dates_query.all()
+
+    available_dates_for_filter = []
+    if available_raw_dates:
+        for yr, mn in available_raw_dates:
+            if yr is not None and mn is not None: # Ensure dates are not NULL
+                available_dates_for_filter.append({
+                    'year': int(yr),
+                    'month': int(mn),
+                    'month_name': datetime(int(yr), int(mn), 1).strftime('%B')
+                })
+
+    current_year = selected_year
+    current_month = selected_month
+
+    if not available_dates_for_filter:
+        # No data in FundHistory, default to current system month/year for filter display
+        # but queries will likely return nothing.
+        now = datetime.utcnow()
+        current_year = current_year or now.year
+        current_month = current_month or now.month
+        # Add current month to filter options if no data exists, for UI consistency
+        if not any(d['year'] == current_year and d['month'] == current_month for d in available_dates_for_filter):
+            available_dates_for_filter.insert(0, {
+                'year': current_year,
+                'month': current_month,
+                'month_name': datetime(current_year, current_month, 1).strftime('%B')
+            })
+    else:
+        if current_year is None or current_month is None:
+            # Default to the most recent available date if no specific filter applied
+            current_year = available_dates_for_filter[0]['year']
+            current_month = available_dates_for_filter[0]['month']
+
+    # Query for fund type details for the selected/defaulted month (excluding overall summary)
+    fund_type_details_query = FundHistory.query.filter(
+        extract('year', FundHistory.snapshot_date) == current_year,
+        extract('month', FundHistory.snapshot_date) == current_month,
+        FundHistory.fund_type != 'MONTHLY_SALES'  # As per user's change in fund_utils.py
+    ).order_by(FundHistory.fund_type)
+    
+    fund_type_details = fund_type_details_query.paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+
+    # Query for the overall monthly summary for the selected/defaulted month
+    monthly_summary = FundHistory.query.filter(
+        extract('year', FundHistory.snapshot_date) == current_year,
+        extract('month', FundHistory.snapshot_date) == current_month,
+        FundHistory.fund_type == 'MONTHLY_SALES'
+    ).first()
+
+    return render_template(
+        "admin/list_fund_history.html",
+        title="Fund History",
+        fund_type_details=fund_type_details,
+        monthly_summary=monthly_summary,
+        available_dates=available_dates_for_filter,
+        current_year=current_year,
+        current_month=current_month,
+        month_names={m: datetime(2000, m, 1).strftime('%B') for m in range(1, 13)} # For displaying month name if needed
+    )
+
+

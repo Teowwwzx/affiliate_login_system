@@ -1,11 +1,12 @@
 # app/routes/member_routes.py
 from flask import Blueprint, render_template, session, flash, redirect, url_for, request
 from functools import wraps
-from app.database.models import User
+from app.database.models import User, Fund
 from app import db
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_login import current_user, login_required
 from datetime import datetime
+from .admin_routes import FUND_TYPES
 
 member_bp = Blueprint("member", __name__, url_prefix="/member")
 
@@ -50,6 +51,24 @@ def member_dashboard():
     # Get referral code or 'NA' if not available
     referral_code = member.personal_referral_code or 'NA'
 
+    funds_query = Fund.query.join(
+        User, Fund.created_by == User.id
+    ).add_columns(
+        Fund.id,
+        Fund.sales,
+        Fund.payout,
+        Fund.net_profit,
+        Fund.fund_type,
+        Fund.remarks,
+        Fund.created_at,
+        User.username.label('creator_username')
+    ).order_by(Fund.created_at.desc())
+
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    
+    funds_pagination = funds_query.paginate(page=page, per_page=per_page, error_out=False)
+
     return render_template(
         "member/member_dashboard.html",
         title="Member Dashboard",
@@ -57,13 +76,13 @@ def member_dashboard():
         leader=leader,
         days_since_joined=days_since_joined,
         referral_code=referral_code,
+        funds_pagination=funds_pagination,
+        fund_types=FUND_TYPES,
     )
 
 
-@member_bp.route("/change-password", methods=["GET", "POST"])
-@member_required
-@login_required
-def change_password():
-    # Redirect to the central change_password route in auth_routes.py
-    # This maintains backward compatibility for any existing links
-    return redirect(url_for("auth.change_password"))
+# @member_bp.route("/change-password", methods=["GET", "POST"])
+# @member_required
+# @login_required
+# def change_password():
+#     return redirect(url_for("auth.change_password"))

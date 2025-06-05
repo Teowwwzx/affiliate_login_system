@@ -46,6 +46,12 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'admin.fund_history' %}active{% endif %}"
+                    href="{{ url_for('admin.fund_history') }}">
+                    <i class="bi bi-bar-chart-fill"></i> Fund History
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link {% if request.endpoint == 'admin.list_all_leaders' %}active{% endif %}"
                     href="{{ url_for('admin.list_all_leaders') }}">
                     <i class="bi bi-award-fill"></i> Leaderboard
