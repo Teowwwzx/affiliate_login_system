@@ -11,6 +11,7 @@ from .routes.auth_routes import auth_bp
 from .routes.admin_routes import admin_bp
 from .routes.leader_routes import leader_bp
 from .routes.member_routes import member_bp
+from .routes.investor_routes import investor_bp # Investor blueprint
 import click    
 from .database.models import User 
 from .utils import register_filters
@@ -138,6 +139,7 @@ def create_app(test_config=None):
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(leader_bp, url_prefix='/leader')
     app.register_blueprint(member_bp, url_prefix='/member')
+    app.register_blueprint(investor_bp, url_prefix='/investor') # Register investor blueprint
 
     # --- Register filters ---
     register_filters(app)

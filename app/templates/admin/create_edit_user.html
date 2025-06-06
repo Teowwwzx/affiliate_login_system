@@ -100,6 +100,7 @@
                 {% set current_role = user_data.role if user_data else (user.role if is_edit_mode else '') %}
                 <option value="member" {% if current_role=='member' %}selected{% endif %}>Member</option>
                 <option value="leader" {% if current_role=='leader' %}selected{% endif %}>Leader</option>
+                <option value="investor" {% if current_role=='investor' %}selected{% endif %}>Investor</option>
                 {% if not is_edit_mode or (is_edit_mode and current_role == 'admin') %}
                 {# Allow 'admin' option only if editing an existing admin (field will be disabled), or if some logic
                 allowed creating admins this way #}
@@ -154,8 +155,7 @@
         const roleSelect = document.getElementById('role');
         const leaderSelectionDiv = document.getElementById('leaderSelection');
         const leaderRequiredAsterisk = document.getElementById('leaderRequiredAsterisk');
-        const isEditMode = {{ is_edit_mode| tojson
-    }}; // Pass boolean to JS
+        const isEditMode = {{ is_edit_mode | tojson }}; // Pass boolean to JS
     const currentUserRole = "{{ user.role if user else '' }}";
     const emailUsername = document.getElementById('email_username');
     const emailDomain = document.getElementById('email_domain');
@@ -165,7 +165,7 @@
 
     // Function to toggle leader selection visibility
     function toggleLeaderSelection() {
-        if (roleSelect.value === 'member' && !(isEditMode && currentUserRole === 'admin')) {
+        if (roleSelect.value === 'member' && !(isEditMode && currentUserRole === 'admin')) { // Only show for 'member'
             leaderSelectionDiv.style.display = 'block';
             leaderRequiredAsterisk.style.display = 'inline';
         } else {

@@ -23,6 +23,8 @@ def login():
             return redirect(url_for("leader.leader_dashboard"))
         elif current_user.role == "member":
             return redirect(url_for("member.member_dashboard"))
+        elif current_user.role == "investor":
+            return redirect(url_for("investor.investor_dashboard"))
         else:
             return redirect(url_for("general.index"))
 
@@ -63,6 +65,8 @@ def login():
             return redirect(url_for("leader.leader_dashboard"))
         elif user.role == "member":
             return redirect(url_for("member.member_dashboard"))
+        elif user.role == "investor":
+            return redirect(url_for("investor.investor_dashboard"))
         else:
             flash("Login successful, but role dashboard not found.", "warning")
             return redirect(url_for("general.index"))

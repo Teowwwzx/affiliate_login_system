@@ -16,13 +16,13 @@
             <div class="menu-toggle">
                 <i class="fas fa-bars"></i>
             </div>
-            {% if request.endpoint == 'leader.my_downlines' or request.endpoint == 'leader.fund_history' %}
+            {% if request.endpoint == 'leader.my_downlines' or request.endpoint == 'leader.fund_history'%}
             <a href="{{ url_for('leader.leader_dashboard') }}" class="mobile-home-btn">
                 <i class="fas fa-home"></i>
             </a>
             {% endif %}
-            {% if current_user.is_authenticated and current_user.role == 'member' %}
-            <a href="{{ url_for('member.member_dashboard') }}">
+            {% if current_user.is_authenticated and current_user.role == 'member' or current_user.role == 'investor' %}
+            <a href="{{ url_for(current_user.role + '.' + current_user.role + '_dashboard') }}">
                 <span class="gradient-text" style="font-size: 1.3em;"><strong>R&I Affiliate</strong></span>
             </a>
             {% endif %}
@@ -92,7 +92,7 @@
 
         <!-- Main Content Area -->
         <main class="main-content">
-            {% if request.endpoint == 'leader.leader_dashboard' or request.endpoint == 'member.member_dashboard' %}
+            {% if request.endpoint == 'leader.leader_dashboard' or request.endpoint == 'member.member_dashboard' or request.endpoint == 'investor.investor_dashboard' %}
             <div class="widget" style="margin-bottom: 30px;">
                 <h1 style="margin-bottom: 6px;">Welcome, {{ current_user.username if current_user and
                     current_user.is_authenticated else 'Leader'
@@ -160,23 +160,33 @@
                                     {% endfor %}
                                     <!-- Totals Row -->
                                     <tr class="table-active">
-                                        <td colspan=""><strong>Total Profit</strong></td>
+                                        {% if current_user.role == 'member' %}
+                                        <td><strong>Profit</strong></td>
                                         <td class="text-end">{{ "%.2f"|format(funds_stats.total_sales if funds_stats
                                             else 0) }}</td>
                                         <td class="text-end">{{ "%.2f"|format(funds_stats.total_payout if funds_stats
                                             else 0) }}
                                         </td>
-                                        <!-- <td colspan="2"></td> -->
-
+                                        {% endif %}
+                                        {% if current_user.role == 'member' %}
                                         <td colspan="3" class="text-end">
                                             <div><strong>{{ "%.2f"|format(funds_stats.total_sales_and_payout if funds_stats else
-                                                0) }}</strong></div>
-                                            <!-- <div
+                                                0) }}</strong>
+                                            </div>
+
+                                        </td>
+                                        {% endif %}
+
+                                        {% if current_user.role in ['leader', 'admin', 'investor'] %}
+                                        <td colspan="3"><strong>Profit</strong></td>
+
+                                        <td colspan="3" class="text-end">
+                                            <div
                                                 class="{{ 'text-success' if (funds_stats.total_net_profit if funds_stats else 0) >= 0 else 'text-danger' }}" style="font-weight: bold;">
                                                 {{ "%.2f"|format(funds_stats.total_net_profit if funds_stats else 0) }}
-                                            </div> -->
+                                            </div>
                                         </td>
-                                        <!-- <td colspan="2"></td> -->
+                                        {% endif %}
                                     </tr>
                                 </tbody>
                             </table>
@@ -231,6 +241,7 @@
             // Sidebar Toggle
             const menuToggle = document.querySelector('.menu-toggle');
             const dashboardContainer = document.querySelector('.dashboard-container');
+            const sidebar = document.querySelector('.sidebar');
 
             if (menuToggle && dashboardContainer) {
                 menuToggle.addEventListener('click', function (e) {
@@ -239,6 +250,15 @@
                     dashboardContainer.classList.toggle('sidebar-toggled');
                 });
             }
+
+            // Close sidebar when clicking outside
+            document.addEventListener('click', function(event) {
+                if (dashboardContainer && dashboardContainer.classList.contains('sidebar-toggled') && 
+                    !sidebar.contains(event.target) && 
+                    !menuToggle.contains(event.target)) {
+                    dashboardContainer.classList.remove('sidebar-toggled');
+                }
+            });
 
             // User Profile Dropdown Toggle
             const userProfile = document.querySelector('.top-nav .user-profile');

@@ -32,3 +32,4 @@ def role_required(role_name):
 admin_required = role_required('admin')
 leader_required = role_required('leader')
 member_required = role_required('member') # Adding member_required for consistency
+investor_required = role_required('investor')
