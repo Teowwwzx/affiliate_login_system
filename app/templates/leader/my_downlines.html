@@ -1,174 +1,50 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "shared/dashboard_base.html" %}
+{% set show_prize_pool = false %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/futuristic_style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-</head>
+{% block title %}{{ title if title else 'Leader Dashboard' }}{% endblock %}
 
-<body>
-    <div class="dashboard-container">
-        <!-- Top Navigation Bar -->
-        <header class="top-nav">
-            <div class="menu-toggle">
-                <i class="fas fa-bars" style="padding-right: 12px;"></i>
-            </div>
-            <a href="{{ url_for('leader.leader_dashboard') }}" class="mobile-home-btn">
-                <i class="fas fa-home" style="font-size: 1.5em;"></i>
-            </a>
-            <a href="{{ url_for('leader.leader_dashboard') }}">
-                <span class="gradient-text brandname" style="font-size: 1.2em;"><strong>R&I
-                        Affiliate</strong></span>
-            </a>
-            <form method="GET" action="{{ url_for('leader.my_downlines') }}" class="search-bar-form">
-                <div class="search-bar">
-                    <i class="fas fa-search"></i>
-                    <input type="text" name="q" placeholder="Search downlines...">
-                </div>
-            </form>
-            <div class="nav-icons">
-                <div class="user-profile">
-                    <span>{{ current_user.username if current_user and current_user.is_authenticated else 'Leader'
-                        }}</span>
-                    <i class="fas fa-chevron-down"></i>
-                    <div class="dropdown-menu">
-                        <a href="{{ url_for('auth.change_password') }}"><i class="fas fa-key"></i> Change Password</a>
-                        <a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                    </div>
-                </div>
-            </div>
-        </header>
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <nav>
-                <nav class="new-admin-sidebar" id="sidebar">
-                    <div class="logo-section" style="text-align: center;"><a
-                            href="{{ url_for('leader.leader_dashboard') }}">
-                            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo"
-                                style="width: 100px; height: 100px;">
-                        </a></div>
-                    <p class="nav-category">Navigation</p>
-                    <ul>
-                        <li><a href="{{ url_for('leader.leader_dashboard') }}"><i class="fas fa-tachometer-alt"></i>
-                                Dashboard</a></li>
-                        <li class="active"><a href="{{ url_for('leader.my_downlines') }}"><i class="fas fa-sitemap"></i>
-                                My
-                                Downlines</a>
-                        </li>
-                    </ul>
-                    <p class="nav-category">Account</p>
-                    <ul>
-                        <li><a href="{{ url_for('auth.change_password') }}"><i class="fas fa-key"></i> Change
-                                Password</a>
-                        </li>
-                        <li><a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                    </ul>
-                </nav>
-        </aside>
-
-        <!-- Main Content Area -->
-        <main class="main-content">
-            <div class="widget">
-                <div class="widget-header">
-                    <span>MY DOWNLINE</span>
-                    <span class="widget-menu-icon"></span> <!-- Optional: if you want the L L icon -->
-                </div>
-                <div class="widget-content">
-                    {% if downline_members %}
-                    <div class="table-responsive"> <!-- For better table display on small screens -->
-                        <table class="futuristic-table"> <!-- Add a class for styling -->
-                            <thead>
-                                <tr>
-                                    <th>Username</th>
-                                    <th>Email</th>
-                                    <th>Referral Code</th>
-                                    <th>Joined On</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for member in downline_members %}
-                                <tr>
-                                    <td>{{ member.username }}</td>
-                                    <td>{{ member.email }}</td>
-                                    <td>{{ member.personal_referral_code }}</td>
-                                    <td>{{ member.created_at.strftime('%Y-%m-%d %H:%M') if member.created_at else 'N/A'
-                                        }}</td>
-                                    <td>
-                                        {% if member.status %}
-                                        <span class="status-active">Active</span>
-                                        {% else %}
-                                        <span class="status-inactive">Inactive</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p>You currently have no members in your downline.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </main>
+{% block page_content %}
+<div class="widget">
+    <div class="widget-header">
+        <span>MY DOWNLINE</span>
+        <span class="widget-menu-icon"></span>
     </div>
-
-    <style>
-        .mobile-home-btn {
-            display: none; /* Hidden by default */
-            color: var(--text-color);
-            font-size: 0.8em;
-        }
-
-        @media (max-width: 768px) {
-            .top-nav .brandname {
-                display: none;
-            }
-
-            .mobile-home-btn {
-                display: block; /* Shown on mobile screens */
-            }
-        }
-    </style>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Sidebar Toggle
-            const menuToggle = document.querySelector('.menu-toggle');
-            const dashboardContainer = document.querySelector('.dashboard-container');
-
-            if (menuToggle && dashboardContainer) {
-                menuToggle.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    dashboardContainer.classList.toggle('sidebar-toggled');
-                    console.log('Toggled sidebar'); // Debug line
-                });
-            }
-
-            // User Profile Dropdown Toggle
-            const userProfile = document.querySelector('.top-nav .user-profile');
-            const dropdownMenu = userProfile ? userProfile.querySelector('.dropdown-menu') : null;
-
-            if (userProfile && dropdownMenu) {
-                userProfile.addEventListener('click', function (event) {
-                    event.stopPropagation(); // Prevent click from bubbling to document
-                    dropdownMenu.classList.toggle('show');
-                });
-
-                // Close dropdown if clicked outside
-                document.addEventListener('click', function (event) {
-                    if (!userProfile.contains(event.target) && dropdownMenu.classList.contains('show')) {
-                        dropdownMenu.classList.remove('show');
-                    }
-                });
-            }
-        });
-    </script>
-</body>
-
-</html>
+    <div class="widget-content">
+        {% if downline_members %}
+        <div class="table-responsive">
+            <table class="futuristic-table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Referral Code</th>
+                        <th>Joined On</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for member in downline_members %}
+                    <tr>
+                        <td>{{ member.username }}</td>
+                        <td>{{ member.email }}</td>
+                        <td>{{ member.personal_referral_code }}</td>
+                        <td>{{ member.created_at.strftime('%Y-%m-%d %H:%M') if member.created_at else 'N/A'
+                            }}</td>
+                        <td>
+                            {% if member.status %}
+                            <span class="status-active">Active</span>
+                            {% else %}
+                            <span class="status-inactive">Inactive</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p>You currently have no members in your downline.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

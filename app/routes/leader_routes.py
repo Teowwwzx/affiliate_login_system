@@ -1,10 +1,10 @@
 # app/routes/leader_routes.py
 from flask import Blueprint, render_template, session, flash, redirect, url_for, request
 from functools import wraps
-from app.database.models import User, Fund
+from app.database.models import User, Fund, FundHistory
 from app import db
-from sqlalchemy import func
-from datetime import datetime
+from sqlalchemy import func, extract, desc
+from datetime import datetime, timedelta
 from .admin_routes import FUND_TYPES
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import current_user, login_required
@@ -47,9 +47,6 @@ def leader_dashboard():
     if leader.created_at:
         days_difference = (datetime.utcnow() - leader.created_at).days
         days_since_joined = max(1, days_difference)
-
-    page = request.args.get('page', 1, type=int)
-    per_page = 10
     
     # Query fund entries with pagination
     funds_query = Fund.query.join(
@@ -65,9 +62,7 @@ def leader_dashboard():
         User.username.label('creator_username')
     ).order_by(Fund.created_at.desc())
 
-    funds_pagination = funds_query.paginate(page=page, per_page=per_page, error_out=False)
     
-    # Calculate totals for all funds (not just the current page)
     total_result = db.session.query(
         func.coalesce(func.sum(Fund.sales), 0).label('total_sales'),
         func.coalesce(func.sum(Fund.payout), 0).label('total_payout')
@@ -75,8 +70,8 @@ def leader_dashboard():
     
     total_sales = float(total_result[0]) if total_result[0] is not None else 0.0
     total_payout = float(total_result[1]) if total_result[1] is not None else 0.0
-    total_sales_and_payout = total_sales + total_payout
-    total_net_profit = (total_sales_and_payout * 0.30) / 50  # Using the same formula as admin
+    total_sales_and_payout = total_sales - total_payout
+    total_net_profit = (total_sales_and_payout * 0.30) / 0.5
     
     funds_stats = {
         'total_sales': total_sales,
@@ -84,6 +79,12 @@ def leader_dashboard():
         'total_sales_and_payout': total_sales_and_payout,
         'total_net_profit': total_net_profit
     }
+
+
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+
+    funds_pagination = funds_query.paginate(page=page, per_page=per_page, error_out=False)
 
     return render_template(
         "leader/leader_dashboard.html",
@@ -121,3 +122,76 @@ def my_downlines():
         search_query=search_query,
     )
 
+@leader_bp.route("/fund-history")
+@leader_required
+def fund_history():
+    page = request.args.get("page", 1, type=int)
+    per_page = 10
+
+    selected_year = request.args.get('year', type=int)
+    selected_month = request.args.get('month', type=int)
+
+    # Get available year/month pairs for the filter dropdown
+    available_dates_query = db.session.query(
+        extract('year', FundHistory.snapshot_date).label('year'),
+        extract('month', FundHistory.snapshot_date).label('month')
+    ).distinct().order_by(
+        desc(extract('year', FundHistory.snapshot_date)),
+        desc(extract('month', FundHistory.snapshot_date))
+    )
+    available_raw_dates = available_dates_query.all()
+
+    # Simplify available_dates to be a list of dicts: [{'year': YYYY, 'month': MM}, ...]
+    available_dates_for_template = []
+    if available_raw_dates:
+        for yr, mn in available_raw_dates:
+            if yr is not None and mn is not None:
+                available_dates_for_template.append({'year': int(yr), 'month': int(mn)})
+
+    current_year = selected_year
+    current_month = selected_month
+
+    if not available_dates_for_template:
+        now = datetime.utcnow()
+        current_year = current_year or now.year
+        current_month = current_month or now.month
+        if not any(d['year'] == current_year and d['month'] == current_month for d in available_dates_for_template):
+            available_dates_for_template.insert(0, {'year': current_year, 'month': current_month})
+    else:
+        if current_year is None or current_month is None:
+            current_year = available_dates_for_template[0]['year']
+            current_month = available_dates_for_template[0]['month']
+        elif not any(d['year'] == current_year and d['month'] == current_month for d in available_dates_for_template):
+            available_dates_for_template.append({'year': current_year, 'month': current_month})
+            available_dates_for_template.sort(key=lambda x: (x['year'], x['month']), reverse=True)
+
+    # Query for fund type details for the selected/defaulted month
+    fund_type_details_query = FundHistory.query.filter(
+        extract('year', FundHistory.snapshot_date) == current_year,
+        extract('month', FundHistory.snapshot_date) == current_month,
+        FundHistory.fund_type != 'MONTHLY_SALES'
+    ).order_by(FundHistory.fund_type)
+    
+    fund_type_details = fund_type_details_query.paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+
+    # Query for the overall monthly summary for the selected/defaulted month
+    monthly_summary = FundHistory.query.filter(
+        extract('year', FundHistory.snapshot_date) == current_year,
+        extract('month', FundHistory.snapshot_date) == current_month,
+        FundHistory.fund_type == 'MONTHLY_SALES'
+    ).first()
+
+    month_names = {m: datetime(2000, m, 1).strftime('%B') for m in range(1, 13)}
+    
+    return render_template(
+        "shared/fund_history.html",
+        title="Fund History (Leader)", # Standardized title
+        fund_type_details=fund_type_details,
+        monthly_summary=monthly_summary,
+        available_dates=available_dates_for_template, # Use simplified list
+        current_year=current_year,
+        current_month=current_month,
+        month_names=month_names
+    )

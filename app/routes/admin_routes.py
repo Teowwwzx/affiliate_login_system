@@ -15,7 +15,7 @@ from werkzeug.security import (
     generate_password_hash,
 )
 from flask import request
-from sqlalchemy import func
+from sqlalchemy import func, extract, desc
 from datetime import datetime
 import json
 
@@ -486,13 +486,13 @@ def manage_funds():
     # Calculate the sum of sales and payout for the net profit formula
     total_sales = float(result[0]) if result[0] is not None else 0.0
     total_payout = float(result[1]) if result[1] is not None else 0.0
-    total_sales_and_payout = total_sales + total_payout
+    total_sales_and_payout = total_sales - total_payout
     
     stats = {
         'total_sales': total_sales,
         'total_payout': total_payout,
         'total_sales_and_payout': total_sales_and_payout,
-        'total_net_profit': (total_sales_and_payout * 0.30) / 50  # Using the new formula
+        'total_net_profit': (total_sales_and_payout * 0.30) / 0.5  # Using the new formula
     }
     
     # Debug: Print the final stats being passed to template
@@ -731,9 +731,6 @@ def list_all_leaders():
         sort_by=sort_by,
         sort_order=sort_order,
     )
-
-from sqlalchemy import extract, desc
-from datetime import datetime # Ensure datetime is imported if not already
 
 @admin_bp.route("/fund_history")
 @login_required

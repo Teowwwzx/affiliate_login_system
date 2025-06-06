@@ -63,7 +63,7 @@ def generate_monthly_fund_summary(year, month):
             type_sales = data['sales']
             type_payout = data['payout']
             type_total_profit = type_sales - type_payout
-            type_total_net_profit = ((type_sales + type_payout) * 0.30) / 50
+            type_total_net_profit = (type_sales - type_payout) * 0.30 / 0.5
 
             new_history_record = FundHistory(
                 snapshot_date=snapshot_date,
@@ -80,7 +80,7 @@ def generate_monthly_fund_summary(year, month):
         # Create overall monthly summary if there were any records
         if fund_records_for_month:
             overall_total_profit = all_monthly_sales - all_monthly_payout
-            overall_total_net_profit = ((all_monthly_sales + all_monthly_payout) * 0.30) / 50
+            overall_total_net_profit = (all_monthly_sales - all_monthly_payout) * 0.30 / 0.5
 
             overall_summary_record = FundHistory(
                 snapshot_date=snapshot_date,

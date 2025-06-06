@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ title if title else 'Dashboard' }}{% endblock %} - R&I Affiliate</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/futuristic_style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Top Navigation Bar -->
+        <header class="top-nav">
+            <div class="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            {% if request.endpoint == 'leader.my_downlines' or request.endpoint == 'leader.fund_history' %}
+            <a href="{{ url_for('leader.leader_dashboard') }}" class="mobile-home-btn">
+                <i class="fas fa-home"></i>
+            </a>
+            {% endif %}
+            {% if current_user.is_authenticated and current_user.role == 'member' %}
+            <a href="{{ url_for('member.member_dashboard') }}">
+                <span class="gradient-text" style="font-size: 1.3em;"><strong>R&I Affiliate</strong></span>
+            </a>
+            {% endif %}
+
+            {% if current_user.is_authenticated and current_user.role == 'leader' %}
+            <form method="GET" action="{{ url_for('leader.my_downlines') }}" class="search-bar-form">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" name="q" placeholder="Search downlines...">
+                </div>
+            </form>
+            {% endif %}
+
+            <div class="nav-icons">
+                <div class="user-profile">
+                    <span>{{ current_user.username if current_user and current_user.is_authenticated else 'User'
+                        }}</span>
+                    <i class="fas fa-chevron-down"></i>
+                    <div class="dropdown-menu">
+                        <a href="{{ url_for('auth.change_password') }}"><i class="fas fa-key"></i> Change Password</a>
+                        <a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <nav class="new-admin-sidebar" id="sidebar">
+                <div class="logo-section" style="text-align: center;">
+                    <a
+                        href="{{ url_for(current_user.role + '.' + current_user.role + '_dashboard') if current_user.is_authenticated and current_user.role in ['leader', 'member', 'investor', 'admin'] else url_for('general.index') }}">
+                        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo"
+                            style="width: 100px; height: 100px;">
+                    </a>
+                </div>
+                <p class="nav-category">Navigation</p>
+                <ul>
+                    <li
+                        class="{{ 'active' if request.endpoint == current_user.role + '.' + current_user.role + '_dashboard' else '' }}">
+                        <a
+                            href="{{ url_for(current_user.role + '.' + current_user.role + '_dashboard') if current_user.is_authenticated and current_user.role in ['leader', 'member', 'investor', 'admin'] else url_for('general.index') }}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+
+                    {% if current_user.role == 'leader' %}
+                    <li class="{{ 'active' if request.endpoint == 'leader.my_downlines' else '' }}">
+                        <a href="{{ url_for('leader.my_downlines') }}"><i class="fas fa-sitemap"></i> My Downlines</a>
+                    </li>
+                    {% endif %}
+                    <!-- Fund history -->
+                    <li class="{{ 'active' if request.endpoint == current_user.role + '.fund_history' else '' }}">
+                        <a href="{{ url_for(current_user.role + '.fund_history') }}">
+                            <i class="fas fa-history"></i> Fund History
+                        </a>
+                    </li>
+                </ul>
+                <p class="nav-category">Account</p>
+                <ul>
+                    <li><a href="{{ url_for('auth.change_password') }}"><i class="fas fa-key"></i> Change Password</a>
+                    </li>
+                    <li><a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            {% if request.endpoint == 'leader.leader_dashboard' or request.endpoint == 'member.member_dashboard' %}
+            <div class="widget" style="margin-bottom: 30px;">
+                <h1 style="margin-bottom: 6px;">Welcome, {{ current_user.username if current_user and
+                    current_user.is_authenticated else 'Leader'
+                    }}!</h1>
+                <p>Today is {{ days_since_joined }} days since you joined company!</p>
+
+                <br>
+
+                <!-- If endpoint is dashboard -->
+                <div class="widget-header" style="padding-top: 20px;">
+                    <span>QUICK ACTIONS</span>
+                </div>
+                <div class="widget-content">
+                    <div class="stat-details">
+                        {% if current_user.role == 'leader' %}
+                        <p style="padding-bottom: 4px;"><a href="{{ url_for('leader.my_downlines') }}"><i
+                                    class="fas fa-user-plus"></i>My
+                                Downlines</a></p>
+                        {% endif %}
+                        <p><a href="{{ url_for(current_user.role + '.fund_history') }}"><i class="fas fa-history"></i>
+                                Fund History</a></p>
+
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if show_prize_pool is not defined or show_prize_pool != false %}
+            <div class="widget" style="margin-bottom: 30px;">
+                <div class="widget-header" style="padding-bottom: 20px;">
+                    <span>PRIZE POOL</span>
+                    <span class="widget-menu-icon"></span>
+                </div>
+                <div>
+                    <div class="widget-content">
+                        {% if funds_pagination and funds_pagination.items %}
+                        <div class="table-responsive mt-3 mb-3 new-admin-card p-3">
+                            <table class="table table-striped table-hover align-middle futuristic-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Fund Type</th>
+                                        <th class="text-end">Sales</th>
+                                        <th class="text-end">Payout</th>
+                                        <th class="text-end">Net Profit</th>
+                                        <th>Remarks</th>
+                                        <!-- <th>Created By</th> -->
+                                        <th>Created At</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for fund_entry in funds_pagination.items %}
+                                    <tr>
+                                        <td>{{ fund_types[fund_entry.fund_type] if fund_entry.fund_type in fund_types
+                                            else fund_entry.fund_type|capitalize }}</td>
+                                        <td class="text-end">{{ fund_entry.sales|format_currency }}</td>
+                                        <td class="text-end">{{ fund_entry.payout|format_currency }}</td>
+                                        <td
+                                            class="text-end fw-bold {{ 'text-success' if fund_entry.net_profit >= 0 else 'text-danger' }}">
+                                            {{ fund_entry.net_profit|format_currency }}
+                                        </td>
+                                        <td>{{ fund_entry.remarks if fund_entry.remarks else '-' }}</td>
+                                        <td>{{ fund_entry.created_at | datetime_custom if fund_entry.created_at else
+                                            'N/A' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                    <!-- Totals Row -->
+                                    <tr class="table-active">
+                                        <td colspan="3"><strong>Net Profit</strong></td>
+                                        <!-- <td class="text-end">{{ "%.2f"|format(funds_stats.total_sales if funds_stats
+                                            else 0) }}</td>
+                                        <td class="text-end">{{ "%.2f"|format(funds_stats.total_payout if funds_stats
+                                            else 0) }}
+                                        </td> -->
+                                        <!-- <td colspan="2"></td> -->
+
+                                        <td colspan="3" class="text-end">
+                                            <!-- <div>{{ "%.2f"|format(funds_stats.total_sales_and_payout if funds_stats else
+                                                0) }}</div> -->
+                                            <div
+                                                class="{{ 'text-success' if (funds_stats.total_net_profit if funds_stats else 0) >= 0 else 'text-danger' }}" style="font-weight: bold;">
+                                                {{ "%.2f"|format(funds_stats.total_net_profit if funds_stats else 0) }}
+                                            </div>
+                                        </td>
+                                        <!-- <td colspan="2"></td> -->
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages-container" style="padding: 1rem;">
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show"
+                    role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            {% block page_content %}
+            {% endblock %}
+        </main>
+    </div>
+
+    <style>
+        .mobile-home-btn {
+            display: none;
+            color: var(--text-color);
+        }
+
+        @media (max-width: 768px) {
+            .top-nav .brandname {
+                display: none;
+            }
+
+            .mobile-home-btn {
+                display: flex;
+                align-items: center;
+                font-size: 1.2rem;
+
+            }
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Sidebar Toggle
+            const menuToggle = document.querySelector('.menu-toggle');
+            const dashboardContainer = document.querySelector('.dashboard-container');
+
+            if (menuToggle && dashboardContainer) {
+                menuToggle.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dashboardContainer.classList.toggle('sidebar-toggled');
+                });
+            }
+
+            // User Profile Dropdown Toggle
+            const userProfile = document.querySelector('.top-nav .user-profile');
+            const dropdownMenu = userProfile ? userProfile.querySelector('.dropdown-menu') : null;
+
+            if (userProfile && dropdownMenu) {
+                userProfile.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    dropdownMenu.classList.toggle('show');
+                });
+
+                // Close dropdown if clicked outside
+                document.addEventListener('click', function (event) {
+                    if (dropdownMenu && !userProfile.contains(event.target) && dropdownMenu.classList.contains('show')) {
+                        dropdownMenu.classList.remove('show');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
