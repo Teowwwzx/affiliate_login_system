@@ -108,7 +108,7 @@ def admin_dashboard():
         "total_sales": sum(f["sales"] for f in funds_summary.values()),
         "total_payout": sum(f["payout"] for f in funds_summary.values()),
         "total_sales_and_payout": sum(f["sales"] + f["payout"] for f in funds_summary.values()),
-        "total_net_profit": (sum(f["sales"] + f["payout"] for f in funds_summary.values()) * 0.30) / 50,
+        "total_net_profit": (sum(f["sales"] - f["payout"] for f in funds_summary.values()) * 0.30) / 50,
 
         # Leader Stats
         "leaders_for_sales_calc": sorted_leaders_by_member_count[:5],
