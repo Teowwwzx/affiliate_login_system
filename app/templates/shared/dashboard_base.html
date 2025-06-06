@@ -160,21 +160,21 @@
                                     {% endfor %}
                                     <!-- Totals Row -->
                                     <tr class="table-active">
-                                        <td colspan="3"><strong>Net Profit</strong></td>
-                                        <!-- <td class="text-end">{{ "%.2f"|format(funds_stats.total_sales if funds_stats
+                                        <td colspan=""><strong>Total Profit</strong></td>
+                                        <td class="text-end">{{ "%.2f"|format(funds_stats.total_sales if funds_stats
                                             else 0) }}</td>
                                         <td class="text-end">{{ "%.2f"|format(funds_stats.total_payout if funds_stats
                                             else 0) }}
-                                        </td> -->
+                                        </td>
                                         <!-- <td colspan="2"></td> -->
 
                                         <td colspan="3" class="text-end">
-                                            <!-- <div>{{ "%.2f"|format(funds_stats.total_sales_and_payout if funds_stats else
-                                                0) }}</div> -->
-                                            <div
+                                            <div><strong>{{ "%.2f"|format(funds_stats.total_sales_and_payout if funds_stats else
+                                                0) }}</strong></div>
+                                            <!-- <div
                                                 class="{{ 'text-success' if (funds_stats.total_net_profit if funds_stats else 0) >= 0 else 'text-danger' }}" style="font-weight: bold;">
                                                 {{ "%.2f"|format(funds_stats.total_net_profit if funds_stats else 0) }}
-                                            </div>
+                                            </div> -->
                                         </td>
                                         <!-- <td colspan="2"></td> -->
                                     </tr>

@@ -58,16 +58,17 @@
                     </tr>
                     {% endfor %}
                     {% if monthly_summary %}
-                    <tr class="table-active" >
-                        <td colspan="3"><strong>Net Profit</strong></td>
-                        <!-- <td class="text-end">{{ "%.2f"|format(monthly_summary.sales if monthly_summary.sales is not none else 0) }}</td>
-                        <td class="text-end">{{ "%.2f"|format(monthly_summary.payout if monthly_summary.payout is not none else 0) }}</td> -->
-                        <td colspan="2" class="text-end">
-                            <!-- <div>{{ "%.2f"|format(monthly_summary.total_profit if monthly_summary.total_profit is not none else 0) }}</div> -->
-                            <div class="fw-bold {{ 'text-success' if (monthly_summary.total_net_profit if monthly_summary.total_net_profit is not none else 0) >= 0 else 'text-danger' }}">
+                    <tr class="table-active">
+                        <td><strong>Totals</strong></td>
+                        <td class="text-end">{{ "%.2f"|format(monthly_summary.sales if monthly_summary.sales is not none else 0) }}</td>
+                        <td class="text-end">{{ "%.2f"|format(monthly_summary.payout if monthly_summary.payout is not none else 0) }}</td>
+                        <td class="text-end">
+                            <div><strong>{{ "%.2f"|format(monthly_summary.total_profit if monthly_summary.total_profit is not none else 0) }}</strong></div>
+                            <!-- <div class="fw-bold {{ 'text-success' if (monthly_summary.total_net_profit if monthly_summary.total_net_profit is not none else 0) >= 0 else 'text-danger' }}">
                                 {{ "%.2f"|format(monthly_summary.total_net_profit if monthly_summary.total_net_profit is not none else 0) }}
-                            </div>
+                            </div> -->
                         </td>
+                        <td></td> {# Empty cell for Period column in summary row #}
                     </tr>
                     {% endif %}
                 </tbody>
