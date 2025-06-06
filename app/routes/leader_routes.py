@@ -71,7 +71,7 @@ def leader_dashboard():
     total_sales = float(total_result[0]) if total_result[0] is not None else 0.0
     total_payout = float(total_result[1]) if total_result[1] is not None else 0.0
     total_sales_and_payout = total_sales - total_payout
-    total_net_profit = (total_sales_and_payout * 0.30) / 0.5
+    total_net_profit = (total_sales_and_payout * 0.30) / 50
     
     funds_stats = {
         'total_sales': total_sales,

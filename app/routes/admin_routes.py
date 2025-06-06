@@ -492,7 +492,7 @@ def manage_funds():
         'total_sales': total_sales,
         'total_payout': total_payout,
         'total_sales_and_payout': total_sales_and_payout,
-        'total_net_profit': (total_sales_and_payout * 0.30) / 0.5  # Using the new formula
+        'total_net_profit': (total_sales_and_payout * 0.30) / 50  # Using the new formula
     }
     
     # Debug: Print the final stats being passed to template
