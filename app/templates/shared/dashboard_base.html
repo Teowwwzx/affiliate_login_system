@@ -139,9 +139,9 @@
                                         <th class="text-end">Profit</th>
                                         <th>Remarks</th>
                                         <!-- <th>Created By</th> -->
-                                        {% if current_user.role != 'member' %}
+                                        <!-- {% if current_user.role != 'member' %}
                                         <th>Created At</th>
-                                        {% endif %}
+                                        {% endif %} -->
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -156,10 +156,10 @@
                                             {{ fund_entry.net_profit|format_currency }}
                                         </td>
                                         <td>{{ fund_entry.remarks if fund_entry.remarks else '-' }}</td>
-                                        {% if current_user.role != 'member' %}
+                                        <!-- {% if current_user.role != 'member' %}
                                         <td>{{ fund_entry.created_at | datetime_custom if fund_entry.created_at else
                                             'N/A' }}</td>
-                                        {% endif %}
+                                        {% endif %} -->
                                     </tr>
                                     {% endfor %}
                                     <!-- Totals Row -->
